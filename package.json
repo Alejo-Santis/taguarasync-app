@@ -15,6 +15,7 @@
     },
     "dependencies": {
         "@inertiajs/svelte": "^3.1.1",
+        "@lucide/svelte": "^1.16.0",
         "@popperjs/core": "^2.11.8",
         "@sveltejs/vite-plugin-svelte": "^7.1.2",
         "bootstrap": "^5.3.8",

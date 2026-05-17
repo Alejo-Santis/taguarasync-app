@@ -7,6 +7,11 @@
     --taguara-surface: #f7f9fb;
     --taguara-border: #dbe3ea;
     --taguara-text: #1f2933;
+    --taguara-muted: #64748b;
+    --taguara-sidebar: #ffffff;
+    --taguara-soft-green: #e8f4ee;
+    --taguara-soft-blue: #eaf2ff;
+    --taguara-soft-amber: #fff6df;
 }
 
 body {
@@ -21,6 +26,309 @@ body {
     background:
         linear-gradient(180deg, rgba(20, 108, 67, 0.08), transparent 320px),
         var(--taguara-surface);
+}
+
+.taguara-app {
+    min-height: 100vh;
+    background: var(--taguara-surface);
+}
+
+.taguara-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1020;
+    display: flex;
+    flex-direction: column;
+    width: 272px;
+    border-right: 1px solid var(--taguara-border);
+    background: var(--taguara-sidebar);
+}
+
+.taguara-sidebar-brand {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-brand-mark-sm {
+    width: 38px;
+    height: 38px;
+}
+
+.taguara-sidebar-nav {
+    display: grid;
+    gap: 0.25rem;
+    padding: 1rem;
+}
+
+.taguara-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 42px;
+    padding: 0.625rem 0.75rem;
+    border-radius: 8px;
+    color: var(--taguara-muted);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.taguara-nav-link:hover,
+.taguara-nav-link.active {
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary-dark);
+}
+
+.taguara-sidebar-footer {
+    margin-top: auto;
+    padding: 1rem;
+    border-top: 1px solid var(--taguara-border);
+}
+
+.taguara-tenant-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.75rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.taguara-main {
+    min-height: 100vh;
+    margin-left: 272px;
+}
+
+.taguara-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1010;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 76px;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--taguara-border);
+    background: rgba(247, 249, 251, 0.92);
+    backdrop-filter: blur(14px);
+}
+
+.taguara-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.taguara-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+}
+
+.taguara-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: min(360px, 32vw);
+    min-height: 40px;
+    padding: 0 0.75rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--taguara-muted);
+}
+
+.taguara-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: var(--taguara-text);
+}
+
+.taguara-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-height: 38px;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(20, 108, 67, 0.18);
+    border-radius: 8px;
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary-dark);
+    font-weight: 700;
+    font-size: 0.875rem;
+}
+
+.taguara-mobile-nav {
+    display: none;
+}
+
+.taguara-content {
+    padding: 1.5rem;
+}
+
+.taguara-dashboard {
+    display: grid;
+    gap: 1rem;
+}
+
+.taguara-command-band,
+.taguara-panel,
+.taguara-kpi-card {
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
+}
+
+.taguara-command-band {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.taguara-kpi-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    height: 100%;
+    padding: 1rem;
+}
+
+.taguara-kpi-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+}
+
+.taguara-panel {
+    height: 100%;
+    padding: 1rem;
+}
+
+.taguara-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.taguara-empty-chart {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(220px, 0.75fr);
+    gap: 1.25rem;
+    min-height: 260px;
+    align-items: center;
+}
+
+.taguara-chart-bars {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(18px, 1fr));
+    align-items: end;
+    gap: 0.75rem;
+    height: 220px;
+    padding: 1rem;
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--taguara-soft-blue), #fff);
+}
+
+.taguara-chart-bars span {
+    display: block;
+    min-height: 24px;
+    border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, #146c43, #78c29a);
+}
+
+.taguara-alert-row,
+.taguara-timeline-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.875rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.taguara-alert-value {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--taguara-soft-amber);
+    color: #8a5a00;
+    font-weight: 800;
+}
+
+.taguara-action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.taguara-action-button {
+    display: grid;
+    gap: 0.75rem;
+    min-height: 112px;
+    padding: 1rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--taguara-text);
+    font-weight: 700;
+    text-align: left;
+}
+
+.taguara-action-button:hover {
+    border-color: rgba(20, 108, 67, 0.35);
+    background: var(--taguara-soft-green);
+}
+
+.taguara-action-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+.taguara-timeline {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.taguara-timeline-item {
+    justify-content: flex-start;
+}
+
+.taguara-timeline-time {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 86px;
+    min-height: 34px;
+    border-radius: 8px;
+    background: var(--taguara-soft-blue);
+    color: #084298;
+    font-size: 0.8125rem;
+    font-weight: 800;
 }
 
 .taguara-auth-panel {
@@ -70,4 +378,81 @@ body {
 
 .taguara-toast-stack .toast {
     width: 100%;
+}
+
+@media (max-width: 991.98px) {
+    .taguara-sidebar {
+        display: none;
+    }
+
+    .taguara-main {
+        margin-left: 0;
+    }
+
+    .taguara-topbar {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .taguara-topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .taguara-search {
+        width: 100%;
+        order: 3;
+    }
+
+    .taguara-mobile-nav.open {
+        display: flex;
+        gap: 0.5rem;
+        overflow-x: auto;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--taguara-border);
+        background: #fff;
+    }
+
+    .taguara-mobile-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        min-height: 36px;
+        padding: 0 0.75rem;
+        border: 1px solid var(--taguara-border);
+        border-radius: 8px;
+        color: var(--taguara-muted);
+        font-size: 0.875rem;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .taguara-mobile-link.active {
+        background: var(--taguara-soft-green);
+        color: var(--taguara-primary-dark);
+    }
+}
+
+@media (max-width: 767.98px) {
+    .taguara-content {
+        padding: 1rem;
+    }
+
+    .taguara-command-band,
+    .taguara-empty-chart {
+        grid-template-columns: 1fr;
+    }
+
+    .taguara-command-band {
+        display: grid;
+    }
+
+    .taguara-action-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .taguara-status-pill {
+        display: none;
+    }
 }
