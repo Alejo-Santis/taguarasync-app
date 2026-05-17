@@ -20,13 +20,13 @@
     } from '@lucide/svelte';
     import FlashMessages from '../Components/UI/FlashMessages.svelte';
 
-    let { title = 'Panel', auth, children } = $props();
+    let { title = 'Panel', activeSection = 'dashboard', auth, children } = $props();
     let isMobileNavOpen = $state(false);
 
     const navItems = [
-        { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, active: true },
+        { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard' },
         { label: 'POS', href: '#', icon: ShoppingCart },
-        { label: 'Productos', href: '#', icon: Package },
+        { label: 'Productos', href: '/products', icon: Package, section: 'products' },
         { label: 'Inventario', href: '#', icon: Boxes },
         { label: 'Compras', href: '#', icon: ReceiptText },
         { label: 'Facturacion', href: '#', icon: FileText },
@@ -57,7 +57,7 @@
         <nav class="taguara-sidebar-nav" aria-label="Principal">
             {#each navItems as item}
                 {@const Icon = item.icon}
-                <Link class={`taguara-nav-link ${item.active ? 'active' : ''}`} href={item.href}>
+                <Link class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`} href={item.href}>
                     <Icon size={18} strokeWidth={2} />
                     <span>{item.label}</span>
                 </Link>
@@ -123,7 +123,7 @@
         <div class={`taguara-mobile-nav ${isMobileNavOpen ? 'open' : ''}`}>
             {#each navItems.slice(0, 6) as item}
                 {@const Icon = item.icon}
-                <Link class={`taguara-mobile-link ${item.active ? 'active' : ''}`} href={item.href}>
+                <Link class={`taguara-mobile-link ${item.section === activeSection ? 'active' : ''}`} href={item.href}>
                     <Icon size={17} />
                     <span>{item.label}</span>
                 </Link>

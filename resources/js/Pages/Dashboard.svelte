@@ -66,7 +66,7 @@
     ]);
 </script>
 
-<AppLayout title="Panel operativo" {auth}>
+<AppLayout title="Panel operativo" activeSection="dashboard" {auth}>
     <div class="taguara-dashboard">
         <section class="taguara-command-band">
             <div>
