@@ -19,30 +19,30 @@
     <form onsubmit={(event) => { event.preventDefault(); submit(); }}>
         <div class="mb-3">
             <label class="form-label" for="email">Correo electronico</label>
-            <input id="email" class:is-invalid={$form.errors.email} class="form-control" type="email" bind:value={$form.email} autocomplete="username">
-            {#if $form.errors.email}
-                <div class="invalid-feedback">{$form.errors.email}</div>
+            <input id="email" class:is-invalid={form.errors.email} class="form-control" type="email" bind:value={form.email} autocomplete="username">
+            {#if form.errors.email}
+                <div class="invalid-feedback">{form.errors.email}</div>
             {/if}
         </div>
 
         <div class="mb-3">
             <label class="form-label" for="password">Contrasena</label>
-            <input id="password" class:is-invalid={$form.errors.password} class="form-control" type="password" bind:value={$form.password} autocomplete="current-password">
-            {#if $form.errors.password}
-                <div class="invalid-feedback">{$form.errors.password}</div>
+            <input id="password" class:is-invalid={form.errors.password} class="form-control" type="password" bind:value={form.password} autocomplete="current-password">
+            {#if form.errors.password}
+                <div class="invalid-feedback">{form.errors.password}</div>
             {/if}
         </div>
 
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div class="form-check">
-                <input id="remember" class="form-check-input" type="checkbox" bind:checked={$form.remember}>
+                <input id="remember" class="form-check-input" type="checkbox" bind:checked={form.remember}>
                 <label class="form-check-label" for="remember">Recordarme</label>
             </div>
 
             <Link class="small" href="/forgot-password">Olvide mi contrasena</Link>
         </div>
 
-        <button class="btn btn-taguara w-100" type="submit" disabled={$form.processing}>
+        <button class="btn btn-taguara w-100" type="submit" disabled={form.processing}>
             Entrar
         </button>
     </form>

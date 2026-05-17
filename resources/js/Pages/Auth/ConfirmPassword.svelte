@@ -17,13 +17,13 @@
     <form onsubmit={(event) => { event.preventDefault(); submit(); }}>
         <div class="mb-4">
             <label class="form-label" for="password">Contrasena</label>
-            <input id="password" class:is-invalid={$form.errors.password} class="form-control" type="password" bind:value={$form.password} autocomplete="current-password">
-            {#if $form.errors.password}
-                <div class="invalid-feedback">{$form.errors.password}</div>
+            <input id="password" class:is-invalid={form.errors.password} class="form-control" type="password" bind:value={form.password} autocomplete="current-password">
+            {#if form.errors.password}
+                <div class="invalid-feedback">{form.errors.password}</div>
             {/if}
         </div>
 
-        <button class="btn btn-taguara w-100" type="submit" disabled={$form.processing}>
+        <button class="btn btn-taguara w-100" type="submit" disabled={form.processing}>
             Confirmar
         </button>
     </form>

@@ -15,13 +15,13 @@
     <form onsubmit={(event) => { event.preventDefault(); submit(); }}>
         <div class="mb-4">
             <label class="form-label" for="email">Correo electronico</label>
-            <input id="email" class:is-invalid={$form.errors.email} class="form-control" type="email" bind:value={$form.email} autocomplete="username">
-            {#if $form.errors.email}
-                <div class="invalid-feedback">{$form.errors.email}</div>
+            <input id="email" class:is-invalid={form.errors.email} class="form-control" type="email" bind:value={form.email} autocomplete="username">
+            {#if form.errors.email}
+                <div class="invalid-feedback">{form.errors.email}</div>
             {/if}
         </div>
 
-        <button class="btn btn-taguara w-100" type="submit" disabled={$form.processing}>
+        <button class="btn btn-taguara w-100" type="submit" disabled={form.processing}>
             Enviar enlace
         </button>
     </form>

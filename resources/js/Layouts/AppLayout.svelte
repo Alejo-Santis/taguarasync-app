@@ -20,6 +20,10 @@
             </Link>
 
             <div class="d-flex align-items-center gap-3">
+                {#if auth?.tenant}
+                    <span class="badge text-bg-light border">{auth.tenant.name}</span>
+                {/if}
+
                 {#if auth?.user}
                     <span class="text-secondary small">{auth.user.name}</span>
                 {/if}
