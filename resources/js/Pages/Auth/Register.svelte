@@ -1,6 +1,7 @@
 <script>
     import { Link, useForm } from '@inertiajs/svelte';
     import GuestLayout from '../../Layouts/GuestLayout.svelte';
+    import PasswordInput from '../../Components/UI/PasswordInput.svelte';
 
     const form = useForm({
         tenant_name: '',
@@ -44,19 +45,23 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label" for="password">Contrasena</label>
-            <input id="password" class:is-invalid={form.errors.password} class="form-control" type="password" bind:value={form.password} autocomplete="new-password">
-            {#if form.errors.password}
-                <div class="invalid-feedback">{form.errors.password}</div>
-            {/if}
+            <PasswordInput
+                id="password"
+                label="Contrasena"
+                bind:value={form.password}
+                error={form.errors.password}
+                autocomplete="new-password"
+            />
         </div>
 
         <div class="mb-4">
-            <label class="form-label" for="password_confirmation">Confirmar contrasena</label>
-            <input id="password_confirmation" class:is-invalid={form.errors.password_confirmation} class="form-control" type="password" bind:value={form.password_confirmation} autocomplete="new-password">
-            {#if form.errors.password_confirmation}
-                <div class="invalid-feedback">{form.errors.password_confirmation}</div>
-            {/if}
+            <PasswordInput
+                id="password_confirmation"
+                label="Confirmar contrasena"
+                bind:value={form.password_confirmation}
+                error={form.errors.password_confirmation}
+                autocomplete="new-password"
+            />
         </div>
 
         <button class="btn btn-taguara w-100" type="submit" disabled={form.processing}>

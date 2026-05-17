@@ -43,6 +43,38 @@ class Tenant extends Model
     }
 
     /**
+     * @return HasMany<Laboratory, $this>
+     */
+    public function laboratories(): HasMany
+    {
+        return $this->hasMany(Laboratory::class);
+    }
+
+    /**
+     * @return HasMany<ProductCategory, $this>
+     */
+    public function productCategories(): HasMany
+    {
+        return $this->hasMany(ProductCategory::class);
+    }
+
+    /**
+     * @return HasMany<Product, $this>
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * @return HasMany<ProductPresentation, $this>
+     */
+    public function productPresentations(): HasMany
+    {
+        return $this->hasMany(ProductPresentation::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

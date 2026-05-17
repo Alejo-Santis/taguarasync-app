@@ -1,6 +1,7 @@
 <script>
     import { Link, useForm } from '@inertiajs/svelte';
     import GuestLayout from '../../Layouts/GuestLayout.svelte';
+    import PasswordInput from '../../Components/UI/PasswordInput.svelte';
 
     const form = useForm({
         email: '',
@@ -26,11 +27,13 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label" for="password">Contrasena</label>
-            <input id="password" class:is-invalid={form.errors.password} class="form-control" type="password" bind:value={form.password} autocomplete="current-password">
-            {#if form.errors.password}
-                <div class="invalid-feedback">{form.errors.password}</div>
-            {/if}
+            <PasswordInput
+                id="password"
+                label="Contrasena"
+                bind:value={form.password}
+                error={form.errors.password}
+                autocomplete="current-password"
+            />
         </div>
 
         <div class="d-flex align-items-center justify-content-between mb-4">

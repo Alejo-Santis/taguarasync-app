@@ -48,5 +48,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $owner->assignRole('owner');
+
+        $this->call([
+            ProductCatalogSeeder::class,
+        ]);
     }
 }
