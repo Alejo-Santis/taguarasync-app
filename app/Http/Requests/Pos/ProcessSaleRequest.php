@@ -1,0 +1,63 @@
+<?php
+
+namespace App\Http\Requests\Pos;
+
+use App\Enums\PaymentMethod;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class ProcessSaleRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return $this->user() !== null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function rules(): array
+    {
+        $tenantId = $this->user()?->tenant_id;
+
+        return [
+            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
+            'amount_tendered' => [
+                'nullable', 'integer', 'min:0',
+                Rule::requiredIf($this->input('payment_method') === PaymentMethod::Cash->value),
+            ],
+            'notes' => ['nullable', 'string', 'max:500'],
+            'items' => ['required', 'array', 'min:1', 'max:50'],
+            'items.*.product_id' => [
+                'required', 'integer',
+                Rule::exists('products', 'id')->where('tenant_id', $tenantId),
+            ],
+            'items.*.product_presentation_id' => ['required', 'integer', Rule::exists('product_presentations', 'id')],
+            'items.*.description' => ['required', 'string', 'max:260'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:9999'],
+            'items.*.unit_price' => ['required', 'integer', 'min:0'],
+            'items.*.tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+        ];
+    }
+
+    public function after(): array
+    {
+        return [
+            function ($validator): void {
+                if ($this->input('payment_method') === PaymentMethod::Cash->value) {
+                    $tendered = (int) $this->input('amount_tendered', 0);
+                    $total = collect($this->input('items', []))->reduce(function (int $carry, array $item): int {
+                        $subtotal = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
+                        $tax = (int) round($subtotal * (((float) ($item['tax_rate'] ?? 0)) / 100));
+
+                        return $carry + $subtotal + $tax;
+                    }, 0);
+
+                    if ($tendered < $total) {
+                        $validator->errors()->add('amount_tendered', 'El monto recibido es menor al total de la venta.');
+                    }
+                }
+            },
+        ];
+    }
+}

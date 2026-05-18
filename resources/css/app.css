@@ -378,6 +378,11 @@ body {
     gap: 1rem;
 }
 
+.taguara-product-form {
+    display: grid;
+    gap: 1rem;
+}
+
 .taguara-filter-grid {
     display: grid;
     grid-template-columns: minmax(240px, 1fr) minmax(160px, 220px) minmax(160px, 220px) auto;
@@ -544,6 +549,43 @@ body {
     text-align: center;
 }
 
+.taguara-table-shell {
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+}
+
+.taguara-table-shell .table > :not(caption) > * > * {
+    padding: 0.875rem 1rem;
+}
+
+.taguara-table-shell thead th {
+    border-bottom-color: var(--taguara-border);
+    background: #fbfcfd;
+    color: var(--taguara-muted);
+    font-size: 0.8125rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.taguara-presentation-editor {
+    display: grid;
+    gap: 0.875rem;
+}
+
+.taguara-presentation-editor-row {
+    padding: 1rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.taguara-presentation-editor-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
 .taguara-toast-stack {
     position: fixed;
     top: 1rem;
@@ -558,6 +600,437 @@ body {
     width: 100%;
 }
 
+.taguara-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.taguara-table {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+}
+
+.taguara-table th {
+    padding: 0.5rem 0.875rem;
+    border-bottom: 2px solid var(--taguara-border);
+    color: var(--taguara-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    text-align: left;
+}
+
+.taguara-table td {
+    padding: 0.75rem 0.875rem;
+    border-bottom: 1px solid var(--taguara-border);
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+.taguara-table tbody tr {
+    cursor: pointer;
+    transition: background 0.1s;
+}
+
+.taguara-table tbody tr:hover {
+    background: var(--taguara-soft-green);
+}
+
+.taguara-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.taguara-table-name {
+    font-weight: 600;
+    color: var(--taguara-text);
+}
+
+.taguara-table-sub {
+    font-size: 0.8125rem;
+    color: var(--taguara-muted);
+    margin-top: 0.125rem;
+}
+
+.taguara-icon-button-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+}
+
+.taguara-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(2px);
+}
+
+.taguara-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    width: min(480px, 100vw);
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    box-shadow: -8px 0 40px rgba(15, 23, 42, 0.14);
+    overflow-y: auto;
+}
+
+.taguara-drawer-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--taguara-border);
+    background: #fff;
+}
+
+.taguara-drawer-body {
+    flex: 1;
+    padding: 1.25rem;
+    display: grid;
+    gap: 1.5rem;
+    align-content: start;
+}
+
+.taguara-drawer-footer {
+    position: sticky;
+    bottom: 0;
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--taguara-border);
+    background: #fff;
+}
+
+.taguara-drawer-section {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.taguara-drawer-grid {
+    display: grid;
+    grid-template-columns: minmax(140px, auto) 1fr;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 0.875rem;
+}
+
+.taguara-drawer-grid > span {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-drawer-grid > span:nth-last-child(-n+2) {
+    border-bottom: 0;
+}
+
+.taguara-drawer-label {
+    color: var(--taguara-muted);
+    font-weight: 600;
+    background: #fafbfc;
+    border-right: 1px solid var(--taguara-border);
+}
+
+.taguara-presentation-drawer {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.taguara-presentation-drawer-row {
+    padding: 0.75rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+}
+
+.taguara-presentation-drawer-row.default {
+    border-color: rgba(20, 108, 67, 0.22);
+    background: var(--taguara-soft-green);
+}
+
+.taguara-presentation-drawer-row.inactive {
+    opacity: 0.6;
+}
+
+.taguara-upload-zone {
+    display: grid;
+    place-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    min-height: 160px;
+    padding: 2rem;
+    border: 2px dashed var(--taguara-border);
+    border-radius: 8px;
+    background: var(--taguara-surface);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.taguara-upload-zone:hover,
+.taguara-upload-zone.drag-over {
+    border-color: var(--taguara-primary);
+    background: var(--taguara-soft-green);
+}
+
+.taguara-upload-zone.has-file {
+    border-color: rgba(20, 108, 67, 0.4);
+    background: var(--taguara-soft-green);
+}
+
+.taguara-config-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: var(--taguara-surface);
+}
+
+.taguara-config-tab {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 0.875rem;
+    border-radius: 6px;
+    color: var(--taguara-muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+}
+
+.taguara-config-tab:hover {
+    background: #fff;
+    color: var(--taguara-text);
+}
+
+.taguara-config-tab.active {
+    background: #fff;
+    color: var(--taguara-primary-dark);
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+}
+
+/* ── POS ────────────────────────────────────────────── */
+
+.taguara-pos {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    height: calc(100vh - 76px); /* viewport minus topbar */
+    overflow: hidden;
+}
+
+.taguara-pos-search {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--taguara-border);
+    background: var(--taguara-surface);
+    overflow: hidden;
+}
+
+.taguara-pos-searchbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--taguara-border);
+    background: #fff;
+}
+
+.taguara-pos-searchbar input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+}
+
+.taguara-pos-results {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.875rem;
+    display: grid;
+    gap: 0.75rem;
+    align-content: start;
+}
+
+.taguara-pos-hint {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--taguara-muted);
+}
+
+.taguara-pos-product-card {
+    background: #fff;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    padding: 0.875rem;
+}
+
+.taguara-pos-product-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.taguara-pos-presentations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.taguara-pos-pres-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 38px;
+    padding: 0.375rem 0.625rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: var(--taguara-surface);
+    cursor: pointer;
+    transition: border-color 0.1s, background 0.1s;
+    font-size: 0.875rem;
+    text-align: left;
+}
+
+.taguara-pos-pres-btn:hover:not(:disabled) {
+    border-color: rgba(20, 108, 67, 0.4);
+    background: var(--taguara-soft-green);
+}
+
+.taguara-pos-pres-btn.default {
+    border-color: rgba(20, 108, 67, 0.25);
+    background: var(--taguara-soft-green);
+}
+
+.taguara-pos-pres-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.taguara-pos-cart {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border-left: 1px solid var(--taguara-border);
+}
+
+.taguara-pos-cart-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-pos-cart-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0.5rem 0;
+}
+
+.taguara-pos-cart-empty {
+    display: grid;
+    place-items: center;
+    min-height: 160px;
+    text-align: center;
+    padding: 1.5rem;
+}
+
+.taguara-pos-cart-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-pos-cart-item:last-child {
+    border-bottom: 0;
+}
+
+.taguara-pos-cart-item-info {
+    min-width: 0;
+}
+
+.taguara-pos-cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.taguara-pos-qty-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--taguara-border);
+    border-radius: 6px;
+    background: var(--taguara-surface);
+    cursor: pointer;
+    padding: 0;
+    transition: background 0.1s;
+}
+
+.taguara-pos-qty-btn:hover:not(:disabled) {
+    background: var(--taguara-soft-green);
+    border-color: rgba(20, 108, 67, 0.4);
+}
+
+.taguara-pos-qty-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.taguara-pos-qty-value {
+    font-weight: 700;
+    font-size: 0.875rem;
+    min-width: 22px;
+    text-align: center;
+}
+
+.taguara-pos-cart-item-total {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.taguara-pos-cart-footer {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid var(--taguara-border);
+}
+
+.taguara-pos-payment-modal {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    z-index: 1050;
+    width: min(480px, 100vw);
+    transform: translateX(-50%);
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+
 @media (max-width: 991.98px) {
     .taguara-sidebar {
         display: none;
@@ -565,6 +1038,18 @@ body {
 
     .taguara-main {
         margin-left: 0;
+    }
+
+    .taguara-pos {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        height: auto;
+    }
+
+    .taguara-pos-cart {
+        border-left: 0;
+        border-top: 2px solid var(--taguara-border);
+        max-height: 50vh;
     }
 
     .taguara-topbar {

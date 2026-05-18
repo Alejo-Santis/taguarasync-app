@@ -1,0 +1,16 @@
+<?php
+
+namespace App\Enums;
+
+enum InventoryMovementType: string
+{
+    case Opening = 'opening';
+    case Purchase = 'purchase';
+    case Sale = 'sale';
+    case SaleReturn = 'sale_return';
+    case PurchaseReturn = 'purchase_return';
+    case AdjustmentIn = 'adjustment_in';
+    case AdjustmentOut = 'adjustment_out';
+    case TransferIn = 'transfer_in';
+    case TransferOut = 'transfer_out';
+}

@@ -43,14 +43,21 @@ class DatabaseSeeder extends Seeder
         ], [
             'tenant_id' => $tenant->id,
             'name' => 'Administrador Demo',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('Password123!'),
             'email_verified_at' => now(),
         ]);
 
         $owner->assignRole('owner');
 
         $this->call([
+            ProductUnitsSeeder::class,
+            ColombianLaboratoriesSeeder::class,
+            ProductCategoriesSeeder::class,
+            ActiveIngredientsSeeder::class,
             ProductCatalogSeeder::class,
+            OtcProductsSeeder::class,
+            DemoSuppliersSeeder::class,
+            DemoPurchaseReceiptsSeeder::class,
         ]);
     }
 }

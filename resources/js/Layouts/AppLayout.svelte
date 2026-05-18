@@ -19,20 +19,21 @@
         Wifi,
     } from '@lucide/svelte';
     import FlashMessages from '../Components/UI/FlashMessages.svelte';
+    import LogoMark from '../Components/UI/LogoMark.svelte';
 
     let { title = 'Panel', activeSection = 'dashboard', auth, children } = $props();
     let isMobileNavOpen = $state(false);
 
     const navItems = [
         { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard' },
-        { label: 'POS', href: '#', icon: ShoppingCart },
+        { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos' },
         { label: 'Productos', href: '/products', icon: Package, section: 'products' },
-        { label: 'Inventario', href: '#', icon: Boxes },
-        { label: 'Compras', href: '#', icon: ReceiptText },
+        { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory' },
+        { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases' },
         { label: 'Facturacion', href: '#', icon: FileText },
         { label: 'Reportes', href: '#', icon: BarChart3 },
         { label: 'Equipo', href: '#', icon: Users },
-        { label: 'Configuracion', href: '#', icon: Settings },
+        { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion' },
     ];
 
     const logout = () => {
@@ -46,7 +47,7 @@
     <aside class="taguara-sidebar">
         <div class="taguara-sidebar-brand">
             <Link class="d-flex align-items-center gap-2 text-decoration-none text-reset" href="/dashboard">
-                <span class="taguara-brand-mark taguara-brand-mark-sm">TS</span>
+                <LogoMark size={38} />
                 <span>
                     <span class="d-block fw-semibold lh-sm">Taguara Sync</span>
                     <span class="d-block text-secondary small">Farmacia hibrida</span>

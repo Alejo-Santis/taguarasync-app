@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'tenant_id',
@@ -39,6 +40,14 @@ class ProductPresentation extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(ProductUnit::class, 'unit_id');
+    }
+
+    /**
+     * @return HasMany<InventoryLot, $this>
+     */
+    public function inventoryLots(): HasMany
+    {
+        return $this->hasMany(InventoryLot::class);
     }
 
     /**

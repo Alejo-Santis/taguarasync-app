@@ -89,6 +89,14 @@ class Product extends Model
     }
 
     /**
+     * @return HasMany<InventoryLot, $this>
+     */
+    public function inventoryLots(): HasMany
+    {
+        return $this->hasMany(InventoryLot::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

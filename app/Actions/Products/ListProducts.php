@@ -39,10 +39,18 @@ class ListProducts
                 'barcode',
                 'commercial_name',
                 'generic_name',
+                'cum',
+                'health_registration',
                 'pharmaceutical_form',
                 'concentration',
+                'purchase_price',
                 'sale_price',
+                'regulated_price',
+                'tax_rate',
+                'requires_invima_registration',
                 'is_controlled',
+                'control_level',
+                'notes',
                 'status',
                 'created_at',
             ])
@@ -63,7 +71,7 @@ class ListProducts
             ->when($filters['controlled'] === 'yes', fn (Builder $query) => $query->where('is_controlled', true))
             ->when($filters['controlled'] === 'no', fn (Builder $query) => $query->where('is_controlled', false))
             ->latest('created_at')
-            ->paginate(12)
+            ->paginate(15)
             ->withQueryString()
             ->through(fn (Product $product) => $this->transformProduct($product));
 
@@ -101,13 +109,21 @@ class ListProducts
             'barcode' => $product->barcode,
             'commercial_name' => $product->commercial_name,
             'generic_name' => $product->generic_name,
+            'cum' => $product->cum,
+            'health_registration' => $product->health_registration,
             'pharmaceutical_form' => $product->pharmaceutical_form,
             'concentration' => $product->concentration,
+            'purchase_price' => $product->purchase_price,
             'sale_price' => $product->sale_price,
+            'regulated_price' => $product->regulated_price,
+            'tax_rate' => $product->tax_rate,
+            'requires_invima_registration' => $product->requires_invima_registration,
             'is_controlled' => $product->is_controlled,
+            'control_level' => $product->control_level,
+            'notes' => $product->notes,
             'status' => [
                 'value' => $product->status->value,
-                'label' => $this->statusLabel($product->status),
+                'label' => $product->status->label(),
             ],
             'laboratory' => $product->laboratory?->name,
             'category' => $product->category?->name,
@@ -149,7 +165,7 @@ class ListProducts
         return collect(ProductStatus::cases())
             ->map(fn (ProductStatus $status) => [
                 'value' => $status->value,
-                'label' => $this->statusLabel($status),
+                'label' => $status->label(),
             ])
             ->values()
             ->all();
@@ -157,16 +173,6 @@ class ListProducts
 
     private function isValidStatus(string $status): bool
     {
-        return collect(ProductStatus::cases())
-            ->contains(fn (ProductStatus $productStatus) => $productStatus->value === $status);
-    }
-
-    private function statusLabel(ProductStatus $status): string
-    {
-        return match ($status) {
-            ProductStatus::Active => 'Activo',
-            ProductStatus::Inactive => 'Inactivo',
-            ProductStatus::Discontinued => 'Descontinuado',
-        };
+        return ProductStatus::tryFrom($status) !== null;
     }
 }

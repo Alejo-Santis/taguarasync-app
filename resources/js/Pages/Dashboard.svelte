@@ -12,6 +12,7 @@
         TrendingUp,
     } from '@lucide/svelte';
     import AppLayout from '../Layouts/AppLayout.svelte';
+    import LogoMark from '../Components/UI/LogoMark.svelte';
 
     let { auth } = $props();
 
@@ -69,10 +70,13 @@
 <AppLayout title="Panel operativo" activeSection="dashboard" {auth}>
     <div class="taguara-dashboard">
         <section class="taguara-command-band">
-            <div>
-                <p class="text-uppercase small fw-semibold text-success mb-2">Turno de hoy</p>
-                <h2 class="h3 mb-2">{auth?.tenant?.name ?? 'Farmacia'}</h2>
-                <p class="text-secondary mb-0">Resumen operativo para ventas, inventario, compras y facturacion.</p>
+            <div class="d-flex align-items-center gap-3">
+                <LogoMark size={52} />
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Turno de hoy</p>
+                    <h2 class="h3 mb-1">{auth?.tenant?.name ?? 'Farmacia'}</h2>
+                    <p class="text-secondary mb-0">Resumen operativo para ventas, inventario, compras y facturacion.</p>
+                </div>
             </div>
             <div class="d-flex flex-wrap gap-2">
                 <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="button">
