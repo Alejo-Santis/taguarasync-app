@@ -58,6 +58,7 @@ class DatabaseSeeder extends Seeder
             OtcProductsSeeder::class,
             DemoSuppliersSeeder::class,
             DemoPurchaseReceiptsSeeder::class,
+            DemoCashRegisterSeeder::class,
         ]);
     }
 }

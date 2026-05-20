@@ -9,6 +9,7 @@
         { label: 'Unidades', href: '/settings/units', key: 'unidades' },
         { label: 'Principios activos', href: '/settings/active-ingredients', key: 'principios-activos' },
         { label: 'Proveedores', href: '/settings/suppliers', key: 'proveedores' },
+        { label: 'Cajas', href: '/settings/registers', key: 'registers' },
     ];
 </script>
 

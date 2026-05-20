@@ -27,12 +27,13 @@
     const navItems = [
         { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard' },
         { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos' },
+        { label: 'Ventas', href: '/sales', icon: ReceiptText, section: 'sales' },
         { label: 'Productos', href: '/products', icon: Package, section: 'products' },
         { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory' },
         { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases' },
-        { label: 'Facturacion', href: '#', icon: FileText },
-        { label: 'Reportes', href: '#', icon: BarChart3 },
-        { label: 'Equipo', href: '#', icon: Users },
+        { label: 'Reportes', href: '/reports/sales', icon: BarChart3, section: 'reports' },
+        { label: 'Equipo', href: '/team', icon: Users, section: 'team' },
+        { label: 'Facturacion', href: null, icon: FileText, soon: true },
         { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion' },
     ];
 
@@ -58,10 +59,18 @@
         <nav class="taguara-sidebar-nav" aria-label="Principal">
             {#each navItems as item}
                 {@const Icon = item.icon}
-                <Link class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`} href={item.href}>
-                    <Icon size={18} strokeWidth={2} />
-                    <span>{item.label}</span>
-                </Link>
+                {#if item.soon}
+                    <span class="taguara-nav-link taguara-nav-link-soon" aria-disabled="true" title="Proximo en llegar">
+                        <Icon size={18} strokeWidth={2} />
+                        <span>{item.label}</span>
+                        <span class="taguara-nav-soon-badge">Pronto</span>
+                    </span>
+                {:else}
+                    <Link class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`} href={item.href}>
+                        <Icon size={18} strokeWidth={2} />
+                        <span>{item.label}</span>
+                    </Link>
+                {/if}
             {/each}
         </nav>
 
@@ -112,6 +121,11 @@
                         <ChevronDown size={16} />
                     </button>
                     <div class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <a class="dropdown-item d-flex align-items-center gap-2" href="/profile">
+                            <Store size={16} />
+                            Mi perfil
+                        </a>
+                        <div class="dropdown-divider"></div>
                         <button class="dropdown-item d-flex align-items-center gap-2" type="button" onclick={logout}>
                             <LogOut size={16} />
                             Cerrar sesion

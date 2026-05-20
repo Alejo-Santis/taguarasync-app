@@ -78,6 +78,24 @@ body {
     color: var(--taguara-primary-dark);
 }
 
+.taguara-nav-link-soon {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+    justify-content: flex-start;
+}
+
+.taguara-nav-soon-badge {
+    margin-left: auto;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--taguara-soft-blue);
+    color: #084298;
+    letter-spacing: 0.03em;
+}
+
 .taguara-sidebar-footer {
     margin-top: auto;
     padding: 1rem;
@@ -225,6 +243,80 @@ body {
     gap: 1rem;
     margin-bottom: 1rem;
 }
+
+.taguara-chart-container {
+    height: 200px;
+    padding: 0.5rem 0 0;
+}
+
+.taguara-chart-bars-real {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    align-items: end;
+    gap: 0.5rem;
+    height: 100%;
+}
+
+.taguara-chart-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    height: 100%;
+    position: relative;
+}
+
+.taguara-chart-col:hover .taguara-chart-tooltip { opacity: 1; }
+
+.taguara-chart-tooltip {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--taguara-text);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s;
+}
+
+.taguara-chart-bar {
+    display: block;
+    width: 100%;
+    border-radius: 6px 6px 2px 2px;
+    background: linear-gradient(180deg, #146c43, #78c29a);
+    min-height: 4px;
+    transition: height 0.3s ease;
+}
+
+.taguara-chart-label {
+    font-size: 0.7rem;
+    color: var(--taguara-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.taguara-recent-sales {
+    border-top: 1px solid var(--taguara-border);
+    padding-top: 0.75rem;
+}
+
+.taguara-recent-sale-row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-recent-sale-row:last-child { border-bottom: 0; }
 
 .taguara-empty-chart {
     display: grid;
@@ -1018,17 +1110,100 @@ body {
     border-top: 1px solid var(--taguara-border);
 }
 
-.taguara-pos-payment-modal {
+/* ── POS session bar ─────────────────────────────────── */
+
+.taguara-pos-session-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 1.25rem;
+    background: var(--taguara-primary);
+    color: white;
+}
+
+.taguara-pos-session-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* ── POS modal (centered) ────────────────────────────── */
+
+.taguara-pos-modal {
     position: fixed;
-    bottom: 0;
+    top: 50%;
     left: 50%;
     z-index: 1050;
-    width: min(480px, 100vw);
-    transform: translateX(-50%);
+    width: min(520px, calc(100vw - 2rem));
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    transform: translate(-50%, -50%);
     background: #fff;
-    border-radius: 16px 16px 0 0;
-    box-shadow: 0 -8px 40px rgba(15, 23, 42, 0.18);
-    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.22);
+}
+
+.taguara-pos-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--taguara-border);
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+
+.taguara-pos-modal-body {
+    padding: 1.5rem;
+}
+
+.taguara-pos-payment-methods {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+}
+
+.taguara-pos-method-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 0.5rem;
+    border: 2px solid var(--taguara-border);
+    border-radius: 10px;
+    background: var(--taguara-surface);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--taguara-muted);
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+
+.taguara-pos-method-btn:hover {
+    border-color: rgba(20, 108, 67, 0.4);
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary-dark);
+}
+
+.taguara-pos-method-btn.active {
+    border-color: var(--taguara-primary);
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary-dark);
+}
+
+.taguara-pos-change-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-radius: 10px;
+    background: var(--taguara-soft-green);
+    border: 1px solid rgba(20, 108, 67, 0.2);
 }
 
 @media (max-width: 991.98px) {

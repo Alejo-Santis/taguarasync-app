@@ -81,4 +81,9 @@ class RegisterInventoryMovement
     {
         return $this->execute($lot, InventoryMovementType::Sale, -abs($quantity), $user, $context);
     }
+
+    public function saleReturn(InventoryLot $lot, int $quantity, ?User $user = null, array $context = []): InventoryMovement
+    {
+        return $this->execute($lot, InventoryMovementType::SaleReturn, abs($quantity), $user, $context);
+    }
 }

@@ -128,18 +128,25 @@ class ReceivePurchaseReceipt
      */
     private function findOrCreateLot(int $tenantId, array $item): InventoryLot
     {
-        return InventoryLot::firstOrCreate([
+        $lot = InventoryLot::firstOrCreate([
             'tenant_id' => $tenantId,
             'product_id' => $item['product_id'],
             'lot_number' => $item['lot_number'],
         ], [
             'product_presentation_id' => $item['product_presentation_id'] ?? null,
             'expires_on' => $item['expires_on'] ?? null,
-            'initial_quantity' => 0,
+            'initial_quantity' => $item['quantity'],
             'current_quantity' => 0,
             'unit_cost' => $item['unit_cost'],
             'status' => InventoryLotStatus::Available,
             'received_at' => now(),
         ]);
+
+        // Accumulate initial_quantity for subsequent receipts of the same lot
+        if (! $lot->wasRecentlyCreated) {
+            $lot->increment('initial_quantity', $item['quantity']);
+        }
+
+        return $lot;
     }
 }

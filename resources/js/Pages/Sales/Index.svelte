@@ -1,0 +1,372 @@
+<script>
+    import { Link, router } from '@inertiajs/svelte';
+    import { fade, fly } from 'svelte/transition';
+    import {
+        AlertCircle,
+        Ban,
+        CheckCircle2,
+        CircleDollarSign,
+        Eye,
+        Filter,
+        PrinterCheck,
+        ReceiptText,
+        RotateCcw,
+        Search,
+        X,
+    } from '@lucide/svelte';
+    import AppLayout from '../../Layouts/AppLayout.svelte';
+
+    let { auth, sales, filters, stats, paymentMethods, statuses } = $props();
+
+    const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+    const fmt = (v) => money.format(v ?? 0);
+
+    let form = $state({
+        q: filters.q ?? '',
+        method: filters.method ?? '',
+        status: filters.status ?? '',
+        from: filters.from ?? '',
+        to: filters.to ?? '',
+    });
+
+    let selectedSale = $state(null);
+    let confirmVoid = $state(null);
+
+    $effect(() => {
+        document.body.style.overflow = selectedSale || confirmVoid ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    });
+
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape') { selectedSale = null; confirmVoid = null; }
+    };
+
+    const submit = (e) => {
+        e.preventDefault();
+        router.get('/sales', form, { preserveState: true, replace: true });
+    };
+
+    const resetFilters = () => {
+        form = { q: '', method: '', status: '', from: '', to: '' };
+        router.get('/sales', {}, { preserveState: true, replace: true });
+    };
+
+    const openDetail = (sale) => { selectedSale = sale; };
+    const closeDetail = () => { selectedSale = null; };
+
+    const openVoidConfirm = (sale) => {
+        selectedSale = null;
+        confirmVoid = sale;
+    };
+
+    const doVoid = () => {
+        if (!confirmVoid) return;
+        router.post(`/sales/${confirmVoid.uuid}/void`, {}, {
+            onSuccess: () => { confirmVoid = null; },
+            preserveScroll: true,
+        });
+    };
+
+    const statusClass = (value) => {
+        if (value === 'completed') return 'text-bg-success';
+        if (value === 'voided') return 'text-bg-danger';
+        return 'text-bg-secondary';
+    };
+</script>
+
+<svelte:window onkeydown={handleKeydown} />
+
+<AppLayout title="Ventas" activeSection="pos" {auth}>
+    <div class="taguara-products">
+        <section class="taguara-command-band">
+            <div>
+                <p class="text-uppercase small fw-semibold text-success mb-2">Punto de venta</p>
+                <h2 class="h3 mb-2">Historial de ventas</h2>
+                <p class="text-secondary mb-0">Consulta, imprime y anula comprobantes de venta.</p>
+            </div>
+            <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/pos">
+                <ReceiptText size={18} />
+                Ir al POS
+            </Link>
+        </section>
+
+        <!-- KPIs del día -->
+        <section class="row g-3">
+            <div class="col-12 col-md-4">
+                <article class="taguara-kpi-card">
+                    <span class="taguara-kpi-icon text-bg-success"><CircleDollarSign size={20} /></span>
+                    <div>
+                        <p class="text-secondary small mb-1">Ventas de hoy</p>
+                        <p class="h3 mb-1">{fmt(stats.total_today)}</p>
+                        <p class="small text-secondary mb-0">{stats.count_today} transacciones</p>
+                    </div>
+                </article>
+            </div>
+            <div class="col-12 col-md-4">
+                <article class="taguara-kpi-card">
+                    <span class={`taguara-kpi-icon ${stats.voided_today > 0 ? 'text-bg-danger' : 'text-bg-secondary'}`}>
+                        <Ban size={20} />
+                    </span>
+                    <div>
+                        <p class="text-secondary small mb-1">Anuladas hoy</p>
+                        <p class="h3 mb-1">{stats.voided_today}</p>
+                        <p class="small text-secondary mb-0">Comprobantes revertidos</p>
+                    </div>
+                </article>
+            </div>
+            <div class="col-12 col-md-4">
+                <article class="taguara-kpi-card">
+                    <span class="taguara-kpi-icon text-bg-primary"><ReceiptText size={20} /></span>
+                    <div>
+                        <p class="text-secondary small mb-1">Total en lista</p>
+                        <p class="h3 mb-1">{sales.total}</p>
+                        <p class="small text-secondary mb-0">Con los filtros actuales</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Filtros -->
+        <section class="taguara-panel">
+            <div class="taguara-panel-header align-items-start">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Busqueda</p>
+                    <h3 class="h5 mb-0">Filtros</h3>
+                </div>
+                <Filter class="text-secondary" size={22} />
+            </div>
+            <form class="row g-2 align-items-end" onsubmit={submit}>
+                <div class="col-12 col-md-3">
+                    <label class="form-label mb-0">
+                        <span class="small fw-semibold text-secondary">Numero</span>
+                        <span class="taguara-filter-input">
+                            <Search size={17} />
+                            <input class="form-control" bind:value={form.q} type="search" placeholder="VTA-00000001">
+                        </span>
+                    </label>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label mb-0">
+                        <span class="small fw-semibold text-secondary">Metodo</span>
+                        <select class="form-select" bind:value={form.method}>
+                            <option value="">Todos</option>
+                            {#each paymentMethods as m}
+                                <option value={m.value}>{m.label}</option>
+                            {/each}
+                        </select>
+                    </label>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label mb-0">
+                        <span class="small fw-semibold text-secondary">Estado</span>
+                        <select class="form-select" bind:value={form.status}>
+                            <option value="">Todos</option>
+                            {#each statuses as s}
+                                <option value={s.value}>{s.label}</option>
+                            {/each}
+                        </select>
+                    </label>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label mb-0">
+                        <span class="small fw-semibold text-secondary">Desde</span>
+                        <input class="form-control" type="date" bind:value={form.from}>
+                    </label>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label mb-0">
+                        <span class="small fw-semibold text-secondary">Hasta</span>
+                        <input class="form-control" type="date" bind:value={form.to}>
+                    </label>
+                </div>
+                <div class="col-12 col-md-1 d-flex gap-2">
+                    <button class="btn btn-taguara" type="submit"><Search size={17} /></button>
+                    <button class="btn btn-light border taguara-icon-button" type="button" onclick={resetFilters}><RotateCcw size={17} /></button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Tabla -->
+        <section class="taguara-panel">
+            <div class="taguara-panel-header">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Resultados</p>
+                    <h3 class="h5 mb-0">{sales.total} ventas encontradas</h3>
+                </div>
+                <span class="badge text-bg-light border text-secondary">
+                    Pagina {sales.current_page} de {sales.last_page}
+                </span>
+            </div>
+
+            {#if sales.data.length > 0}
+                <div class="taguara-table-wrapper">
+                    <table class="taguara-table">
+                        <thead>
+                            <tr>
+                                <th>Comprobante</th>
+                                <th>Cajero · Caja</th>
+                                <th>Metodo</th>
+                                <th class="text-center">Items</th>
+                                <th class="text-end">Total</th>
+                                <th>Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {#each sales.data as sale}
+                                <tr onclick={() => openDetail(sale)}>
+                                    <td>
+                                        <div class="taguara-table-name">{sale.document_number}</div>
+                                        <div class="taguara-table-sub">{sale.created_at}</div>
+                                    </td>
+                                    <td>
+                                        <div style="font-size:.875rem">{sale.cashier}</div>
+                                        <div class="taguara-table-sub">{sale.register}</div>
+                                    </td>
+                                    <td class="text-secondary" style="font-size:.875rem">{sale.payment_method.label}</td>
+                                    <td class="text-center">
+                                        <span class="badge text-bg-light border text-secondary">{sale.items_count}</span>
+                                    </td>
+                                    <td class="text-end fw-semibold" style={sale.status.value === 'voided' ? 'text-decoration:line-through;color:var(--bs-secondary)' : ''}>
+                                        {fmt(sale.total)}
+                                    </td>
+                                    <td>
+                                        <span class={`badge ${statusClass(sale.status.value)}`}>{sale.status.label}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1 justify-content-end">
+                                            <a
+                                                class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                                href={`/sales/${sale.uuid}/receipt`}
+                                                target="_blank"
+                                                rel="noopener"
+                                                aria-label="Imprimir recibo"
+                                                onclick={(e) => e.stopPropagation()}
+                                            >
+                                                <PrinterCheck size={15} />
+                                            </a>
+                                            <button
+                                                class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                                type="button"
+                                                aria-label="Ver detalle"
+                                                onclick={(e) => { e.stopPropagation(); openDetail(sale); }}
+                                            >
+                                                <Eye size={15} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {/each}
+                        </tbody>
+                    </table>
+                </div>
+
+                {#if sales.links.length > 3}
+                    <nav class="taguara-pagination">
+                        {#each sales.links as link}
+                            {#if link.url}
+                                <Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                            {:else}
+                                <span class="btn btn-sm btn-light border disabled">{@html link.label}</span>
+                            {/if}
+                        {/each}
+                    </nav>
+                {/if}
+            {:else}
+                <div class="taguara-empty-state">
+                    <ReceiptText size={34} />
+                    <h4 class="h6 mb-1">No hay ventas con estos filtros</h4>
+                    <p class="text-secondary mb-0">Ajusta los filtros o registra una venta desde el POS.</p>
+                </div>
+            {/if}
+        </section>
+    </div>
+
+    <!-- Drawer de detalle -->
+    {#if selectedSale}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={closeDetail} role="presentation"></div>
+        <aside class="taguara-drawer" transition:fly={{ x: 480, duration: 220 }}>
+            <div class="taguara-drawer-header">
+                <div class="d-flex align-items-start justify-content-between gap-2">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <h2 class="h5 mb-0">{selectedSale.document_number}</h2>
+                            <span class={`badge ${statusClass(selectedSale.status.value)}`}>{selectedSale.status.label}</span>
+                        </div>
+                        <p class="text-secondary small mb-0">{selectedSale.created_at} · {selectedSale.cashier}</p>
+                    </div>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDetail}><X size={17} /></button>
+                </div>
+            </div>
+
+            <div class="taguara-drawer-body">
+                <div class="taguara-drawer-section">
+                    <p class="text-uppercase small fw-semibold text-success mb-0">Pago</p>
+                    <div class="taguara-drawer-grid">
+                        <span class="taguara-drawer-label">Metodo</span>
+                        <span>{selectedSale.payment_method.label}</span>
+                        <span class="taguara-drawer-label">Total</span>
+                        <span class="fw-bold">{fmt(selectedSale.total)}</span>
+                        <span class="taguara-drawer-label">Caja</span>
+                        <span>{selectedSale.register}</span>
+                        <span class="taguara-drawer-label">Cajero</span>
+                        <span>{selectedSale.cashier}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="taguara-drawer-footer vstack gap-2">
+                <a
+                    class="btn btn-light border w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                    href={`/sales/${selectedSale.uuid}/receipt`}
+                    target="_blank"
+                    rel="noopener"
+                >
+                    <PrinterCheck size={17} />
+                    Imprimir recibo
+                </a>
+                {#if selectedSale.status.value === 'completed'}
+                    <button
+                        class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                        type="button"
+                        onclick={() => openVoidConfirm(selectedSale)}
+                    >
+                        <Ban size={17} />
+                        Anular venta
+                    </button>
+                {/if}
+            </div>
+        </aside>
+    {/if}
+
+    <!-- Modal confirmación de anulación -->
+    {#if confirmVoid}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={() => confirmVoid = null} role="presentation"></div>
+        <div class="taguara-pos-modal" transition:fly={{ y: -20, duration: 180 }}>
+            <div class="taguara-pos-modal-header">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="taguara-kpi-icon text-bg-danger"><AlertCircle size={20} /></span>
+                    <div>
+                        <p class="text-uppercase small fw-semibold text-danger mb-1">Anulacion</p>
+                        <h2 class="h5 mb-0">{confirmVoid.document_number}</h2>
+                    </div>
+                </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={() => confirmVoid = null}><X size={17} /></button>
+            </div>
+            <div class="taguara-pos-modal-body">
+                <p class="text-secondary mb-4">
+                    Esta accion anulara la venta <strong>{confirmVoid.document_number}</strong> ({fmt(confirmVoid.total)}).
+                    El stock de todos los productos sera devuelto al inventario automaticamente.
+                    Esta accion no se puede deshacer.
+                </p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light border flex-fill" type="button" onclick={() => confirmVoid = null}>Cancelar</button>
+                    <button class="btn btn-danger flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={doVoid}>
+                        <Ban size={17} />
+                        Confirmar anulacion
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
+</AppLayout>

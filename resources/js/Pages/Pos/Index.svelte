@@ -1,10 +1,14 @@
 <script>
-    import { router, useForm } from '@inertiajs/svelte';
-    import { fade, fly } from 'svelte/transition';
+    import { router, usePage, useForm } from '@inertiajs/svelte';
+    import { fade, scale } from 'svelte/transition';
     import {
         AlertCircle,
         CheckCircle2,
         ChevronRight,
+        Clock,
+        CreditCard,
+        DollarSign,
+        Lock,
         Minus,
         Package,
         Plus,
@@ -17,9 +21,7 @@
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    import { usePage } from '@inertiajs/svelte';
-
-    let { auth } = $props();
+    let { auth, activeSession } = $props();
 
     const page = usePage();
     let completedSale = $derived(page.props.completedSale ?? null);
@@ -96,8 +98,7 @@
     // Cart management
     const addToCart = (product, presentation) => {
         cartError = '';
-        const key = presentation.id;
-        const existing = cart.find(i => i.product_presentation_id === key);
+        const existing = cart.find(i => i.product_presentation_id === presentation.id);
         if (existing) {
             if (existing.quantity < presentation.available) {
                 existing.quantity += 1;
@@ -127,9 +128,7 @@
         cart[index] = { ...item, quantity: newQty };
     };
 
-    const removeItem = (index) => {
-        cart = cart.filter((_, i) => i !== index);
-    };
+    const removeItem = (index) => { cart = cart.filter((_, i) => i !== index); };
 
     const clearCart = () => {
         cart = [];
@@ -145,7 +144,7 @@
         paymentOpen = true;
     };
 
-    const confirmSale = async () => {
+    const confirmSale = () => {
         if (!canConfirm || isProcessing) return;
         isProcessing = true;
         cartError = '';
@@ -181,11 +180,33 @@
         receipt = null;
         clearCart();
     };
+
+    const closeSession = () => {
+        router.get(`/pos/session/${activeSession.uuid}/close`);
+    };
 </script>
 
 <AppLayout title="POS" activeSection="pos" {auth}>
-    <div class="taguara-pos">
+    <!-- Session header bar -->
+    <div class="taguara-pos-session-bar">
+        <div class="d-flex align-items-center gap-3">
+            <span class="taguara-pos-session-tag">
+                <span class="fw-semibold">{activeSession.register_name}</span>
+                <span class="text-secondary">·</span>
+                <Clock size={13} />
+                <span>Desde {activeSession.opened_at}</span>
+            </span>
+            <span class="text-secondary small">
+                {activeSession.sales_count} ventas · {fmt(activeSession.sales_total)}
+            </span>
+        </div>
+        <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={closeSession}>
+            <Lock size={13} />
+            Cerrar caja
+        </button>
+    </div>
 
+    <div class="taguara-pos">
         <!-- Left: product search -->
         <div class="taguara-pos-search">
             <div class="taguara-pos-searchbar">
@@ -223,7 +244,6 @@
                                     {product.available_units} {product.minimum_unit_code}
                                 </span>
                             </div>
-
                             <div class="taguara-pos-presentations">
                                 {#each product.presentations as pres}
                                     <button
@@ -330,70 +350,82 @@
                 {/if}
                 <button
                     class="btn btn-taguara w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                    style="min-height:52px; font-size:1.05rem"
                     type="button"
                     onclick={openPayment}
                     disabled={!hasCart}
                 >
-                    <ChevronRight size={17} />
-                    Cobrar {hasCart ? fmt(cartTotal) : ''}
+                    <ChevronRight size={20} />
+                    {hasCart ? `Cobrar ${fmt(cartTotal)}` : 'Agrega productos'}
                 </button>
             </div>
         </aside>
     </div>
 
-    <!-- Payment modal -->
+    <!-- Payment modal — CENTERED -->
     {#if paymentOpen}
         <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={() => paymentOpen = false} role="presentation"></div>
-        <div class="taguara-pos-payment-modal" transition:fly={{ y: 40, duration: 200 }}>
-            <div class="taguara-drawer-header">
-                <div class="d-flex align-items-center justify-content-between gap-2 w-100">
-                    <div>
-                        <p class="text-uppercase small fw-semibold text-success mb-1">Pago</p>
-                        <h2 class="h5 mb-0">Total a cobrar: {fmt(cartTotal)}</h2>
-                    </div>
-                    <button class="btn btn-light border taguara-icon-button" type="button" onclick={() => paymentOpen = false}><X size={17} /></button>
+        <div class="taguara-pos-modal" transition:scale={{ duration: 180, start: 0.96 }}>
+            <div class="taguara-pos-modal-header">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Cobro</p>
+                    <h2 class="h4 mb-0">Total: {fmt(cartTotal)}</h2>
                 </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={() => paymentOpen = false}><X size={17} /></button>
             </div>
 
-            <div class="p-4">
-                <div class="mb-4">
-                    <p class="small fw-semibold text-secondary mb-2">Metodo de pago</p>
-                    <div class="d-flex gap-2">
-                        {#each [['cash','Efectivo'],['card','Tarjeta'],['transfer','Transferencia']] as [val, lbl]}
-                            <button
-                                type="button"
-                                class={`btn flex-fill ${paymentMethod === val ? 'btn-taguara' : 'btn-light border'}`}
-                                onclick={() => { paymentMethod = val; amountTendered = ''; }}
-                            >
-                                {lbl}
-                            </button>
-                        {/each}
-                    </div>
+            <div class="taguara-pos-modal-body">
+                <p class="small fw-semibold text-secondary mb-2">Metodo de pago</p>
+                <div class="taguara-pos-payment-methods">
+                    <button
+                        type="button"
+                        class={`taguara-pos-method-btn${paymentMethod === 'cash' ? ' active' : ''}`}
+                        onclick={() => { paymentMethod = 'cash'; amountTendered = ''; }}
+                    >
+                        <DollarSign size={20} />
+                        Efectivo
+                    </button>
+                    <button
+                        type="button"
+                        class={`taguara-pos-method-btn${paymentMethod === 'card' ? ' active' : ''}`}
+                        onclick={() => { paymentMethod = 'card'; amountTendered = ''; }}
+                    >
+                        <CreditCard size={20} />
+                        Tarjeta
+                    </button>
+                    <button
+                        type="button"
+                        class={`taguara-pos-method-btn${paymentMethod === 'transfer' ? ' active' : ''}`}
+                        onclick={() => { paymentMethod = 'transfer'; amountTendered = ''; }}
+                    >
+                        <ChevronRight size={20} />
+                        Transferencia
+                    </button>
                 </div>
 
                 {#if paymentMethod === 'cash'}
-                    <div class="mb-3">
-                        <label class="form-label" for="tendered">Monto recibido</label>
+                    <div class="mt-4">
+                        <label class="form-label fw-semibold" for="tendered">Monto recibido</label>
                         <input
                             id="tendered"
                             class="form-control form-control-lg text-end"
                             type="number"
                             min={cartTotal}
-                            step="100"
+                            step="1000"
                             bind:value={amountTendered}
                             placeholder={String(cartTotal)}
                         />
                     </div>
-                    {#if change !== null && amountTendered !== ''}
-                        <div class="alert alert-success d-flex align-items-center justify-content-between mb-3">
-                            <span class="fw-semibold">Cambio</span>
-                            <span class="h5 mb-0">{fmt(change)}</span>
+                    {#if change !== null && amountTendered !== '' && Number(amountTendered) >= cartTotal}
+                        <div class="taguara-pos-change-display mt-3">
+                            <span class="text-secondary small">Cambio</span>
+                            <span class="h3 mb-0 text-success fw-bold">{fmt(change)}</span>
                         </div>
                     {/if}
                 {/if}
 
                 <button
-                    class="btn btn-taguara btn-lg w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                    class="btn btn-taguara btn-lg w-100 mt-4 d-inline-flex align-items-center justify-content-center gap-2"
                     type="button"
                     onclick={confirmSale}
                     disabled={!canConfirm || isProcessing}
@@ -410,11 +442,11 @@
         </div>
     {/if}
 
-    <!-- Receipt after successful sale -->
+    <!-- Receipt -->
     {#if receipt}
         <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} role="presentation"></div>
-        <div class="taguara-pos-payment-modal" transition:fly={{ y: 40, duration: 200 }}>
-            <div class="taguara-drawer-header">
+        <div class="taguara-pos-modal" transition:scale={{ duration: 180, start: 0.96 }}>
+            <div class="taguara-pos-modal-header">
                 <div class="d-flex align-items-center gap-3">
                     <span class="taguara-kpi-icon text-bg-success"><CheckCircle2 size={20} /></span>
                     <div>
@@ -424,7 +456,7 @@
                 </div>
             </div>
 
-            <div class="p-4">
+            <div class="taguara-pos-modal-body">
                 <div class="taguara-drawer-grid mb-4">
                     <span class="taguara-drawer-label">Total cobrado</span>
                     <span class="fw-bold">{fmt(receipt.total)}</span>
@@ -439,10 +471,15 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={() => window.print()}>
+                    <a
+                        class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                        href={receipt?.uuid ? `/sales/${receipt.uuid}/receipt` : '#'}
+                        target="_blank"
+                        rel="noopener"
+                    >
                         <PrinterCheck size={17} />
                         Imprimir
-                    </button>
+                    </a>
                     <button class="btn btn-taguara flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={startNewSale}>
                         <Plus size={17} />
                         Nueva venta

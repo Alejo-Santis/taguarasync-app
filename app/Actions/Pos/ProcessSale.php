@@ -30,9 +30,9 @@ class ProcessSale
      *     }>
      * }  $data
      */
-    public function execute(array $data, User $user): Sale
+    public function execute(array $data, User $user, ?int $cashSessionId = null): Sale
     {
-        return DB::transaction(function () use ($data, $user): Sale {
+        return DB::transaction(function () use ($data, $user, $cashSessionId): Sale {
             $totals = $this->calculateTotals($data['items']);
 
             $amountTendered = isset($data['amount_tendered']) ? (int) $data['amount_tendered'] : null;
@@ -41,6 +41,7 @@ class ProcessSale
             $sale = Sale::create([
                 'uuid' => (string) Str::uuid(),
                 'user_id' => $user->id,
+                'cash_session_id' => $cashSessionId,
                 'document_number' => 'VTA-TEMP',
                 'subtotal' => $totals['subtotal'],
                 'tax_total' => $totals['tax_total'],

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'uuid',
     'tenant_id',
     'user_id',
+    'cash_session_id',
     'document_number',
     'subtotal',
     'tax_total',
@@ -40,6 +41,14 @@ class Sale extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsTo<CashSession, $this>
+     */
+    public function cashSession(): BelongsTo
+    {
+        return $this->belongsTo(CashSession::class);
     }
 
     /**

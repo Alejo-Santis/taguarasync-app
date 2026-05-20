@@ -1,6 +1,9 @@
 <?php
 
+use App\Enums\CashSessionStatus;
 use App\Enums\ProductStatus;
+use App\Models\CashRegister;
+use App\Models\CashSession;
 use App\Models\InventoryLot;
 use App\Models\Product;
 use App\Models\ProductPresentation;
@@ -18,6 +21,17 @@ function posSetup(): array
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
     $unit = ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
+
+    $register = CashRegister::factory()->for($tenant)->create(['name' => 'Caja 1', 'code' => 'CJ-01', 'is_active' => true]);
+
+    $session = CashSession::create([
+        'tenant_id' => $tenant->id,
+        'cash_register_id' => $register->id,
+        'user_id' => $user->id,
+        'opening_amount' => 50000,
+        'status' => CashSessionStatus::Open,
+        'opened_at' => now(),
+    ]);
 
     $product = Product::factory()->for($tenant)->for($unit, 'minimumUnit')->create([
         'commercial_name' => 'Dolex 500mg',
@@ -44,16 +58,24 @@ function posSetup(): array
         'status' => 'available',
     ]);
 
-    return compact('tenant', 'user', 'product', 'presentation', 'lot');
+    return compact('tenant', 'user', 'product', 'presentation', 'lot', 'session', 'register');
 }
 
 test('guests cannot access the POS', function () {
     $this->get('/pos')->assertRedirect('/login');
 });
 
-test('authenticated users can open the POS', function () {
+test('POS redirects to open session when no active session', function () {
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
+
+    $this->actingAs($user)
+        ->get('/pos')
+        ->assertRedirect(route('pos.session.open'));
+});
+
+test('authenticated users with open session can access the POS', function () {
+    ['tenant' => $tenant, 'user' => $user] = posSetup();
 
     $this->actingAs($user)
         ->get('/pos')
@@ -91,7 +113,7 @@ test('valid sale creates sale record and reduces inventory', function () {
     $this->actingAs($user)
         ->post('/pos/sales', [
             'payment_method' => 'cash',
-            'amount_tendered' => 1000,
+            'amount_tendered' => 2000,
             'items' => [[
                 'product_id' => $product->id,
                 'product_presentation_id' => $presentation->id,
