@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\InventoryLotStatus;
 use App\Enums\PurchaseReceiptStatus;
 use App\Models\InventoryLot;
+use App\Models\Product;
 use App\Models\PurchaseReceipt;
 use App\Models\Sale;
 use Illuminate\Http\Request;
@@ -51,6 +52,12 @@ class DashboardController extends Controller
                 'expired_lots' => InventoryLot::where('status', InventoryLotStatus::Available)
                     ->whereNotNull('expires_on')
                     ->where('expires_on', '<', $today)
+                    ->count(),
+                'low_stock' => Product::where('minimum_stock', '>', 0)
+                    ->whereRaw(
+                        'minimum_stock > (SELECT COALESCE(SUM(il.current_quantity), 0) FROM inventory_lots il WHERE il.product_id = products.id AND il.status = ?)',
+                        [InventoryLotStatus::Available->value]
+                    )
                     ->count(),
             ],
             'salesLast7' => $salesLast7,

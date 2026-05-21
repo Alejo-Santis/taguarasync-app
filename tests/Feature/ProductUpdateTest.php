@@ -78,6 +78,7 @@ test('authenticated users can update products and replace presentations', functi
             'concentration' => '400mg',
             'purchase_price' => 250,
             'sale_price' => 500,
+            'minimum_stock' => 0,
             'regulated_price' => null,
             'tax_rate' => 0,
             'requires_invima_registration' => true,

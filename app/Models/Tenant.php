@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FeEnvironment;
 use App\Enums\TenantStatus;
 use Database\Factories\TenantFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -15,13 +16,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'slug',
     'legal_name',
     'nit',
+    'verification_digit',
+    'identification_type_code',
+    'organization_type_code',
+    'regime_type_code',
+    'fiscal_responsibilities',
     'email',
     'phone',
     'city',
+    'municipality_code',
     'department',
     'address',
+    'economic_activity_code',
     'timezone',
     'status',
+    'fe_environment',
     'trial_ends_at',
 ])]
 class Tenant extends Model
@@ -75,14 +84,30 @@ class Tenant extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
+     * @return HasMany<FeResolution, $this>
+     */
+    public function feResolutions(): HasMany
+    {
+        return $this->hasMany(FeResolution::class);
+    }
+
+    /**
+     * @return HasMany<Customer, $this>
+     */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'status' => TenantStatus::class,
+            'fe_environment' => FeEnvironment::class,
+            'fiscal_responsibilities' => 'array',
             'trial_ends_at' => 'datetime',
         ];
     }

@@ -168,7 +168,7 @@
                             <p class="text-uppercase small fw-semibold text-success mb-1">Alertas</p>
                             <h3 class="h5 mb-0">Requieren atencion</h3>
                         </div>
-                        <AlertTriangle class={alerts.expiring_lots > 0 || alerts.expired_lots > 0 ? 'text-warning' : 'text-secondary'} size={22} />
+                        <AlertTriangle class={alerts.expiring_lots > 0 || alerts.expired_lots > 0 || alerts.low_stock > 0 ? 'text-warning' : 'text-secondary'} size={22} />
                     </div>
 
                     <div class="vstack gap-3">
@@ -190,12 +190,14 @@
                                 {alerts.expired_lots}
                             </span>
                         </div>
-                        <div class="taguara-alert-row">
+                        <div class="taguara-alert-row" role="button" tabindex="0" onclick={() => router.visit('/products')} style="cursor:pointer">
                             <div>
-                                <p class="fw-semibold mb-1">Facturas DIAN pendientes</p>
-                                <p class="small text-secondary mb-0">Modulo de facturacion proximo</p>
+                                <p class="fw-semibold mb-1">Productos bajo stock minimo</p>
+                                <p class="small text-secondary mb-0">{alerts.low_stock > 0 ? 'Pedir a proveedor' : 'Stock suficiente en todos'}</p>
                             </div>
-                            <span class="taguara-alert-value bg-light text-secondary border">—</span>
+                            <span class={`taguara-alert-value ${alerts.low_stock > 0 ? 'bg-warning text-dark' : 'bg-light text-secondary border'}`}>
+                                {alerts.low_stock}
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -54,6 +54,7 @@ class StoreProductRequest extends FormRequest
             'concentration' => ['nullable', 'string', 'max:120'],
             'purchase_price' => ['required', 'integer', 'min:0'],
             'sale_price' => ['required', 'integer', 'min:0'],
+            'minimum_stock' => ['required', 'integer', 'min:0'],
             'regulated_price' => ['nullable', 'integer', 'min:0'],
             'tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
             'requires_invima_registration' => ['required', 'boolean'],

@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleAndPermissionSeeder::class,
+            DianCatalogsSeeder::class,
+            DianMunicipalitiesSeeder::class,
         ]);
 
         $tenant = Tenant::firstOrCreate([

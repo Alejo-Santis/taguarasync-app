@@ -33,6 +33,7 @@ class GetProductFormData
             'concentration' => $product->concentration,
             'purchase_price' => $product->purchase_price,
             'sale_price' => $product->sale_price,
+            'minimum_stock' => $product->minimum_stock,
             'regulated_price' => $product->regulated_price,
             'tax_rate' => $product->tax_rate,
             'requires_invima_registration' => $product->requires_invima_registration,

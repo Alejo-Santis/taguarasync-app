@@ -39,6 +39,7 @@
         concentration: product.concentration ?? '',
         purchase_price: product.purchase_price ?? 0,
         sale_price: product.sale_price ?? '',
+        minimum_stock: product.minimum_stock ?? 0,
         regulated_price: product.regulated_price ?? '',
         tax_rate: product.tax_rate ?? 0,
         requires_invima_registration: product.requires_invima_registration ?? true,
@@ -62,6 +63,7 @@
         concentration: '',
         purchase_price: 0,
         sale_price: '',
+        minimum_stock: 0,
         regulated_price: '',
         tax_rate: 0,
         requires_invima_registration: true,
@@ -284,6 +286,13 @@
                             <label class="form-label" for="sale_price">Precio venta base</label>
                             <input id="sale_price" class:is-invalid={error('sale_price')} class="form-control" type="number" min="0" bind:value={form.sale_price}>
                             {#if error('sale_price')}<div class="invalid-feedback">{error('sale_price')}</div>{/if}
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="minimum_stock">Stock minimo (unidades)</label>
+                            <input id="minimum_stock" class:is-invalid={error('minimum_stock')} class="form-control" type="number" min="0" bind:value={form.minimum_stock}>
+                            <div class="form-text">El sistema alertara cuando el stock baje de este numero.</div>
+                            {#if error('minimum_stock')}<div class="invalid-feedback">{error('minimum_stock')}</div>{/if}
                         </div>
 
                         <div>

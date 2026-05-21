@@ -60,6 +60,7 @@ test('authenticated users can create products with presentations', function () {
             'concentration' => '500mg',
             'purchase_price' => 180,
             'sale_price' => 300,
+            'minimum_stock' => 0,
             'regulated_price' => null,
             'tax_rate' => 0,
             'requires_invima_registration' => true,

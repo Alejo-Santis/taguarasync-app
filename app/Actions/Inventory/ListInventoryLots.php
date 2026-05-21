@@ -88,6 +88,7 @@ class ListInventoryLots
     private function transformLot(InventoryLot $lot): array
     {
         return [
+            'id' => $lot->id,
             'uuid' => $lot->uuid,
             'lot_number' => $lot->lot_number,
             'expires_on' => $lot->expires_on?->toDateString(),

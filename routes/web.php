@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Catalog\ProductController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Pos\CashSessionController;
 use App\Http\Controllers\Pos\PosController;
@@ -29,6 +30,7 @@ Route::get('/', function () {
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/profile', [ProfileController::class, 'index'])->middleware(['auth'])->name('profile');
+Route::get('/search', GlobalSearchController::class)->middleware(['auth'])->name('search');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('products/import/template', [ProductController::class, 'downloadTemplate'])->name('products.import.template');
@@ -51,9 +53,10 @@ Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
     Route::post('session/{session}/close', [CashSessionController::class, 'update'])->name('session.update');
 });
 
-Route::get('/inventory', [InventoryController::class, 'index'])
-    ->middleware(['auth'])
-    ->name('inventory.index');
+Route::middleware(['auth'])->group(function () {
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+});
 
 Route::middleware(['auth'])->prefix('settings')->name('settings.')->group(function () {
     Route::redirect('/', '/settings/laboratories');
@@ -102,9 +105,7 @@ Route::middleware(['auth'])->prefix('team')->name('team.')->group(function () {
     Route::post('{member}/reset-password', [TeamController::class, 'resetPassword'])->name('reset-password');
 });
 
-Route::resource('purchases', PurchaseReceiptController::class)
-    ->only('index', 'create', 'store')
-    ->middleware(['auth']);
+Route::resource('purchases', PurchaseReceiptController::class)->only('index', 'create', 'store')->middleware(['auth']);
 
 Route::middleware(['auth'])->prefix('sales')->name('sales.')->group(function () {
     Route::get('/', [SaleController::class, 'index'])->name('index');

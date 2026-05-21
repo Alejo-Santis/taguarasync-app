@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'concentration',
     'purchase_price',
     'sale_price',
+    'minimum_stock',
     'regulated_price',
     'tax_rate',
     'requires_invima_registration',

@@ -1,8 +1,10 @@
 <script>
-    import { Link, router } from '@inertiajs/svelte';
+    import { Link, router, useForm } from '@inertiajs/svelte';
     import { fade, fly } from 'svelte/transition';
     import {
         AlertTriangle,
+        ArrowDownCircle,
+        ArrowUpCircle,
         Boxes,
         CalendarClock,
         CircleDollarSign,
@@ -23,6 +25,35 @@
         expiry: '',
     });
     let selectedLot = $state(null);
+
+    // Adjustment modal
+    let adjustModalOpen = $state(false);
+    let adjustingLot = $state(null);
+    const adjustForm = useForm({ inventory_lot_id: '', type: 'in', quantity: 1, reason: '' });
+
+    const openAdjust = (lot) => {
+        adjustingLot = lot;
+        adjustForm.inventory_lot_id = lot.id ?? '';
+        adjustForm.type = 'in';
+        adjustForm.quantity = 1;
+        adjustForm.reason = '';
+        selectedLot = null;
+        adjustModalOpen = true;
+    };
+
+    const closeAdjust = () => {
+        adjustModalOpen = false;
+        adjustingLot = null;
+        adjustForm.reset();
+        adjustForm.clearErrors();
+    };
+
+    const submitAdjust = () => {
+        adjustForm.post('/inventory/adjust', {
+            onSuccess: closeAdjust,
+            preserveScroll: true,
+        });
+    };
 
     const money = new Intl.NumberFormat('es-CO', {
         style: 'currency',
@@ -261,7 +292,16 @@
                                         <span class={`badge ${statusClass(lot.status.value)}`}>{lot.status.label}</span>
                                     </td>
                                     <td>
-                                        <div class="d-flex justify-content-end">
+                                        <div class="d-flex gap-1 justify-content-end">
+                                            <button
+                                                class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                                type="button"
+                                                aria-label="Ajustar inventario"
+                                                title="Ajustar inventario"
+                                                onclick={(event) => { event.stopPropagation(); openAdjust(lot); }}
+                                            >
+                                                <ArrowUpCircle size={15} />
+                                            </button>
                                             <button
                                                 class="btn btn-sm btn-light border taguara-icon-button-sm"
                                                 type="button"
@@ -388,5 +428,73 @@
                 </div>
             </div>
         </aside>
+    {/if}
+
+    <!-- Adjustment modal -->
+    {#if adjustModalOpen}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={closeAdjust} role="presentation"></div>
+        <div class="taguara-pos-modal" transition:fly={{ y: -20, duration: 180 }}>
+            <div class="taguara-pos-modal-header">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Ajuste de inventario</p>
+                    <h2 class="h5 mb-0">{adjustingLot?.lot_number ?? ''}</h2>
+                    {#if adjustingLot}
+                        <p class="text-secondary small mb-0">{adjustingLot.product.name} · Stock actual: <strong>{adjustingLot.current_quantity}</strong></p>
+                    {/if}
+                </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={closeAdjust}><X size={17} /></button>
+            </div>
+            <div class="taguara-pos-modal-body">
+                {#if adjustForm.errors.adjust}
+                    <div class="alert alert-danger small mb-3">{adjustForm.errors.adjust}</div>
+                {/if}
+
+                <form id="adjust-form" class="vstack gap-3" onsubmit={(e) => { e.preventDefault(); submitAdjust(); }}>
+                    <input type="hidden" bind:value={adjustForm.inventory_lot_id} />
+
+                    <div>
+                        <label class="form-label fw-semibold">Tipo de ajuste</label>
+                        <div class="d-flex gap-2">
+                            <button
+                                type="button"
+                                class={`btn flex-fill d-inline-flex align-items-center justify-content-center gap-2 ${adjustForm.type === 'in' ? 'btn-taguara' : 'btn-light border'}`}
+                                onclick={() => adjustForm.type = 'in'}
+                            >
+                                <ArrowUpCircle size={17} />
+                                Entrada de stock
+                            </button>
+                            <button
+                                type="button"
+                                class={`btn flex-fill d-inline-flex align-items-center justify-content-center gap-2 ${adjustForm.type === 'out' ? 'btn-danger' : 'btn-light border'}`}
+                                onclick={() => adjustForm.type = 'out'}
+                            >
+                                <ArrowDownCircle size={17} />
+                                Salida de stock
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="adj-qty">Cantidad (unidades minimas) <span class="text-danger">*</span></label>
+                        <input id="adj-qty" class="form-control form-control-lg text-end" class:is-invalid={adjustForm.errors.quantity} type="number" min="1" bind:value={adjustForm.quantity}>
+                        {#if adjustForm.errors.quantity}<div class="invalid-feedback">{adjustForm.errors.quantity}</div>{/if}
+                    </div>
+
+                    <div>
+                        <label class="form-label" for="adj-reason">Motivo del ajuste <span class="text-danger">*</span></label>
+                        <input id="adj-reason" class="form-control" class:is-invalid={adjustForm.errors.reason} type="text" bind:value={adjustForm.reason} placeholder="Merma, producto dañado, inventario fisico...">
+                        {#if adjustForm.errors.reason}<div class="invalid-feedback">{adjustForm.errors.reason}</div>{/if}
+                    </div>
+
+                    <button
+                        class={`btn btn-lg w-100 ${adjustForm.type === 'out' ? 'btn-danger' : 'btn-taguara'}`}
+                        type="submit"
+                        disabled={adjustForm.processing}
+                    >
+                        {adjustForm.processing ? 'Registrando...' : `Confirmar ${adjustForm.type === 'in' ? 'entrada' : 'salida'}`}
+                    </button>
+                </form>
+            </div>
+        </div>
     {/if}
 </AppLayout>

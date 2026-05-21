@@ -1,39 +1,8 @@
 <script>
     import { page } from '@inertiajs/svelte';
+    import { Toaster, toast } from 'svelte-sonner';
 
-    const labels = {
-        success: 'Listo',
-        error: 'Error',
-        warning: 'Atencion',
-        info: 'Informacion',
-        status: 'Listo',
-        message: 'Mensaje',
-    };
-
-    const classes = {
-        success: 'text-bg-success',
-        error: 'text-bg-danger',
-        warning: 'text-bg-warning',
-        info: 'text-bg-info',
-        status: 'text-bg-success',
-        message: 'text-bg-primary',
-    };
-
-    let messages = $state([]);
     let lastSignature = $state('');
-
-    const normalizeFlash = (flash = {}) => Object.entries(flash)
-        .filter(([, message]) => Boolean(message))
-        .map(([type, message]) => ({
-            id: `${type}-${Date.now()}-${Math.random().toString(16).slice(2)}`,
-            type,
-            title: labels[type] ?? 'Mensaje',
-            message,
-        }));
-
-    const dismiss = (id) => {
-        messages = messages.filter((message) => message.id !== id);
-    };
 
     $effect(() => {
         const flash = page.props.flash ?? {};
@@ -44,37 +13,28 @@
         }
 
         lastSignature = signature;
-        const nextMessages = normalizeFlash(flash);
 
-        if (nextMessages.length === 0) {
-            return;
+        if (flash.success || flash.status) {
+            toast.success(flash.success ?? flash.status);
         }
-
-        messages = [...messages, ...nextMessages];
-
-        nextMessages.forEach((message) => {
-            setTimeout(() => dismiss(message.id), 4500);
-        });
+        if (flash.error) {
+            toast.error(flash.error);
+        }
+        if (flash.warning) {
+            toast.warning(flash.warning);
+        }
+        if (flash.info) {
+            toast.info(flash.info);
+        }
+        if (flash.message) {
+            toast(flash.message);
+        }
     });
 </script>
 
-{#if messages.length > 0}
-    <div class="taguara-toast-stack" aria-live="polite" aria-atomic="true">
-        {#each messages as message (message.id)}
-            <div class={`toast show border-0 shadow-sm ${classes[message.type] ?? 'text-bg-primary'}`} role="status">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <strong class="d-block">{message.title}</strong>
-                        <span>{message.message}</span>
-                    </div>
-                    <button
-                        class="btn-close btn-close-white me-2 m-auto"
-                        type="button"
-                        aria-label="Cerrar"
-                        onclick={() => dismiss(message.id)}
-                    ></button>
-                </div>
-            </div>
-        {/each}
-    </div>
-{/if}
+<Toaster
+    position="top-right"
+    richColors
+    closeButton
+    duration={4500}
+/>
