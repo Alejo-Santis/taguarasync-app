@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'phone',
     'city',
     'municipality_code',
+    'fe_municipality_api_id',
     'department',
     'address',
     'economic_activity_code',

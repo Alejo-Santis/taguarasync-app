@@ -12,6 +12,9 @@
         ReceiptText,
         RotateCcw,
         Search,
+        ShieldCheck,
+        ShieldOff,
+        User,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
@@ -57,6 +60,10 @@
     const openVoidConfirm = (sale) => {
         selectedSale = null;
         confirmVoid = sale;
+    };
+
+    const retryFe = (sale) => {
+        router.post(`/sales/${sale.uuid}/retry-fe`, {}, { preserveScroll: true });
     };
 
     const doVoid = () => {
@@ -300,19 +307,74 @@
             </div>
 
             <div class="taguara-drawer-body">
+
+                <!-- Cliente -->
+                {#if selectedSale.customer_name}
+                    <div class="taguara-drawer-section">
+                        <p class="text-uppercase small fw-semibold text-success mb-2">Cliente</p>
+                        <div class="d-flex align-items-center gap-2">
+                            <User size={14} class="text-secondary" />
+                            <span style="font-size:.875rem">{selectedSale.customer_name}</span>
+                        </div>
+                    </div>
+                {/if}
+
+                <!-- Pago y totales -->
                 <div class="taguara-drawer-section">
-                    <p class="text-uppercase small fw-semibold text-success mb-0">Pago</p>
+                    <p class="text-uppercase small fw-semibold text-success mb-2">Pago</p>
                     <div class="taguara-drawer-grid">
-                        <span class="taguara-drawer-label">Metodo</span>
+                        <span class="taguara-drawer-label">Método</span>
                         <span>{selectedSale.payment_method.label}</span>
-                        <span class="taguara-drawer-label">Total</span>
+                        <span class="taguara-drawer-label">Subtotal</span>
+                        <span>{fmt(selectedSale.subtotal)}</span>
+                        <span class="taguara-drawer-label">IVA</span>
+                        <span>{fmt(selectedSale.tax_total)}</span>
+                        <span class="taguara-drawer-label fw-bold">Total</span>
                         <span class="fw-bold">{fmt(selectedSale.total)}</span>
+                        {#if selectedSale.amount_tendered}
+                            <span class="taguara-drawer-label">Recibido</span>
+                            <span>{fmt(selectedSale.amount_tendered)}</span>
+                            <span class="taguara-drawer-label">Cambio</span>
+                            <span>{fmt(selectedSale.change_amount)}</span>
+                        {/if}
                         <span class="taguara-drawer-label">Caja</span>
                         <span>{selectedSale.register}</span>
                         <span class="taguara-drawer-label">Cajero</span>
                         <span>{selectedSale.cashier}</span>
                     </div>
                 </div>
+
+                <!-- Facturación electrónica -->
+                {#if selectedSale.fe?.status}
+                    <div class="taguara-drawer-section">
+                        <p class="text-uppercase small fw-semibold text-success mb-2">Facturación electrónica</p>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            {#if selectedSale.fe.status === 'accepted'}
+                                <ShieldCheck size={16} class="text-success" />
+                                <span class="badge text-bg-success">{selectedSale.fe.status_label}</span>
+                            {:else if selectedSale.fe.status === 'rejected'}
+                                <ShieldOff size={16} class="text-danger" />
+                                <span class="badge text-bg-danger">{selectedSale.fe.status_label}</span>
+                            {:else}
+                                <span class="badge text-bg-warning text-dark">{selectedSale.fe.status_label}</span>
+                            {/if}
+                        </div>
+                        {#if selectedSale.fe.cufe}
+                            <div class="taguara-drawer-grid">
+                                <span class="taguara-drawer-label">CUFE</span>
+                                <span class="font-monospace text-truncate" style="font-size:.7rem" title={selectedSale.fe.cufe}>
+                                    {selectedSale.fe.cufe.slice(0, 20)}…
+                                </span>
+                            </div>
+                        {/if}
+                        {#if selectedSale.fe.error_message}
+                            <div class="alert alert-danger py-1 px-2 small mt-2 mb-0">
+                                {selectedSale.fe.error_message}
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
+
             </div>
 
             <div class="taguara-drawer-footer vstack gap-2">
@@ -325,6 +387,25 @@
                     <PrinterCheck size={17} />
                     Imprimir recibo
                 </a>
+                {#if selectedSale.fe?.status === 'pending' || selectedSale.fe?.status === 'rejected'}
+                    <button
+                        class="btn btn-outline-warning w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                        type="button"
+                        onclick={() => retryFe(selectedSale)}
+                    >
+                        <ShieldCheck size={17} />
+                        Reintentar emisión FE
+                    </button>
+                {/if}
+                {#if selectedSale.status.value === 'completed' && selectedSale.fe?.cufe}
+                    <a
+                        class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                        href={`/sales/${selectedSale.uuid}/credit-notes/create`}
+                    >
+                        <ShieldOff size={17} />
+                        Nota crédito / devolución
+                    </a>
+                {/if}
                 {#if selectedSale.status.value === 'completed'}
                     <button
                         class="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"

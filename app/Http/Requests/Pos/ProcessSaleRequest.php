@@ -21,7 +21,9 @@ class ProcessSaleRequest extends FormRequest
         $tenantId = $this->user()?->tenant_id;
 
         return [
+            'customer_id' => ['nullable', 'integer', Rule::exists('customers', 'id')->where('tenant_id', $tenantId)],
             'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
+            'payment_form' => ['nullable', 'string', Rule::in(['1', '2'])],
             'amount_tendered' => [
                 'nullable', 'integer', 'min:0',
                 Rule::requiredIf($this->input('payment_method') === PaymentMethod::Cash->value),

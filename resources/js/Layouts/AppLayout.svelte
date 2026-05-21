@@ -66,18 +66,45 @@
 
     let searchModalOpen = $state(false);
 
-    const navItems = [
-        { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard' },
-        { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos' },
-        { label: 'Ventas', href: '/sales', icon: ReceiptText, section: 'sales' },
-        { label: 'Productos', href: '/products', icon: Package, section: 'products' },
-        { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory' },
-        { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases' },
-        { label: 'Reportes', href: '/reports/sales', icon: BarChart3, section: 'reports' },
-        { label: 'Equipo', href: '/team', icon: Users, section: 'team' },
-        { label: 'Facturacion', href: null, icon: FileText, soon: true },
-        { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion' },
+    const navGroups = [
+        {
+            items: [
+                { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard' },
+            ],
+        },
+        {
+            group: 'Ventas',
+            items: [
+                { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos' },
+                { label: 'Ventas', href: '/sales', icon: ReceiptText, section: 'sales' },
+                { label: 'Clientes', href: '/customers', icon: User, section: 'customers' },
+                { label: 'Facturacion', href: null, icon: FileText, soon: true },
+            ],
+        },
+        {
+            group: 'Inventario',
+            items: [
+                { label: 'Productos', href: '/products', icon: Package, section: 'products' },
+                { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory' },
+                { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases' },
+            ],
+        },
+        {
+            group: 'Análisis',
+            items: [
+                { label: 'Reportes', href: '/reports/sales', icon: BarChart3, section: 'reports' },
+            ],
+        },
+        {
+            group: 'Administración',
+            items: [
+                { label: 'Equipo', href: '/team', icon: Users, section: 'team' },
+                { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion' },
+            ],
+        },
     ];
+
+    const navItemsFlat = navGroups.flatMap((g) => g.items);
 
     const logout = () => {
         router.post('/logout');
@@ -126,29 +153,34 @@
         </div>
 
         <nav class="taguara-sidebar-nav" aria-label="Principal">
-            {#each navItems as item}
-                {@const Icon = item.icon}
-                {#if item.soon}
-                    <span
-                        class="taguara-nav-link taguara-nav-link-soon"
-                        aria-disabled="true"
-                        use:navTooltip={item.label}
-                    >
-                        <Icon size={18} strokeWidth={2} />
-                        <span class="taguara-nav-label">{item.label}</span>
-                        <span class="taguara-nav-soon-badge taguara-nav-label">Pronto</span>
-                    </span>
-                {:else}
-                    <div use:navTooltip={item.label}>
-                        <Link
-                            class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`}
-                            href={item.href}
+            {#each navGroups as { group, items }}
+                {#if group}
+                    <span class="taguara-nav-group-label taguara-nav-label">{group}</span>
+                {/if}
+                {#each items as item}
+                    {@const Icon = item.icon}
+                    {#if item.soon}
+                        <span
+                            class="taguara-nav-link taguara-nav-link-soon"
+                            aria-disabled="true"
+                            use:navTooltip={item.label}
                         >
                             <Icon size={18} strokeWidth={2} />
                             <span class="taguara-nav-label">{item.label}</span>
-                        </Link>
-                    </div>
-                {/if}
+                            <span class="taguara-nav-soon-badge taguara-nav-label">Pronto</span>
+                        </span>
+                    {:else}
+                        <div use:navTooltip={item.label}>
+                            <Link
+                                class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`}
+                                href={item.href}
+                            >
+                                <Icon size={18} strokeWidth={2} />
+                                <span class="taguara-nav-label">{item.label}</span>
+                            </Link>
+                        </div>
+                    {/if}
+                {/each}
             {/each}
         </nav>
 
@@ -233,7 +265,7 @@
         </header>
 
         <div class={`taguara-mobile-nav ${isMobileNavOpen ? 'open' : ''}`}>
-            {#each navItems.slice(0, 6) as item}
+            {#each navItemsFlat.filter((i) => !i.soon).slice(0, 6) as item}
                 {@const Icon = item.icon}
                 <Link class={`taguara-mobile-link ${item.section === activeSection ? 'active' : ''}`} href={item.href}>
                     <Icon size={17} />

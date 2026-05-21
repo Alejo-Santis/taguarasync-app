@@ -37,6 +37,7 @@
                 bind:value={form.password}
                 error={form.errors.password}
                 autocomplete="new-password"
+                showStrength
             />
         </div>
 

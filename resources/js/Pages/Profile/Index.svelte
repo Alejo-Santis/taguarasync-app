@@ -2,6 +2,7 @@
     import { useForm } from '@inertiajs/svelte';
     import { CheckCircle2, KeyRound, UserCircle } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import PasswordInput from '../../Components/UI/PasswordInput.svelte';
 
     let { auth, user } = $props();
 
@@ -130,48 +131,34 @@
 
                     <form class="vstack gap-3" onsubmit={(e) => { e.preventDefault(); submitPassword(); }}>
                         <div>
-                            <label class="form-label" for="pw-current">Contrasena actual</label>
-                            <input
+                            <PasswordInput
                                 id="pw-current"
-                                class="form-control"
-                                class:is-invalid={passwordForm.errors.current_password}
-                                type="password"
+                                label="Contrasena actual"
                                 bind:value={passwordForm.current_password}
+                                error={passwordForm.errors.current_password}
                                 autocomplete="current-password"
                             />
-                            {#if passwordForm.errors.current_password}
-                                <div class="invalid-feedback">{passwordForm.errors.current_password}</div>
-                            {/if}
                         </div>
 
                         <div>
-                            <label class="form-label" for="pw-new">Nueva contrasena</label>
-                            <input
+                            <PasswordInput
                                 id="pw-new"
-                                class="form-control"
-                                class:is-invalid={passwordForm.errors.password}
-                                type="password"
+                                label="Nueva contrasena"
                                 bind:value={passwordForm.password}
+                                error={passwordForm.errors.password}
                                 autocomplete="new-password"
+                                showStrength
                             />
-                            {#if passwordForm.errors.password}
-                                <div class="invalid-feedback">{passwordForm.errors.password}</div>
-                            {/if}
                         </div>
 
                         <div>
-                            <label class="form-label" for="pw-confirm">Confirmar contrasena</label>
-                            <input
+                            <PasswordInput
                                 id="pw-confirm"
-                                class="form-control"
-                                class:is-invalid={passwordForm.errors.password_confirmation}
-                                type="password"
+                                label="Confirmar contrasena"
                                 bind:value={passwordForm.password_confirmation}
+                                error={passwordForm.errors.password_confirmation}
                                 autocomplete="new-password"
                             />
-                            {#if passwordForm.errors.password_confirmation}
-                                <div class="invalid-feedback">{passwordForm.errors.password_confirmation}</div>
-                            {/if}
                         </div>
 
                         <div class="d-flex align-items-center gap-3">

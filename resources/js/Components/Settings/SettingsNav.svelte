@@ -10,6 +10,7 @@
         { label: 'Principios activos', href: '/settings/active-ingredients', key: 'principios-activos' },
         { label: 'Proveedores', href: '/settings/suppliers', key: 'proveedores' },
         { label: 'Cajas', href: '/settings/registers', key: 'registers' },
+        { label: 'Facturación electrónica', href: '/settings/fe', key: 'fe' },
     ];
 </script>
 

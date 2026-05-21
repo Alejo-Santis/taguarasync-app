@@ -1,0 +1,748 @@
+<script>
+    import { Link, router, useForm } from '@inertiajs/svelte';
+    import { fade, fly } from 'svelte/transition';
+    import {
+        AlertCircle,
+        Building2,
+        CalendarClock,
+        FileText,
+        Hash,
+        Pencil,
+        Plus,
+        Receipt,
+        Shield,
+        ToggleLeft,
+        ToggleRight,
+        X,
+    } from '@lucide/svelte';
+    import AppLayout from '../../../Layouts/AppLayout.svelte';
+    import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
+
+    let { auth, tenant, resolutions, options } = $props();
+
+    // ── Algoritmo DV colombiano (DIAN) ─────────────────────────────────────────
+    const calculateDv = (nit) => {
+        const primes = [71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3];
+        const digits = String(nit ?? '').replace(/\D/g, '');
+        if (!digits || digits.length > 15) return '';
+        let sum = 0;
+        const offset = primes.length - digits.length;
+        for (let i = 0; i < digits.length; i++) {
+            sum += parseInt(digits[i]) * primes[offset + i];
+        }
+        const r = sum % 11;
+        return String(r === 0 || r === 1 ? r : 11 - r);
+    };
+
+    // ── Formulario empresa + fiscal ────────────────────────────────────────────
+    const fiscalForm = useForm({
+        name: tenant.name ?? '',
+        legal_name: tenant.legal_name ?? '',
+        nit: tenant.nit ?? '',
+        email: tenant.email ?? '',
+        phone: tenant.phone ?? '',
+        address: tenant.address ?? '',
+        city: tenant.city ?? '',
+        department: tenant.department ?? '',
+        identification_type_code: tenant.identification_type_code ?? '',
+        organization_type_code: tenant.organization_type_code ?? '',
+        regime_type_code: tenant.regime_type_code ?? '',
+        fiscal_responsibilities: tenant.fiscal_responsibilities ?? [],
+        municipality_code: tenant.municipality_code ?? '',
+        fe_municipality_api_id: tenant.fe_municipality_api_id ?? '',
+        economic_activity_code: tenant.economic_activity_code ?? '',
+        fe_environment: tenant.fe_environment ?? 'test',
+    });
+
+    // DV reactivo: se recalcula cada vez que cambia el NIT
+    const dv = $derived(calculateDv(fiscalForm.nit));
+
+    const saveFiscal = () => {
+        fiscalForm.put('/settings/fe', { preserveScroll: true });
+    };
+
+    const onMunicipalityChange = (code) => {
+        fiscalForm.municipality_code = code;
+        const m = options.municipalities.find((m) => m.code === code);
+        if (m) {
+            fiscalForm.city = m.name;
+            fiscalForm.department = m.department_name;
+        }
+    };
+
+    const onResponsibilitiesChange = (e) => {
+        fiscalForm.fiscal_responsibilities = Array.from(e.target.selectedOptions).map((o) => o.value);
+    };
+
+    // ── Resoluciones DIAN ─────────────────────────────────────────────────────
+    let drawerOpen = $state(false);
+    let editingResolution = $state(null);
+
+    const resolutionForm = useForm({
+        code: '',
+        type: 'invoice',
+        prefix: '',
+        resolution_number: '',
+        resolution_date: '',
+        technical_key: '',
+        from_number: '',
+        to_number: '',
+        valid_from: '',
+        valid_until: '',
+        environment: tenant.fe_environment ?? 'test',
+    });
+
+    $effect(() => {
+        document.body.style.overflow = drawerOpen ? 'hidden' : '';
+        return () => { document.body.style.overflow = ''; };
+    });
+
+    const handleKeydown = (e) => { if (e.key === 'Escape') closeDrawer(); };
+
+    const openCreate = () => {
+        editingResolution = null;
+        resolutionForm.reset();
+        resolutionForm.environment = fiscalForm.fe_environment;
+        drawerOpen = true;
+    };
+
+    const openEdit = (item) => {
+        editingResolution = item;
+        resolutionForm.code = item.code ?? '';
+        resolutionForm.type = item.type;
+        resolutionForm.prefix = item.prefix ?? '';
+        resolutionForm.resolution_number = item.resolution_number;
+        resolutionForm.resolution_date = item.resolution_date;
+        resolutionForm.technical_key = item.technical_key;
+        resolutionForm.from_number = item.from_number;
+        resolutionForm.to_number = item.to_number;
+        resolutionForm.valid_from = item.valid_from;
+        resolutionForm.valid_until = item.valid_until;
+        resolutionForm.environment = item.environment;
+        drawerOpen = true;
+    };
+
+    const closeDrawer = () => {
+        drawerOpen = false;
+        editingResolution = null;
+        resolutionForm.reset();
+        resolutionForm.clearErrors();
+    };
+
+    const saveResolution = () => {
+        if (editingResolution) {
+            resolutionForm.put(`/settings/fe/resolutions/${editingResolution.id}`, {
+                onSuccess: closeDrawer,
+                preserveScroll: true,
+            });
+        } else {
+            resolutionForm.post('/settings/fe/resolutions', {
+                onSuccess: closeDrawer,
+                preserveScroll: true,
+            });
+        }
+    };
+
+    const toggleResolution = (item) => {
+        router.patch(`/settings/fe/resolutions/${item.id}/toggle`, {}, { preserveScroll: true });
+    };
+
+    const resolutionTypeLabel = (type) =>
+        options.resolution_types.find((t) => t.value === type)?.label ?? type;
+
+    const environmentBadgeClass = (env) =>
+        env === 'production' ? 'text-bg-success' : 'text-bg-warning text-dark';
+</script>
+
+<svelte:window onkeydown={handleKeydown} />
+
+<AppLayout title="Facturación electrónica" activeSection="configuracion" {auth}>
+    <div class="taguara-products">
+        <section class="taguara-command-band">
+            <div>
+                <p class="text-uppercase small fw-semibold text-success mb-2">Configuracion</p>
+                <h2 class="h3 mb-2">Facturación electrónica</h2>
+                <p class="text-secondary mb-0">Configura los datos de la empresa y resoluciones DIAN para emitir facturas electrónicas.</p>
+            </div>
+            <Receipt class="text-secondary" size={22} />
+        </section>
+
+        <SettingsNav active="fe" />
+
+        <!-- Datos de la empresa -->
+        <section class="taguara-panel">
+                <div class="taguara-panel-header align-items-start">
+                    <div>
+                        <p class="text-uppercase small fw-semibold text-success mb-1">Empresa</p>
+                        <h3 class="h5 mb-0">Datos generales</h3>
+                    </div>
+                    <Building2 class="text-secondary flex-shrink-0" size={20} />
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <label class="form-label" for="name">Nombre comercial <span class="text-danger">*</span></label>
+                        <input
+                            id="name"
+                            class="form-control form-control-sm"
+                            class:is-invalid={fiscalForm.errors.name}
+                            type="text"
+                            placeholder="Farmacia La Salud"
+                            bind:value={fiscalForm.name}
+                        />
+                        {#if fiscalForm.errors.name}
+                            <div class="invalid-feedback">{fiscalForm.errors.name}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="legal-name">Razón social</label>
+                        <input
+                            id="legal-name"
+                            class="form-control form-control-sm"
+                            class:is-invalid={fiscalForm.errors.legal_name}
+                            type="text"
+                            placeholder="Farmacia La Salud S.A.S."
+                            bind:value={fiscalForm.legal_name}
+                        />
+                        {#if fiscalForm.errors.legal_name}
+                            <div class="invalid-feedback">{fiscalForm.errors.legal_name}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="nit">NIT</label>
+                        <div class="input-group input-group-sm">
+                            <input
+                                id="nit"
+                                class="form-control"
+                                class:is-invalid={fiscalForm.errors.nit}
+                                type="text"
+                                placeholder="901234567"
+                                bind:value={fiscalForm.nit}
+                            />
+                            {#if dv !== ''}
+                                <span class="input-group-text fw-bold text-success" title="DV calculado">-{dv}</span>
+                            {/if}
+                        </div>
+                        {#if fiscalForm.errors.nit}
+                            <div class="text-danger" style="font-size:.8rem">{fiscalForm.errors.nit}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="company-email">Correo</label>
+                        <input
+                            id="company-email"
+                            class="form-control form-control-sm"
+                            class:is-invalid={fiscalForm.errors.email}
+                            type="email"
+                            placeholder="contacto@farmacia.com"
+                            bind:value={fiscalForm.email}
+                        />
+                        {#if fiscalForm.errors.email}
+                            <div class="invalid-feedback">{fiscalForm.errors.email}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label" for="company-phone">Teléfono</label>
+                        <input id="company-phone" class="form-control form-control-sm" type="text" placeholder="6017654321" bind:value={fiscalForm.phone} />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="company-address">Dirección</label>
+                        <input id="company-address" class="form-control form-control-sm" type="text" placeholder="Calle 72 # 10-34" bind:value={fiscalForm.address} />
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="company-municipality">Municipio</label>
+                        <select
+                            id="company-municipality"
+                            class="form-select form-select-sm"
+                            value={fiscalForm.municipality_code}
+                            onchange={(e) => onMunicipalityChange(e.target.value)}
+                        >
+                            <option value="">Seleccionar...</option>
+                            {#each options.municipalities as m}
+                                <option value={m.code}>{m.department_name} – {m.name}</option>
+                            {/each}
+                        </select>
+                        {#if fiscalForm.city}
+                            <div class="form-text">{fiscalForm.department}</div>
+                        {/if}
+                    </div>
+                </div>
+        </section>
+
+        <!-- Datos fiscales DIAN -->
+        <section class="taguara-panel">
+                <div class="taguara-panel-header align-items-start">
+                    <div>
+                        <p class="text-uppercase small fw-semibold text-success mb-1">Información fiscal</p>
+                        <h3 class="h5 mb-0">Clasificación DIAN</h3>
+                    </div>
+                    <Shield class="text-secondary flex-shrink-0" size={20} />
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label" for="id-type">Tipo de documento de identificación</label>
+                        <select
+                            id="id-type"
+                            class="form-select"
+                            class:is-invalid={fiscalForm.errors.identification_type_code}
+                            bind:value={fiscalForm.identification_type_code}
+                        >
+                            <option value="">Seleccionar...</option>
+                            {#each options.identification_types as t}
+                                <option value={t.code}>{t.code} – {t.name}</option>
+                            {/each}
+                        </select>
+                        {#if fiscalForm.errors.identification_type_code}
+                            <div class="invalid-feedback">{fiscalForm.errors.identification_type_code}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="org-type">Tipo de organización</label>
+                        <select
+                            id="org-type"
+                            class="form-select"
+                            class:is-invalid={fiscalForm.errors.organization_type_code}
+                            bind:value={fiscalForm.organization_type_code}
+                        >
+                            <option value="">Seleccionar...</option>
+                            {#each options.organization_types as t}
+                                <option value={t.code}>{t.name}</option>
+                            {/each}
+                        </select>
+                        {#if fiscalForm.errors.organization_type_code}
+                            <div class="invalid-feedback">{fiscalForm.errors.organization_type_code}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label" for="regime">Régimen tributario</label>
+                        <select
+                            id="regime"
+                            class="form-select"
+                            class:is-invalid={fiscalForm.errors.regime_type_code}
+                            bind:value={fiscalForm.regime_type_code}
+                        >
+                            <option value="">Seleccionar...</option>
+                            {#each options.regime_types as t}
+                                <option value={t.code}>{t.name}</option>
+                            {/each}
+                        </select>
+                        {#if fiscalForm.errors.regime_type_code}
+                            <div class="invalid-feedback">{fiscalForm.errors.regime_type_code}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="ciiu">Código actividad económica (CIIU)</label>
+                        <input
+                            id="ciiu"
+                            class="form-control"
+                            class:is-invalid={fiscalForm.errors.economic_activity_code}
+                            type="text"
+                            maxlength="10"
+                            placeholder="4773"
+                            bind:value={fiscalForm.economic_activity_code}
+                        />
+                        {#if fiscalForm.errors.economic_activity_code}
+                            <div class="invalid-feedback">{fiscalForm.errors.economic_activity_code}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="municipality-api-id">
+                            ID municipio API
+                            <span class="text-secondary fw-normal" style="font-size:.8rem">(Nextpyme)</span>
+                        </label>
+                        <input
+                            id="municipality-api-id"
+                            class="form-control"
+                            class:is-invalid={fiscalForm.errors.fe_municipality_api_id}
+                            type="number"
+                            min="0"
+                            placeholder="149"
+                            bind:value={fiscalForm.fe_municipality_api_id}
+                        />
+                        {#if fiscalForm.errors.fe_municipality_api_id}
+                            <div class="invalid-feedback">{fiscalForm.errors.fe_municipality_api_id}</div>
+                        {:else}
+                            <div class="form-text">ID que Nextpyme asigna a tu municipio</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label" for="fe-env">Ambiente FE</label>
+                        <select
+                            id="fe-env"
+                            class="form-select"
+                            class:is-invalid={fiscalForm.errors.fe_environment}
+                            bind:value={fiscalForm.fe_environment}
+                        >
+                            {#each options.environments as env}
+                                <option value={env.value}>{env.label}</option>
+                            {/each}
+                        </select>
+                        {#if fiscalForm.errors.fe_environment}
+                            <div class="invalid-feedback">{fiscalForm.errors.fe_environment}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="fiscal-resp">
+                            Responsabilidades fiscales
+                            <span class="text-secondary fw-normal" style="font-size:.8rem">(Ctrl+clic para seleccionar varias)</span>
+                        </label>
+                        <select
+                            id="fiscal-resp"
+                            class="form-select"
+                            class:is-invalid={fiscalForm.errors.fiscal_responsibilities}
+                            multiple
+                            size="6"
+                            onchange={onResponsibilitiesChange}
+                        >
+                            {#each options.fiscal_responsibilities as r}
+                                <option
+                                    value={r.code}
+                                    selected={fiscalForm.fiscal_responsibilities.includes(r.code)}
+                                >
+                                    {r.code} – {r.name}
+                                </option>
+                            {/each}
+                        </select>
+                        {#if fiscalForm.errors.fiscal_responsibilities}
+                            <div class="invalid-feedback">{fiscalForm.errors.fiscal_responsibilities}</div>
+                        {/if}
+                    </div>
+                </div>
+        </section>
+
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-taguara px-5" type="button" onclick={saveFiscal} disabled={fiscalForm.processing}>
+                {fiscalForm.processing ? 'Guardando...' : 'Guardar configuración'}
+            </button>
+        </div>
+
+        <!-- Resoluciones DIAN -->
+        <section class="taguara-panel">
+            <div class="taguara-panel-header align-items-start">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Resoluciones DIAN</p>
+                    <h3 class="h5 mb-0">{resolutions.total} resolución{resolutions.total !== 1 ? 'es' : ''} registrada{resolutions.total !== 1 ? 's' : ''}</h3>
+                </div>
+                <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="button" onclick={openCreate}>
+                    <Plus size={17} />
+                    Nueva resolución
+                </button>
+            </div>
+
+            <div class="taguara-table-wrapper mt-2">
+                <table class="taguara-table">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Prefijo / Resolución</th>
+                            <th>Rango</th>
+                            <th>Vigencia</th>
+                            <th>Ambiente</th>
+                            <th>Estado</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {#each resolutions.data as item}
+                            <tr onclick={() => openEdit(item)}>
+                                <td>
+                                    <span class="taguara-table-name">{item.type_label}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        {#if item.prefix}
+                                            <span class="badge text-bg-light border fw-semibold" style="font-size:.8rem">{item.prefix}</span>
+                                        {/if}
+                                        <span class="text-secondary" style="font-size:.875rem">{item.resolution_number}</span>
+                                    </div>
+                                    <div class="taguara-table-sub">{item.resolution_date}</div>
+                                </td>
+                                <td>
+                                    <div style="font-size:.875rem">
+                                        <Hash size={12} class="text-secondary me-1" />{item.from_number.toLocaleString()} – {item.to_number.toLocaleString()}
+                                    </div>
+                                    <div class="taguara-table-sub">Actual: {item.current_number.toLocaleString()}</div>
+                                </td>
+                                <td>
+                                    <div style="font-size:.875rem">{item.valid_from} → {item.valid_until}</div>
+                                    {#if item.is_expired}
+                                        <div class="d-flex align-items-center gap-1 text-danger" style="font-size:.8rem">
+                                            <AlertCircle size={11} /> Vencida
+                                        </div>
+                                    {:else}
+                                        <div class="d-flex align-items-center gap-1 text-success" style="font-size:.8rem">
+                                            <CalendarClock size={11} /> Vigente
+                                        </div>
+                                    {/if}
+                                </td>
+                                <td>
+                                    <span class="badge {environmentBadgeClass(item.environment)}">{item.environment_label}</span>
+                                </td>
+                                <td>
+                                    <span class="badge {item.is_active ? 'text-bg-success' : 'text-bg-secondary'}">
+                                        {item.is_active ? 'Activa' : 'Inactiva'}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        <button
+                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                            type="button"
+                                            aria-label={item.is_active ? 'Desactivar' : 'Activar'}
+                                            title={item.is_active ? 'Desactivar' : 'Activar'}
+                                            onclick={(e) => { e.stopPropagation(); toggleResolution(item); }}
+                                        >
+                                            {#if item.is_active}
+                                                <ToggleRight size={15} class="text-success" />
+                                            {:else}
+                                                <ToggleLeft size={15} class="text-secondary" />
+                                            {/if}
+                                        </button>
+                                        <button
+                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                            type="button"
+                                            aria-label="Editar"
+                                            onclick={(e) => { e.stopPropagation(); openEdit(item); }}
+                                        >
+                                            <Pencil size={15} />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {:else}
+                            <tr>
+                                <td colspan="7">
+                                    <div class="taguara-empty-state">
+                                        <FileText size={34} />
+                                        <h4 class="h6 mb-1">Sin resoluciones registradas</h4>
+                                        <p class="text-secondary mb-0">Agrega la resolución DIAN que autoriza tu numeración de facturas.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
+
+            {#if resolutions.links.length > 3}
+                <nav class="taguara-pagination mt-3">
+                    {#each resolutions.links as link}
+                        {#if link.url}
+                            <Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                        {:else}
+                            <span class="btn btn-sm btn-light border disabled">{@html link.label}</span>
+                        {/if}
+                    {/each}
+                </nav>
+            {/if}
+        </section>
+    </div>
+
+    <!-- Drawer resoluciones -->
+    {#if drawerOpen}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={closeDrawer} role="presentation"></div>
+        <aside
+            class="taguara-drawer"
+            transition:fly={{ x: 480, duration: 220 }}
+            aria-label={editingResolution ? 'Editar resolución' : 'Nueva resolución'}
+        >
+            <div class="taguara-drawer-header">
+                <div class="d-flex align-items-center justify-content-between gap-2">
+                    <div>
+                        <p class="text-uppercase small fw-semibold text-success mb-1">Resolución DIAN</p>
+                        <h2 class="h5 mb-0">
+                            {editingResolution ? resolutionTypeLabel(editingResolution.type) : 'Nueva resolución'}
+                        </h2>
+                    </div>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDrawer} aria-label="Cerrar">
+                        <X size={17} />
+                    </button>
+                </div>
+            </div>
+
+            <div class="taguara-drawer-body">
+                <form id="resolution-form" onsubmit={(e) => { e.preventDefault(); saveResolution(); }}>
+                    <div class="vstack gap-3">
+
+                        <div>
+                            <label class="form-label" for="res-code">Código interno <span class="text-danger">*</span></label>
+                            <input
+                                id="res-code"
+                                class="form-control font-monospace"
+                                class:is-invalid={resolutionForm.errors.code}
+                                type="text"
+                                maxlength="30"
+                                placeholder="FV-2024-PROD"
+                                bind:value={resolutionForm.code}
+                            />
+                            {#if resolutionForm.errors.code}
+                                <div class="invalid-feedback">{resolutionForm.errors.code}</div>
+                            {:else}
+                                <div class="form-text">Identificador único para búsquedas internas. Solo letras, números y guiones.</div>
+                            {/if}
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-8">
+                                <label class="form-label" for="res-type">Tipo de documento <span class="text-danger">*</span></label>
+                                <select
+                                    id="res-type"
+                                    class="form-select"
+                                    class:is-invalid={resolutionForm.errors.type}
+                                    bind:value={resolutionForm.type}
+                                >
+                                    {#each options.resolution_types as t}
+                                        <option value={t.value}>{t.label}</option>
+                                    {/each}
+                                </select>
+                                {#if resolutionForm.errors.type}
+                                    <div class="invalid-feedback">{resolutionForm.errors.type}</div>
+                                {/if}
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" for="res-prefix">Prefijo</label>
+                                <input id="res-prefix" class="form-control" type="text" maxlength="10" placeholder="FV" bind:value={resolutionForm.prefix} />
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-8">
+                                <label class="form-label" for="res-number">Número de resolución <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-number"
+                                    class="form-control"
+                                    class:is-invalid={resolutionForm.errors.resolution_number}
+                                    type="text"
+                                    placeholder="18760000001"
+                                    bind:value={resolutionForm.resolution_number}
+                                />
+                                {#if resolutionForm.errors.resolution_number}
+                                    <div class="invalid-feedback">{resolutionForm.errors.resolution_number}</div>
+                                {/if}
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" for="res-date">Fecha <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-date"
+                                    class="form-control"
+                                    class:is-invalid={resolutionForm.errors.resolution_date}
+                                    type="date"
+                                    bind:value={resolutionForm.resolution_date}
+                                />
+                                {#if resolutionForm.errors.resolution_date}
+                                    <div class="invalid-feedback">{resolutionForm.errors.resolution_date}</div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="res-key">Clave técnica <span class="text-danger">*</span></label>
+                            <input
+                                id="res-key"
+                                class="form-control font-monospace"
+                                class:is-invalid={resolutionForm.errors.technical_key}
+                                type="text"
+                                placeholder="fc8eac422eba16e22ffd..."
+                                bind:value={resolutionForm.technical_key}
+                            />
+                            {#if resolutionForm.errors.technical_key}
+                                <div class="invalid-feedback">{resolutionForm.errors.technical_key}</div>
+                            {/if}
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label" for="res-from">Número inicial <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-from"
+                                    class="form-control"
+                                    class:is-invalid={resolutionForm.errors.from_number}
+                                    type="number"
+                                    min="1"
+                                    placeholder="1"
+                                    bind:value={resolutionForm.from_number}
+                                />
+                                {#if resolutionForm.errors.from_number}
+                                    <div class="invalid-feedback">{resolutionForm.errors.from_number}</div>
+                                {/if}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" for="res-to">Número final <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-to"
+                                    class="form-control"
+                                    class:is-invalid={resolutionForm.errors.to_number}
+                                    type="number"
+                                    min="1"
+                                    placeholder="5000"
+                                    bind:value={resolutionForm.to_number}
+                                />
+                                {#if resolutionForm.errors.to_number}
+                                    <div class="invalid-feedback">{resolutionForm.errors.to_number}</div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label" for="res-valid-from">Vigencia desde <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-valid-from"
+                                    class="form-control"
+                                    class:is-invalid={resolutionForm.errors.valid_from}
+                                    type="date"
+                                    bind:value={resolutionForm.valid_from}
+                                />
+                                {#if resolutionForm.errors.valid_from}
+                                    <div class="invalid-feedback">{resolutionForm.errors.valid_from}</div>
+                                {/if}
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label" for="res-valid-until">Vigencia hasta <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-valid-until"
+                                    class="form-control"
+                                    class:is-invalid={resolutionForm.errors.valid_until}
+                                    type="date"
+                                    bind:value={resolutionForm.valid_until}
+                                />
+                                {#if resolutionForm.errors.valid_until}
+                                    <div class="invalid-feedback">{resolutionForm.errors.valid_until}</div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="res-env">Ambiente</label>
+                            <select id="res-env" class="form-select" bind:value={resolutionForm.environment}>
+                                {#each options.environments as env}
+                                    <option value={env.value}>{env.label}</option>
+                                {/each}
+                            </select>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+
+            <div class="taguara-drawer-footer">
+                <button class="btn btn-taguara w-100" type="submit" form="resolution-form" disabled={resolutionForm.processing}>
+                    {resolutionForm.processing ? 'Guardando...' : (editingResolution ? 'Actualizar resolución' : 'Crear resolución')}
+                </button>
+            </div>
+        </aside>
+    {/if}
+</AppLayout>

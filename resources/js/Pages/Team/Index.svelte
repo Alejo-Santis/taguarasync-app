@@ -1,5 +1,5 @@
 <script>
-    import { router, useForm } from '@inertiajs/svelte';
+    import { Link, router, useForm } from '@inertiajs/svelte';
     import { fade, fly } from 'svelte/transition';
     import { KeyRound, Pencil, Plus, RefreshCw, ShieldCheck, UserCircle, Users, X } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
@@ -97,7 +97,7 @@
             <div class="taguara-panel-header">
                 <div>
                     <p class="text-uppercase small fw-semibold text-success mb-1">Miembros</p>
-                    <h3 class="h5 mb-0">{members.length} usuarios registrados</h3>
+                    <h3 class="h5 mb-0">{members.total} usuarios registrados</h3>
                 </div>
                 <Users class="text-secondary" size={22} />
             </div>
@@ -114,7 +114,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each members as member}
+                        {#each members.data as member}
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
@@ -175,6 +175,18 @@
                     </tbody>
                 </table>
             </div>
+
+            {#if members.links.length > 3}
+                <nav class="taguara-pagination mt-3">
+                    {#each members.links as link}
+                        {#if link.url}
+                            <Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                        {:else}
+                            <span class="btn btn-sm btn-light border disabled">{@html link.label}</span>
+                        {/if}
+                    {/each}
+                </nav>
+            {/if}
         </section>
 
         <!-- Info de roles -->

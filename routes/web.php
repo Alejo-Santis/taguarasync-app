@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Catalog\ProductController;
+use App\Http\Controllers\Customers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Inventory\InventoryController;
@@ -11,9 +12,12 @@ use App\Http\Controllers\Purchases\PurchaseReceiptController;
 use App\Http\Controllers\Reports\InventoryReportController;
 use App\Http\Controllers\Reports\PurchasesReportController;
 use App\Http\Controllers\Reports\SalesReportController;
+use App\Http\Controllers\Sales\CreditNoteController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Settings\ActiveIngredientController;
 use App\Http\Controllers\Settings\CashRegisterController;
+use App\Http\Controllers\Settings\FeResolutionController;
+use App\Http\Controllers\Settings\FeSettingsController;
 use App\Http\Controllers\Settings\LaboratoryController;
 use App\Http\Controllers\Settings\ProductCategoryController;
 use App\Http\Controllers\Settings\ProductUnitController;
@@ -38,6 +42,13 @@ Route::middleware(['auth'])->group(function () {
     Route::post('products/import', [ProductController::class, 'import'])->name('products.import.store');
 });
 
+Route::middleware(['auth'])->prefix('customers')->name('customers.')->group(function () {
+    Route::get('/', [CustomerController::class, 'index'])->name('index');
+    Route::post('/', [CustomerController::class, 'store'])->name('store');
+    Route::put('{customer}', [CustomerController::class, 'update'])->name('update');
+    Route::patch('{customer}/toggle', [CustomerController::class, 'toggle'])->name('toggle');
+});
+
 Route::resource('products', ProductController::class)
     ->only('index', 'create', 'store', 'edit', 'update')
     ->middleware(['auth']);
@@ -45,6 +56,7 @@ Route::resource('products', ProductController::class)
 Route::middleware(['auth'])->prefix('pos')->name('pos.')->group(function () {
     Route::get('/', [PosController::class, 'index'])->name('index');
     Route::get('products', [PosController::class, 'search'])->name('products');
+    Route::get('customers', [PosController::class, 'searchCustomers'])->name('customers');
     Route::post('sales', [PosController::class, 'store'])->name('sales.store');
 
     Route::get('session/open', [CashSessionController::class, 'open'])->name('session.open');
@@ -90,6 +102,12 @@ Route::middleware(['auth'])->prefix('settings')->name('settings.')->group(functi
     Route::post('registers', [CashRegisterController::class, 'store'])->name('registers.store');
     Route::put('registers/{register}', [CashRegisterController::class, 'update'])->name('registers.update');
     Route::patch('registers/{register}/toggle', [CashRegisterController::class, 'toggle'])->name('registers.toggle');
+
+    Route::get('fe', [FeSettingsController::class, 'index'])->name('fe.index');
+    Route::put('fe', [FeSettingsController::class, 'update'])->name('fe.update');
+    Route::post('fe/resolutions', [FeResolutionController::class, 'store'])->name('fe.resolutions.store');
+    Route::put('fe/resolutions/{feResolution}', [FeResolutionController::class, 'update'])->name('fe.resolutions.update');
+    Route::patch('fe/resolutions/{feResolution}/toggle', [FeResolutionController::class, 'toggle'])->name('fe.resolutions.toggle');
 });
 
 Route::middleware(['auth'])->prefix('reports')->name('reports.')->group(function () {
@@ -111,5 +129,8 @@ Route::middleware(['auth'])->prefix('sales')->name('sales.')->group(function () 
     Route::get('/', [SaleController::class, 'index'])->name('index');
     Route::get('{sale}', [SaleController::class, 'show'])->name('show');
     Route::post('{sale}/void', [SaleController::class, 'void'])->name('void');
+    Route::post('{sale}/retry-fe', [SaleController::class, 'retryFe'])->name('retry-fe');
+    Route::get('{sale}/credit-notes/create', [CreditNoteController::class, 'create'])->name('credit-notes.create');
+    Route::post('{sale}/credit-notes', [CreditNoteController::class, 'store'])->name('credit-notes.store');
     Route::get('{sale}/receipt', [SaleController::class, 'receipt'])->name('receipt');
 });

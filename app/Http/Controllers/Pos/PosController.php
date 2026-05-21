@@ -8,6 +8,7 @@ use App\Enums\CashSessionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\ProcessSaleRequest;
 use App\Models\CashSession;
+use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,33 @@ class PosController extends Controller
         $query = $request->string('q')->trim()->toString();
 
         return response()->json($getPosProducts->execute($query));
+    }
+
+    public function searchCustomers(Request $request): JsonResponse
+    {
+        $query = $request->string('q')->trim()->toString();
+
+        if (mb_strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $customers = Customer::where(function ($q) use ($query): void {
+            $q->where('identification_number', 'like', "{$query}%")
+                ->orWhere('first_name', 'ilike', "%{$query}%")
+                ->orWhere('last_name', 'ilike', "%{$query}%")
+                ->orWhere('business_name', 'ilike', "%{$query}%");
+        })
+            ->where('is_active', true)
+            ->limit(8)
+            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code'])
+            ->map(fn (Customer $c) => [
+                'id' => $c->id,
+                'full_name' => $c->full_name,
+                'identification' => $c->identification_type_code.' '.$c->identification_number.($c->verification_digit ? '-'.$c->verification_digit : ''),
+                'regime' => $c->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
+            ]);
+
+        return response()->json($customers);
     }
 
     public function store(ProcessSaleRequest $request, ProcessSale $processSale): RedirectResponse

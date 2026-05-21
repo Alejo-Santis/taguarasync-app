@@ -3,6 +3,7 @@
 namespace App\Actions\Pos;
 
 use App\Actions\Inventory\RegisterInventoryMovement;
+use App\Enums\FeStatus;
 use App\Enums\InventoryLotStatus;
 use App\Enums\SaleStatus;
 use App\Models\InventoryLot;
@@ -17,7 +18,9 @@ class ProcessSale
 {
     /**
      * @param  array{
+     *     customer_id?: int|null,
      *     payment_method: string,
+     *     payment_form?: string|null,
      *     amount_tendered?: int|null,
      *     notes?: string|null,
      *     items: array<int, array{
@@ -32,24 +35,29 @@ class ProcessSale
      */
     public function execute(array $data, User $user, ?int $cashSessionId = null): Sale
     {
-        return DB::transaction(function () use ($data, $user, $cashSessionId): Sale {
+        $sale = DB::transaction(function () use ($data, $user, $cashSessionId): Sale {
             $totals = $this->calculateTotals($data['items']);
 
             $amountTendered = isset($data['amount_tendered']) ? (int) $data['amount_tendered'] : null;
             $change = ($amountTendered !== null) ? max(0, $amountTendered - $totals['total']) : null;
 
+            $feEnabled = config('fe.enabled') && $user->tenant?->fe_environment !== null;
+
             $sale = Sale::create([
                 'uuid' => (string) Str::uuid(),
                 'user_id' => $user->id,
+                'customer_id' => $data['customer_id'] ?? null,
                 'cash_session_id' => $cashSessionId,
                 'document_number' => 'VTA-TEMP',
                 'subtotal' => $totals['subtotal'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'payment_method' => $data['payment_method'],
+                'payment_form' => $data['payment_form'] ?? '1',
                 'amount_tendered' => $amountTendered,
                 'change_amount' => $change,
                 'status' => SaleStatus::Completed,
+                'fe_status' => $feEnabled ? FeStatus::Pending : null,
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -92,6 +100,13 @@ class ProcessSale
 
             return $sale->refresh();
         });
+
+        if (config('fe.enabled') && $sale->fe_status === FeStatus::Pending) {
+            EmitElectronicInvoiceJob::dispatch($sale->id, $user->tenant_id)
+                ->afterCommit();
+        }
+
+        return $sale;
     }
 
     private function findFEFOLot(int $productId, int $minUnitsNeeded): InventoryLot

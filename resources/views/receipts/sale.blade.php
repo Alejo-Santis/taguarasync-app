@@ -60,6 +60,12 @@
             letter-spacing: 2px;
         }
 
+        .fe-section { margin: 6px 0; font-size: 10px; }
+        .fe-section .fe-title { font-weight: bold; font-size: 10px; letter-spacing: 1px; margin-bottom: 2px; }
+        .fe-cufe { font-size: 8px; word-break: break-all; color: #333; line-height: 1.3; }
+        .fe-qr { text-align: center; margin: 4px 0; }
+        .fe-qr img { width: 28mm; height: 28mm; }
+
         @media print {
             body { width: 80mm; }
             @page { size: 80mm auto; margin: 0; }
@@ -81,12 +87,28 @@
     <table class="meta">
         <tr>
             <td>Comprobante</td>
-            <td class="bold">{{ $sale->document_number }}</td>
+            <td class="bold">
+                @if($sale->invoice_prefix)
+                    {{ $sale->invoice_prefix }}{{ $sale->document_number }}
+                @else
+                    {{ $sale->document_number }}
+                @endif
+            </td>
         </tr>
         <tr>
             <td>Fecha</td>
             <td>{{ $sale->created_at->format('d/m/Y H:i:s') }}</td>
         </tr>
+        @if($sale->customer)
+        <tr>
+            <td>Cliente</td>
+            <td>{{ $sale->customer->full_name }}</td>
+        </tr>
+        <tr>
+            <td>Doc.</td>
+            <td>{{ $sale->customer->identification_type_code }} {{ $sale->customer->identification_number }}{{ $sale->customer->verification_digit ? '-'.$sale->customer->verification_digit : '' }}</td>
+        </tr>
+        @endif
         <tr>
             <td>Cajero</td>
             <td>{{ $sale->user?->name ?? '—' }}</td>
@@ -176,6 +198,20 @@
             @endif
         </table>
     </div>
+
+    @if($sale->fe_cufe)
+    <div class="separator"></div>
+    <div class="fe-section">
+        <p class="fe-title center">FACTURA ELECTRONICA DIAN</p>
+        @if($sale->fe_qr_code)
+        <div class="fe-qr">
+            <img src="{{ $sale->fe_qr_code }}" alt="QR DIAN" />
+        </div>
+        @endif
+        <p class="fe-cufe">CUFE: {{ $sale->fe_cufe }}</p>
+        <p class="small center" style="margin-top:2px">Consulte en: https://catalogo-vpfe.dian.gov.co</p>
+    </div>
+    @endif
 
     <div class="separator-solid"></div>
 

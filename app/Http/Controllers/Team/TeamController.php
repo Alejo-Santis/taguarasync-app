@@ -21,8 +21,9 @@ class TeamController extends Controller
         $members = User::where('tenant_id', $request->user()->tenant_id)
             ->with('roles')
             ->orderBy('name')
-            ->get()
-            ->map(fn (User $user) => [
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn (User $user) => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,

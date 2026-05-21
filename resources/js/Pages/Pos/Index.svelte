@@ -17,6 +17,7 @@
         ShieldAlert,
         ShoppingCart,
         Trash2,
+        User,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
@@ -137,6 +138,37 @@
         searchResults = [];
     };
 
+    // Customer selector
+    let selectedCustomer = $state(null);
+    let customerQuery = $state('');
+    let customerResults = $state([]);
+    let customerTimeout = null;
+    let customerDropOpen = $state(false);
+
+    const searchCustomers = async (q) => {
+        if (q.trim().length < 2) { customerResults = []; return; }
+        try {
+            const res = await fetch(`/pos/customers?q=${encodeURIComponent(q)}`);
+            customerResults = await res.json();
+            customerDropOpen = customerResults.length > 0;
+        } catch { customerResults = []; }
+    };
+
+    const onCustomerInput = (e) => {
+        clearTimeout(customerTimeout);
+        customerQuery = e.target.value;
+        customerTimeout = setTimeout(() => searchCustomers(customerQuery), 280);
+    };
+
+    const selectCustomer = (c) => {
+        selectedCustomer = c;
+        customerQuery = '';
+        customerResults = [];
+        customerDropOpen = false;
+    };
+
+    const clearCustomer = () => { selectedCustomer = null; customerQuery = ''; };
+
     // Payment
     const openPayment = () => {
         paymentMethod = 'cash';
@@ -150,7 +182,9 @@
         cartError = '';
 
         const payload = {
+            customer_id: selectedCustomer?.id ?? null,
             payment_method: paymentMethod,
+            payment_form: '1',
             amount_tendered: paymentMethod === 'cash' ? Number(amountTendered) : undefined,
             items: cart.map(i => ({
                 product_id: i.product_id,
@@ -294,6 +328,51 @@
                     <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={clearCart} aria-label="Vaciar carrito">
                         <Trash2 size={14} />
                     </button>
+                {/if}
+            </div>
+
+            <!-- Customer selector -->
+            <div class="taguara-pos-customer" style="padding:.5rem .75rem; border-bottom:1px solid var(--taguara-border)">
+                {#if selectedCustomer}
+                    <div class="d-flex align-items-center gap-2">
+                        <User size={14} class="text-success flex-shrink-0" />
+                        <div class="min-w-0 flex-grow-1" style="font-size:.8rem">
+                            <div class="fw-semibold text-truncate">{selectedCustomer.full_name}</div>
+                            <div class="text-secondary">{selectedCustomer.identification} · {selectedCustomer.regime}</div>
+                        </div>
+                        <button class="btn btn-link p-0 text-secondary" type="button" onclick={clearCustomer} aria-label="Quitar cliente">
+                            <X size={13} />
+                        </button>
+                    </div>
+                {:else}
+                    <div class="position-relative">
+                        <div class="taguara-filter-input" style="gap:.4rem">
+                            <User size={13} class="text-secondary" />
+                            <input
+                                class="form-control form-control-sm border-0 p-0 bg-transparent"
+                                type="search"
+                                placeholder="Buscar cliente (opcional)"
+                                value={customerQuery}
+                                oninput={onCustomerInput}
+                                style="font-size:.8rem"
+                            />
+                        </div>
+                        {#if customerDropOpen && customerResults.length > 0}
+                            <div class="position-absolute start-0 end-0 bg-white border rounded shadow-sm" style="top:100%; z-index:200; max-height:180px; overflow-y:auto">
+                                {#each customerResults as c}
+                                    <button
+                                        class="w-100 text-start px-3 py-2 border-0 bg-transparent"
+                                        type="button"
+                                        style="font-size:.8rem"
+                                        onclick={() => selectCustomer(c)}
+                                    >
+                                        <div class="fw-semibold">{c.full_name}</div>
+                                        <div class="text-secondary">{c.identification}</div>
+                                    </button>
+                                {/each}
+                            </div>
+                        {/if}
+                    </div>
                 {/if}
             </div>
 
