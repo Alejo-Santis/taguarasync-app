@@ -5,6 +5,7 @@ namespace App\Actions\Fortify;
 use App\Enums\TenantStatus;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\ConsumidorFinalSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -57,6 +58,9 @@ class CreateNewUser implements CreatesNewUsers
             ]);
 
             $user->assignRole(Role::findOrCreate('owner'));
+
+            // Crea el cliente Consumidor Final para este tenant automáticamente
+            ConsumidorFinalSeeder::createForTenant($tenant->id);
 
             return $user;
         });

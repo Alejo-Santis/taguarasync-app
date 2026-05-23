@@ -59,7 +59,16 @@ class PosController extends Controller
     {
         $query = $request->string('q')->trim()->toString();
 
+        // Con query vacío devolvemos el Consumidor Final como opción por defecto
         if (mb_strlen($query) < 2) {
+            $consumidorFinal = Customer::consumidorFinal()
+                ->where('is_active', true)
+                ->first(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code']);
+
+            if ($consumidorFinal) {
+                return response()->json([$this->formatCustomer($consumidorFinal)]);
+            }
+
             return response()->json([]);
         }
 
@@ -70,17 +79,25 @@ class PosController extends Controller
                 ->orWhere('business_name', 'ilike', "%{$query}%");
         })
             ->where('is_active', true)
+            // Consumidor Final siempre primero si coincide con la búsqueda
+            ->orderByRaw("CASE WHEN identification_number = '222222222222' THEN 0 ELSE 1 END")
             ->limit(8)
-            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code'])
-            ->map(fn (Customer $c) => [
-                'id' => $c->id,
-                'full_name' => $c->full_name,
-                'identification' => $c->identification_type_code.' '.$c->identification_number.($c->verification_digit ? '-'.$c->verification_digit : ''),
-                'regime' => $c->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
-                'regime_code' => $c->regime_type_code,
-            ]);
+            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code']);
 
-        return response()->json($customers);
+        return response()->json($customers->map(fn (Customer $c) => $this->formatCustomer($c)));
+    }
+
+    /** @return array<string, mixed> */
+    private function formatCustomer(Customer $c): array
+    {
+        return [
+            'id' => $c->id,
+            'full_name' => $c->full_name,
+            'identification' => $c->identification_type_code.' '.$c->identification_number.($c->verification_digit ? '-'.$c->verification_digit : ''),
+            'regime' => $c->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
+            'regime_code' => $c->regime_type_code,
+            'is_consumidor_final' => $c->isConsumidorFinal(),
+        ];
     }
 
     public function quickStoreCustomer(Request $request): JsonResponse

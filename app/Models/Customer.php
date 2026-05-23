@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToTenant;
+use Database\Seeders\ConsumidorFinalSeeder;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -52,6 +54,28 @@ class Customer extends Model
         }
 
         return trim("{$this->first_name} {$this->last_name}");
+    }
+
+    public function isConsumidorFinal(): bool
+    {
+        return $this->identification_number === ConsumidorFinalSeeder::IDENTIFICATION_NUMBER;
+    }
+
+    /**
+     * @param  Builder<Customer>  $query
+     * @return Builder<Customer>
+     */
+    public function scopeConsumidorFinal(Builder $query): Builder
+    {
+        return $query->where('identification_number', ConsumidorFinalSeeder::IDENTIFICATION_NUMBER);
+    }
+
+    /**
+     * Obtiene o crea el cliente Consumidor Final para un tenant.
+     */
+    public static function getConsumidorFinal(int $tenantId): self
+    {
+        return ConsumidorFinalSeeder::createForTenant($tenantId);
     }
 
     /**
