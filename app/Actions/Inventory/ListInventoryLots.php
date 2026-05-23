@@ -4,6 +4,7 @@ namespace App\Actions\Inventory;
 
 use App\Enums\InventoryLotStatus;
 use App\Models\InventoryLot;
+use App\Models\Laboratory;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -15,7 +16,8 @@ class ListInventoryLots
      *     lots: LengthAwarePaginator<int, array<string, mixed>>,
      *     filters: array{q: string, status: string, expiry: string},
      *     stats: array{lots: int, units: int, expiring: int, depleted: int},
-     *     statuses: array<int, array{value: string, label: string}>
+     *     statuses: array<int, array{value: string, label: string}>,
+     *     laboratories: array<int, array{id: int, name: string}>
      * }
      */
     public function execute(Request $request): array
@@ -61,6 +63,15 @@ class ListInventoryLots
             'filters' => $filters,
             'stats' => $this->stats(),
             'statuses' => $this->statuses(),
+            'laboratories' => Laboratory::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Laboratory $laboratory) => [
+                    'id' => $laboratory->id,
+                    'name' => $laboratory->name,
+                ])
+                ->all(),
         ];
     }
 

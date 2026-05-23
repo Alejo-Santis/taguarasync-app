@@ -23,7 +23,7 @@ return new class extends Migration
         // Data migration: seed from existing fe_resolutions.current_number
         DB::statement('
             INSERT INTO fe_sends (tenant_id, resolution_id, next_consecutive, created_at, updated_at)
-            SELECT tenant_id, id, current_number, NOW(), NOW()
+            SELECT tenant_id, id, current_number, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             FROM fe_resolutions
         ');
     }

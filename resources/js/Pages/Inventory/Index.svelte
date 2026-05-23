@@ -11,18 +11,23 @@
         Eye,
         Filter,
         PackageSearch,
+        Printer,
         RotateCcw,
         Search,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, lots, filters, stats, statuses } = $props();
+    let { auth, lots, filters, stats, statuses, laboratories } = $props();
 
     let form = $state({
         q: '',
         status: '',
         expiry: '',
+    });
+    let printForm = $state({
+        laboratory_id: '',
+        include_zero: false,
     });
     let selectedLot = $state(null);
 
@@ -62,6 +67,21 @@
     });
 
     const hasLots = $derived(lots.data.length > 0);
+    const stockPrintUrl = $derived.by(() => {
+        const params = new URLSearchParams();
+
+        if (printForm.laboratory_id) {
+            params.set('laboratory_id', printForm.laboratory_id);
+        }
+
+        if (printForm.include_zero) {
+            params.set('include_zero', '1');
+        }
+
+        const query = params.toString();
+
+        return `/inventory/print/stock-by-laboratory${query ? `?${query}` : ''}`;
+    });
 
     $effect(() => {
         form.q = filters.q ?? '';
@@ -144,6 +164,10 @@
                 <h2 class="h3 mb-2">Inventario operativo</h2>
                 <p class="text-secondary mb-0">Consulta existencias, vencimientos y valor en stock antes de conectar compras y POS.</p>
             </div>
+            <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/inventory/kardex">
+                <PackageSearch size={18} />
+                Ver Kardex
+            </Link>
         </section>
 
         <section class="row g-3">
@@ -237,6 +261,40 @@
                     </button>
                 </div>
             </form>
+        </section>
+
+        <section class="taguara-panel">
+            <div class="taguara-panel-header align-items-start">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Conteo fisico</p>
+                    <h3 class="h5 mb-0">Imprimir existencias por laboratorio</h3>
+                </div>
+                <Printer class="text-secondary" size={22} />
+            </div>
+
+            <div class="taguara-filter-grid">
+                <label class="form-label mb-0">
+                    <span class="small fw-semibold text-secondary">Laboratorio</span>
+                    <select class="form-select" bind:value={printForm.laboratory_id}>
+                        <option value="">Todos los laboratorios</option>
+                        {#each laboratories as laboratory}
+                            <option value={laboratory.id}>{laboratory.name}</option>
+                        {/each}
+                    </select>
+                </label>
+
+                <label class="form-label mb-0 d-flex align-items-center gap-2" style="min-height: 38px">
+                    <input class="form-check-input mt-0" type="checkbox" bind:checked={printForm.include_zero}>
+                    <span class="small fw-semibold text-secondary">Incluir lotes en cero</span>
+                </label>
+
+                <div class="d-flex align-items-end">
+                    <a class="btn btn-taguara d-inline-flex align-items-center gap-2" href={stockPrintUrl} target="_blank" rel="noreferrer">
+                        <Printer size={17} />
+                        Imprimir planilla
+                    </a>
+                </div>
+            </div>
         </section>
 
         <section class="taguara-panel">

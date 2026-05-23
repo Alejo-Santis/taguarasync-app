@@ -6,10 +6,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Fe\FeSubmissionsController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Inventory\InventoryController;
+use App\Http\Controllers\Inventory\InventoryStockPrintController;
+use App\Http\Controllers\Inventory\KardexController;
 use App\Http\Controllers\Pos\CashSessionController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Purchases\PurchaseReceiptController;
+use App\Http\Controllers\Reports\CashSessionReportController;
 use App\Http\Controllers\Reports\InventoryReportController;
 use App\Http\Controllers\Reports\PurchasesReportController;
 use App\Http\Controllers\Reports\SalesReportController;
@@ -93,6 +96,8 @@ Route::middleware(['auth', 'permission:products.manage'])->group(function () {
 // ── Inventario — consulta ─────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:inventory.view'])->group(function () {
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/kardex', [KardexController::class, 'index'])->name('inventory.kardex');
+    Route::get('/inventory/print/stock-by-laboratory', InventoryStockPrintController::class)->name('inventory.print.stock-by-laboratory');
 });
 
 // ── Inventario — ajustes ──────────────────────────────────────────────────
@@ -141,6 +146,8 @@ Route::middleware(['auth', 'permission:reports.view'])->prefix('reports')->name(
     Route::get('sales', [SalesReportController::class, 'index'])->name('sales');
     Route::get('inventory', [InventoryReportController::class, 'index'])->name('inventory');
     Route::get('purchases', [PurchasesReportController::class, 'index'])->name('purchases');
+    Route::get('cash-sessions', [CashSessionReportController::class, 'index'])->name('cash-sessions');
+    Route::get('cash-sessions/{session}', [CashSessionReportController::class, 'show'])->name('cash-sessions.show');
 });
 
 // ── Equipo ────────────────────────────────────────────────────────────────

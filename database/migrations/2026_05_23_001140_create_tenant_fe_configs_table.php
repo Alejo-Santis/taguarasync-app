@@ -54,7 +54,7 @@ return new class extends Migration
                 economic_activity_code,
                 merchant_registration,
                 fe_municipality_api_id,
-                NOW(), NOW()
+                CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             FROM tenants
         ");
     }
