@@ -56,6 +56,8 @@ class RoleAndPermissionSeeder extends Seeder
             'cash.register.open',
             'cash.register.close',
             'sales.view',
+            'billing.view',
+            'billing.resend',
         ]);
         $this->role('warehouse', [
             'dashboard.view',

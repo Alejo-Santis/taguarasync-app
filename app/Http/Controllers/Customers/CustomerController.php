@@ -44,6 +44,7 @@ class CustomerController extends Controller
                 'uuid' => $c->uuid,
                 'identification_type_code' => $c->identification_type_code,
                 'identification_number' => $c->identification_number,
+                'merchant_registration' => $c->merchant_registration,
                 'verification_digit' => $c->verification_digit,
                 'full_name' => $c->full_name,
                 'first_name' => $c->first_name,

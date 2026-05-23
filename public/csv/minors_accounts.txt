@@ -1,0 +1,543 @@
+1	1	11050501		Caja General			0	0	0	0	1
+2	2	11051001		Caja Menor			0	0	0	0	1
+3	3	11100501		Cuenta Bancaria Corriente			0	0	0	0	1
+4	4	11200501		Cuenta Bancaria Ahorro			0	0	0	0	1
+5	5	13050501		Clientes Nacionales			0	0	0	0	1
+6	5	13050590		Cartera por Aplicar - Clientes Nacionales			0	0	0	0	1
+7	6	13051001		Clientes Del Exterior			0	0	0	0	1
+8	6	13051090		Cartera por Aplicar - Clientes del Exterior			0	0	0	0	1
+9	7	13300501		Anticipos a Proveedores			0	0	0	0	1
+10	8	13301501		Anticipos a Trabajadores			0	0	0	0	1
+11	9	13309501		Otros Anticipos			0	0	0	0	1
+12	10	13550501		Anticipo de Impuestos de Renta y Complementarios			0	0	0	0	1
+13	11	13551501		Retencion en la Fuente			0	1	0	0	1
+14	13	13551801		Impuesto de Industria y Comercio Retenido			0	0	0	0	1
+15	14	13555001		Autorretencion Especial por Renta			0	1	0	0	1
+16	15	13659501		Otras Cuentas por Cobrar a Trabajadores			0	0	0	0	1
+17	15	13659502		Incapacidades y Licencias por Legalizar			0	0	0	0	1
+18	16	13802001		Cuentas por Cobrar a Terceros			0	0	0	0	1
+19	17	13990501		Provisiones Clientes			0	0	0	0	1
+20	18	14350501		Inventario de Mercancias No Fabricadas por la Empresa			0	0	0	0	1
+21	19	14359801		Traslados de Inventario			0	0	0	0	1
+22	20	15040501		Terrenos Urbanos			0	0	0	0	1
+23	21	15160501		Construcciones y Edificaciones Edificios			0	0	0	0	1
+24	22	15161001		Construcciones y Edificaciones Oficinas			0	0	0	0	1
+25	23	15161501		Construcciones y Edificaciones Almacenes			0	0	0	0	1
+26	24	15168001		Construcciones y Edificaciones Bodegas			0	0	0	0	1
+27	25	15169501		Otras Construcciones y Edificaciones			0	0	0	0	1
+28	26	15200501		Maquinaria, Equipo y Herramientas			0	0	0	0	1
+29	27	15240501		Equipo de Oficina Muebles y Enseres			0	0	0	0	1
+30	28	15241001		Equipo de Oficina Equipos			0	0	0	0	1
+31	29	15249501		Otros Equipo de Oficina			0	0	0	0	1
+32	30	15280501		Equipos de Procesamientos de Datos			0	0	0	0	1
+33	31	15281001		Equipos de Telecomunicaciones			0	0	0	0	1
+34	32	15282501		Lineas Telefonicas			0	0	0	0	1
+35	33	15289501		Otros Equipo de Computo y Comunicacion			0	0	0	0	1
+36	34	15400501		Autos, Camionetas y Camperos			0	0	0	0	1
+37	35	15400801		Camiones, Volquetas y Furgones			0	0	0	0	1
+38	36	15402001		Montacargas			0	0	0	0	1
+39	37	15403001		Motocicletas			0	0	0	0	1
+40	38	15409501		Otra Flota y Equipo de Transporte			0	0	0	0	1
+41	39	15920501		Depreciacion Construcciones y Edificaciones			0	0	0	0	1
+42	40	15921001		Depreciacion Maquinaria y Equipo			0	0	0	0	1
+43	41	15921501		Depreciacion Equipo de Oficina			0	0	0	0	1
+44	42	15922001		Depreciacion Equipo de Computo y Comunicacion			0	0	0	0	1
+45	43	15923501		Depreciacion Flota y Equipo de Transporte			0	0	0	0	1
+46	45	17051001		Gastos Pagados por Anticipado Honorarios			0	0	0	0	1
+47	46	17052001		Gastos Pagados por Anticipado Seguros y Finanzas			0	0	0	0	1
+48	47	17052401		Gastos Pagados por Anticipado Arrendamientos			0	0	0	0	1
+49	48	17059501		Otros Gastos Pagados por Anticipado			0	0	0	0	1
+50	49	21050501		Pasivos Financieros Bancos Nacionales Sobregiros			0	0	0	0	1
+51	50	21051001		Pasivos Financieros Bancos Nacionales Pagares			0	0	0	0	1
+52	51	21052501		Pasivos Financieros Bancos Nacionales Tarjetas de Credito			0	0	0	0	1
+53	52	21150501		Pasivos Financieros Corporaciones Financieras Pagares			0	0	0	0	1
+54	54	21950501		Otras Obligaciones con Particulares			0	0	0	0	1
+55	55	21952001		Otras Obligaciones con Socios o Accionistas			0	0	0	0	1
+56	56	22050501		Proveedores Nacionales			0	0	0	0	1
+57	57	22100501		Proveedores del Exterior			0	0	0	0	1
+58	58	23350501		Gastos Financieros por Pagar			0	0	0	0	1
+59	59	23351001		Gastos Legales por Pagar			0	0	0	0	1
+60	60	23352001		Comisiones por Pagar			0	0	0	0	1
+61	61	23352501		Honorarios por Pagar			0	0	0	0	1
+62	62	23353001		Servicios Tecnicos por Pagar			0	0	0	0	1
+63	63	23353501		Servicios de Mantenimiento por Pagar			0	0	0	0	1
+64	64	23354001		Arrendamientos por Pagar			0	0	0	0	1
+65	65	23354501		Transportes, Fletes y Acarreos por Pagar			0	0	0	0	1
+66	66	23355001		Servicios Publicos por Pagar			0	0	0	0	1
+67	67	23355501		Seguros por Pagar			0	0	0	0	1
+68	68	23356001		Gastos de Viaje por Pagar			0	0	0	0	1
+69	69	23356501		Gastos de Representacion y Relaciones Publicas por Pagar			0	0	0	0	1
+70	70	23357001		Servicios Aduaneros por Pagar			0	0	0	0	1
+71	71	23359501		Otros Costos y Gastos por Pagar			0	0	0	0	1
+72	72	23550501		Deudas con Accionistas			0	0	0	0	1
+73	73	23600501		Dividendos por Pagar			0	0	0	0	1
+74	74	23650501		Retencion en la Fuente Salarios y Pagos Laborales			0	1	0	0	1
+75	74	23650510		Retencion en la Fuente Independientes			0	1	0	0	1
+76	75	23651501		Retencion en la Fuente Honorarios 10%			0	1	0	0	1
+77	75	23651502		Retencion en la Fuente Honorarios 11%			0	1	0	0	1
+78	75	23651503		Retencion en la Fuente Uso Software 3.5%			0	1	0	0	1
+79	76	23652001		Retencion en la Fuente Comisiones 10%			0	1	0	0	1
+80	76	23652002		Retencion en la Fuente Comisiones 11%			0	1	0	0	1
+81	77	23652101		Retencion en la Fuente Consultoria 3.5%			0	1	0	0	1
+82	77	23652102		Retencion en la Fuente Consultoria 6%			0	1	0	0	1
+83	77	23652103		Retencion en la Fuente Consultoria 10%			0	1	0	0	1
+84	77	23652104		Retencion en la Fuente Consultoria Adm. Delegada 10%			0	1	0	0	1
+85	77	23652105		Retencion en la Fuente Consultoria Adm. Delegada 11%			0	1	0	0	1
+86	78	23652501		Retencion en la Fuente Servicios 1%			0	1	0	0	1
+87	78	23652502		Retencion en la Fuente Servicios 2%			0	1	0	0	1
+88	78	23652503		Retencion en la Fuente Servicios 3.5%			0	1	0	0	1
+89	78	23652504		Retencion en la Fuente Servicios 4%			0	1	0	0	1
+90	78	23652505		Retencion en la Fuente Servicios 6%			0	1	0	0	1
+91	78	23652506		Retencion en la Fuente Servicios AIU 1%			0	1	0	0	1
+92	78	23652507		Retencion en la Fuente Servicios AIU 2%			0	1	0	0	1
+93	78	23652508		Retencion en la Fuente Servicios Exterior 15%			0	1	0	0	1
+94	78	23652509		Retencion en la Fuente Servicios Exterior 20%			0	1	0	0	1
+95	79	23653001		Retencion en la Fuente Arrendamientos Bienes Muebles 4%			0	1	0	0	1
+96	79	23653002		Retencion en la Fuente Arrendamientos Bienes Inmuebles 3.5%			0	1	0	0	1
+97	80	23653501		Retencion en la Fuente Rendimientos Financieros 7%			0	1	0	0	1
+98	80	23653502		Retencion en la Fuente Rendimientos Financieros 4%			0	1	0	0	1
+99	81	23654001		Retencion en la Fuente Compras 2.5%			0	1	0	0	1
+100	81	23654002		Retencion en la Fuente Compras 3.5%			0	1	0	0	1
+101	81	23654003		Retencion en la Fuente Compras 1%			0	1	0	0	1
+102	81	23654004		Retencion en la Fuente Compras 0.1%			0	1	0	0	1
+103	81	23654005		Retencion en la Fuente Compras 1.5%			0	1	0	0	1
+104	81	23654006		Retencion en la Fuente Compras 0.75%			0	1	0	0	1
+105	81	23654007		Retencion en la Fuente Compras 5%			0	1	0	0	1
+106	81	23654008		Retencion en la Fuente Compras 15%			0	1	0	0	1
+107	81	23654009		Retencion en la Fuente Compra de Cafe 0.5%			0	1	0	0	1
+108	82	23656101		Retencion en la Fuente Construccion 2%			0	1	0	0	1
+109	83	23657501		Autorretencion Especial por Renta			0	1	0	0	1
+110	83	23657502		Autorretencion por Ventas 2.5%			0	1	0	0	1
+111	83	23657503		Autorretencion por Ventas 3.5%			0	1	0	0	1
+112	83	23657504		Autorretencion por Ventas 1%			0	1	0	0	1
+113	83	23657505		Autorretencion por Ventas 0.1%			0	1	0	0	1
+114	83	23657506		Autorretencion por Comisiones 10%			0	1	0	0	1
+115	83	23657507		Autorretencion por Comisiones 11%			0	1	0	0	1
+116	83	23657508		Autorretencion por Consultorias 3.5%			0	1	0	0	1
+117	83	23657509		Autorretencion por Consultorias 6%			0	1	0	0	1
+118	83	23657510		Autorretencion por Consultorias 10%			0	1	0	0	1
+119	83	23657511		Autorretencion por Honorarios 10%			0	1	0	0	1
+120	83	23657512		Autorretencion por Honorarios 11%			0	1	0	0	1
+121	83	23657513		Autorretencion por Servicios 1%			0	1	0	0	1
+122	83	23657514		Autorretencion por Servicios 2%			0	1	0	0	1
+123	83	23657515		Autorretencion por Servicios 3.5%			0	1	0	0	1
+124	83	23657516		Autorretencion por Servicios 4%			0	1	0	0	1
+125	83	23657517		Autorretencion por Servicios 6%			0	1	0	0	1
+126	83	23657518		Autorretencion por Servicios AIU 1%			0	1	0	0	1
+127	83	23657519		Autorretencion por Servicios AIU 2%			0	1	0	0	1
+128	83	23657520		Autorretencion por Arrendamientos 4%			0	1	0	0	1
+129	83	23657521		Autorretencion por Arrendamientos 3.5%			0	1	0	0	1
+130	83	23657522		Autorretencion por Rendimientos Fros. 7%			0	1	0	0	1
+131	83	23657523		Autorretencion por Rendimientos Fros. 4%			0	1	0	0	1
+132	83	23657524		Autorretencion por Productos Agricolas 1.5%			0	1	0	0	1
+133	83	23657525		Autorretencion por Construccion y Urban. 2%			0	1	0	0	1
+134	83	23657526		Autorretencion por Venta de Cafe 0.5%			0	1	0	0	1
+135	83	23657527		Autorretencion por Consultorias Adm. Delegada 10%			0	1	0	0	1
+136	83	23657528		Autorretencion por Consultorias Adm. Delegada 11%			0	1	0	0	1
+137	84	23659501		Pago Retencion en la Fuente por Renta			0	0	0	0	1
+138	85	23670501		Reteiva a Prov. del Ordinario Compras - IVA 19%			1	0	0	0	1
+139	85	23670502		Reteiva a Prov. del Ordinario Compras - IVA 5%			1	0	0	0	1
+140	85	23670503		Reteiva a Prov. del Ordinario Gastos - IVA 19%			1	0	0	0	1
+141	85	23670504		Reteiva a Prov. del Ordinario Gastos - IVA 5%			1	0	0	0	1
+142	86	23671001		Reteiva a Prov. del Simple Compras - IVA 19%			1	0	0	0	1
+143	86	23671002		Reteiva a Prov. del Simple Compras - IVA 5%			1	0	0	0	1
+144	86	23671003		Reteiva a Prov. del Simple Gastos - IVA 19%			1	0	0	0	1
+145	86	23671004		Reteiva a Prov. del Simple Gastos - IVA 5%			1	0	0	0	1
+146	87	23679501		Pago Retencion en la Fuente por IVA			0	0	0	0	1
+147	88	23680501		Retencion de ICA 4.14/1000			0	1	0	0	1
+148	88	23680502		Retencion de ICA 6.90/1000			0	1	0	0	1
+149	88	23680503		Retencion de ICA 7/1000			0	1	0	0	1
+150	88	23680505		Retencion de ICA 9.66/1000			0	1	0	0	1
+151	88	23680506		Retencion de ICA 11.04/1000			0	1	0	0	1
+152	88	23680507		Retencion de ICA 11.40/1000			0	1	0	0	1
+153	88	23680508		Retencion de ICA 13.80/1000			0	1	0	0	1
+154	88	23680509		Retencion de ICA 2/1000			0	1	0	0	1
+155	88	23680510		Retencion de ICA 3/1000			0	1	0	0	1
+156	88	23680511		Retencion de ICA 4/1000			0	1	0	0	1
+157	88	23680512		Retencion de ICA 5/1000			0	1	0	0	1
+158	88	23680513		Retencion de ICA 6/1000			0	1	0	0	1
+159	88	23680514		Retencion de ICA 8/1000			0	1	0	0	1
+160	88	23680515		Retencion de ICA 10/1000			0	1	0	0	1
+161	88	23680516		Retencion de ICA 2.20/1000			0	1	0	0	1
+162	88	23680517		Retencion de ICA 3.30/1000			0	1	0	0	1
+163	88	23680518		Retencion de ICA 5.20/1000			0	1	0	0	1
+164	88	23680519		Retencion de ICA 6.60/1000			0	1	0	0	1
+165	88	23680520		Retencion de ICA 7.70/1000			0	1	0	0	1
+166	88	23680521		Retencion de ICA 8.80/1000			0	1	0	0	1
+167	88	23680522		Retencion de ICA 3.50/1000			0	1	0	0	1
+168	88	23680523		Retencion de ICA 4.50/1000			0	1	0	0	1
+169	88	23680524		Retencion de ICA 2.50/1000			0	1	0	0	1
+170	88	23680525		Retencion de ICA 5.40/1000			0	1	0	0	1
+171	88	23680526		Retencion de ICA 9.60/1000			0	1	0	0	1
+172	88	23680527		Retencion de ICA 11/1000			0	1	0	0	1
+173	88	23680528		Retencion de ICA 12/1000			0	1	0	0	1
+174	88	23680529		Retencion de ICA 20/1000			0	1	0	0	1
+175	88	23680530		Retencion de ICA 21/1000			0	1	0	0	1
+176	88	23680531		Retencion de ICA 25/1000			0	1	0	0	1
+177	88	23680532		Retencion de ICA 9/1000			0	1	0	0	1
+178	88	23680533		Retencion de ICA 3.70/1000			0	1	0	0	1
+179	88	23680535		Retencion de ICA 5.80/1000			0	1	0	0	1
+180	89	23689501		Pago Retencion en la Fuente por ICA			0	0	0	0	1
+181	90	23700501		Aportes a Salud - Deduccion a Empleados			0	0	0	0	1
+182	90	23700502		Aportes a Salud - Aporte Empleador			0	0	0	0	1
+183	91	23700601		Aportes a administradoras de Riesgos Laborales			0	0	0	0	1
+184	92	23701001		Aportes al ICBF, SENA y Cajas de Compensacion			0	0	0	0	1
+185	93	23702501		Embargos Judiciales			0	0	0	0	1
+186	94	23703001		Libranzas			0	0	0	0	1
+187	95	23704501		Aportes a Pension - Deduccion a Empleados			0	0	0	0	1
+188	95	23704502		Aportes a Pension - Aporte Empleador			0	0	0	0	1
+189	96	23709501		Aportes a Cuentas AFC - Deduccion a Empleados			0	0	0	0	1
+190	96	23709502		Otras Retenciones y Aportes de Nomina			0	0	0	0	1
+191	97	23803001		Aportes Voluntarios a Pension - Deduccion a Empleados			0	0	0	0	1
+192	97	23803002		Aportes Voluntarios a Pension Obligatoria - Deduccion a Empleados			0	0	0	0	1
+193	98	24040501		Impuesto de Renta Vigencia Fiscal Corriente			0	0	0	0	1
+194	99	24041001		Impuesto de Renta Vigencias Fiscales Anteriores			0	0	0	0	1
+195	100	24080101		IVA Generado en Ventas 19%			1	0	0	0	1
+196	100	24080102		IVA Generado en Ventas 5%			1	0	0	0	1
+197	100	24080103		Devolucion IVA en Ventas 19%			1	0	0	0	1
+198	100	24080104		Devolucion IVA en Ventas 5%			1	0	0	0	1
+199	101	24083001		IVA Descontable Compras 19%			1	0	0	0	1
+200	101	24083002		IVA Descontable Compras 5%			1	0	0	0	1
+201	101	24083003		IVA Descontable Gastos 19%			1	0	0	0	1
+202	101	24083004		IVA Descontable Gastos 5%			1	0	0	0	1
+203	101	24083005		Devolucion IVA Descontable Compras 19%			1	0	0	0	1
+204	101	24083006		Devolucion IVA Descontable Compras 5%			1	0	0	0	1
+205	101	24083007		Devolucion IVA Descontable Gastos 19%			1	0	0	0	1
+206	101	24083008		Devolucion IVA Descontable Gastos 5%			1	0	0	0	1
+207	102	24089501		Pago IVA			0	0	0	0	1
+208	103	24120501		Impuesto de Industria y Comercio - Vigencia Fiscal Corriente			0	0	0	0	1
+209	104	24121001		Impuesto de Industria y Comercio - Vigencias Fiscales Anteriores			0	0	0	0	1
+210	105	24800504		Impuesto al Consumo 4%			1	0	0	0	1
+211	105	24800508		Impuesto al Consumo 8%			1	0	0	0	1
+212	105	24800516		Impuesto al Consumo 16%			1	0	0	0	1
+213	106	24809501		Pago Impuesto al Consumo			0	0	0	0	1
+214	107	25050501		Salarios por Pagar			0	0	0	0	1
+215	108	25051001		Bonificaciones por Pagar			0	0	0	0	1
+216	109	25101001		Cesantias - Beneficios a Empleados			0	0	0	0	1
+217	110	25109501		Pago de Cesantias			0	0	0	0	1
+218	111	25151001		Intereses Sobre Cesantias - Beneficios a Empleados			0	0	0	0	1
+219	112	25159501		Pago de Intereses sobre Cesantias			0	0	0	0	1
+220	113	25201001		Prima de Servicios - Beneficios a Empleados			0	0	0	0	1
+221	114	25209501		Pago de Prima de Servicio			0	0	0	0	1
+222	115	25251001		Vacaciones - Beneficios a Empleados			0	0	0	0	1
+223	116	25259501		Pago de Vacaciones Disfrutadas en Tiempo			0	0	0	0	1
+224	116	25259502		Pago de Vacaciones Compensadas en Dinero			0	0	0	0	1
+225	117	26150501		Provision Impuesto de Renta y Complementarios			0	0	0	0	1
+226	118	26151001		Provision Impuesto de Industria y Comercio			0	0	0	0	1
+227	119	28050501		Anticipos y Avances Recibidos de Clientes			0	0	0	0	1
+228	120	28150501		Valores Recibidos para Terceros			0	0	0	0	1
+229	120	28150510		Valores Recibidos por Cuenta de Terceros			0	0	0	0	1
+230	121	31050501		Capital Autorizado			0	0	0	0	1
+231	121	31050510		Capital por Suscribir (DB)			0	0	0	0	1
+232	121	31050515		Capital Suscrito por Cobrar (DB)			0	0	0	0	1
+233	122	32050501		Prima en Colocacion de Acciones			0	0	0	0	1
+234	123	33050501		Reserva Legal			0	0	0	0	1
+235	124	36050501		Utilidad del Ejercicio			0	0	0	0	1
+236	125	36100501		Perdida del Ejercicio			0	0	0	0	1
+237	126	37050501		Utilidad Exenta a Disposicion de la Asamblea			0	0	0	0	1
+238	126	37050510		Utilidades de Ejercicios Anteriores			0	0	0	0	1
+239	127	37100501		Perdidas de Ejercicios Anteriores			0	0	0	0	1
+240	128	38050501		Superavit por Revaluacion de Inversiones			0	0	0	0	1
+241	129	38100801		Construcciones y Edificaciones			0	0	0	0	1
+242	130	38101201		Maquinaria y Equipo			0	0	0	0	1
+243	131	41359501		Venta De Otros Productos			0	0	0	0	1
+244	132	41750501		Devoluciones en Ventas (DB)			0	0	0	0	1
+245	133	42100501		Intereses			0	0	0	0	1
+246	134	42102001		Diferencia en Cambio			0	0	0	0	1
+247	135	42104001		Descuentos Comerciales Condicionados			0	0	0	0	1
+248	136	42109501		Otros Ingresos No Operacionales			0	0	0	0	1
+249	137	42950501		Aprovechamientos			0	0	0	0	1
+250	138	42958101		Ajuste al Peso			0	0	0	0	1
+251	139	51050301		Salario Integral			0	0	0	0	1
+252	140	51050601		Salarios			0	0	0	0	1
+253	140	51050602		Sueldos para Apoyo a Aprendices			0	0	0	0	1
+254	141	51051501		Horas Extras y Recargos			0	0	0	0	1
+255	142	51051801		Comisiones			0	0	0	0	1
+256	143	51052401		Incapacidades			0	0	0	0	1
+257	144	51052701		Auxilio de Transporte			0	0	0	0	1
+258	145	51053001		Cesantias			0	0	0	0	1
+259	146	51053301		Intereses sobre Cesantias			0	0	0	0	1
+260	147	51053601		Prima de Servicios			0	0	0	0	1
+261	148	51053901		Vacaciones			0	0	0	0	1
+262	149	51054501		Auxilios			0	0	0	0	1
+263	150	51054801		Bonificaciones Constitutivas de salario			0	0	0	0	1
+264	150	51054825		Bonificaciones no Constitutivas de Salario			0	0	0	0	1
+265	151	51054901		Incentivos			0	0	0	0	1
+266	151	51054910		Otros Devengados en Valor			0	0	0	0	1
+267	152	51055101		Dotacion y Suministro a Trabajadores			0	0	0	0	1
+268	153	51056001		Indemnizaciones Laborales			0	0	0	0	1
+269	154	51056301		Capacitacion al Personal			0	0	0	0	1
+270	155	51056601		Gastos Deporte y Recreacion			0	0	0	0	1
+271	156	51056801		Aportes Riesgos Profesionales			0	0	0	0	1
+272	157	51056901		Aportes Salud Empleador			0	0	0	0	1
+273	158	51057001		Aportes Pension Empleador			0	0	0	0	1
+274	159	51057201		Aportes Caja de Compensacion Familiar			0	0	0	0	1
+275	160	51057501		Aportes ICBF			0	0	0	0	1
+276	161	51057801		Aportes SENA			0	0	0	0	1
+277	162	51058401		Gastos Medicos y Drogas			0	0	0	0	1
+278	163	51059501		Otros Gastos de Personal			0	0	0	0	1
+279	164	51101001		Honorarios Revisoria Fiscal Administracion			0	0	0	0	1
+280	165	51101501		Honorarios Auditoria Externa Administracion			0	0	0	0	1
+281	166	51102501		Honorarios Asesoria Juridica Administracion			0	0	0	0	1
+282	167	51103001		Honorarios Asesoria Financiera Administracion			0	0	0	0	1
+283	168	51103501		Honorarios Asesoria Tecnica Administracion			0	0	0	0	1
+284	169	51109501		Otros Honorarios Administracion			0	0	0	0	1
+285	170	51150501		Impuesto de Industria y Comercio Administracion			0	0	0	0	1
+286	171	51151501		Impuesto Predial o a la Propiedad Raiz Administracion			0	0	0	0	1
+287	172	51154001		Impuesto Vehiculos Administracion			0	0	0	0	1
+288	173	51157001		IVA Descontable Administracion			0	0	0	0	1
+289	174	51159501		Otros Impuestos Administracion			0	0	0	0	1
+290	175	51200501		Arrendamiento Terrenos Administracion			0	0	0	0	1
+291	176	51201001		Arrendamiento Construcciones y Edificaciones Administracion			0	0	0	0	1
+292	177	51201501		Arrendamiento Maquinaria y Equipo Administracion			0	0	0	0	1
+293	178	51202001		Arrendamiento Equipo de Oficina Administracion			0	0	0	0	1
+294	179	51202501		Arrendamiento Equipo de Computacion y Comunicacion Administracion			0	0	0	0	1
+295	180	51204001		Arrendamiento Flota y Equipo de Transporte Administracion			0	0	0	0	1
+296	181	51209501		Otros Arrendamientos Administracion			0	0	0	0	1
+297	182	51250501		Contribuciones Administracion			0	0	0	0	1
+298	183	51251001		Afiliaciones y Sostenimiento Administracion			0	0	0	0	1
+299	184	51300501		Seguros Manejo Administracion			0	0	0	0	1
+300	185	51301001		Seguros Cumplimiento Administracion			0	0	0	0	1
+301	186	51302001		Seguros Vida Colectiva Administracion			0	0	0	0	1
+302	187	51302501		Seguros Incendios Administracion			0	0	0	0	1
+303	188	51303501		Seguros Sustraccion y Hurto Administracion			0	0	0	0	1
+304	189	51304001		Seguro Flota y Equipo de Transporte Administracion			0	0	0	0	1
+305	190	51306001		Seguros Responsabilidad Civil Administracion			0	0	0	0	1
+306	191	51308501		Seguros Transporte de Mercancia Administracion			0	0	0	0	1
+307	192	51309501		Otros Seguros administracion			0	0	0	0	1
+308	193	51350501		Servicios Aseo y Vigilancia Administracion			0	0	0	0	1
+309	194	51351001		Servicios Temporales Administracion			0	0	0	0	1
+310	195	51351501		Servicios Asistencia Tecnica Administracion			0	0	0	0	1
+311	196	51352501		Servicios Acueducto y Alcantarillado Administracion			0	0	0	0	1
+312	197	51353001		Servicios Energia Electrica Administracion			0	0	0	0	1
+313	198	51353501		Servicios Telefonia Fija Administracion			0	0	0	0	1
+314	198	51353502		Servicios Telefonia Movil Administracion			0	0	0	0	1
+315	198	51353503		Servicios de Internet Administracion			0	0	0	0	1
+316	199	51355001		Servicios Transporte, Fletes y Acarreo Administracion			0	0	0	0	1
+317	200	51355501		Servicio de Gas Administracion			0	0	0	0	1
+318	201	51359501		Otros Servicios Administracion			0	0	0	0	1
+319	202	51400501		Gastos Legales Notariales Administracion			0	0	0	0	1
+320	203	51401001		Gastos Legales Registro Mercantil Administracion			0	0	0	0	1
+321	204	51401501		Gastos Legales Tramites y Licencias Administracion			0	0	0	0	1
+322	205	51402001		Gastos Legales Aduaneros Administracion			0	0	0	0	1
+323	206	51409501		Otros Gastos Legales Administracion			0	0	0	0	1
+324	207	51450501		Mantenimiento Terrenos Administracion			0	0	0	0	1
+325	208	51451001		Mantenimiento Construcciones y Edificaciones Administracion			0	0	0	0	1
+326	209	51451501		Mantenimiento Maquinaria y Equipo Administracion			0	0	0	0	1
+327	210	51452001		Mantenimiento Equipo de Oficina Administracion			0	0	0	0	1
+328	211	51452501		Mantenimiento Equipo de Computacion y Comunicacion Administracion			0	0	0	0	1
+329	212	51454001		Mantenimiento Flota y Equipo de Transporte Administracion			0	0	0	0	1
+330	213	51456001		Mantenimiento Acueductos, Plantas y Redes Administracion			0	0	0	0	1
+331	214	51500501		Instalaciones Electricas Administracion			0	0	0	0	1
+332	215	51501501		Reparaciones Locativas Administracion			0	0	0	0	1
+333	216	51509501		Otras Adecuaciones e Instalaciones Administracion			0	0	0	0	1
+334	217	51550501		Gastos de Viaje Alojamiento y Manutencion Administracion			0	0	0	0	1
+335	218	51551501		Gastos de Viaje Pasajes Aereos Administracion			0	0	0	0	1
+336	219	51552001		Gastos de Viaje Pasajes Terrestres Administracion			0	0	0	0	1
+337	220	51559501		Otros Gastos de Viaje Administracion			0	0	0	0	1
+338	221	51600501		Depreciacion Construcciones y Edificaciones Administracion			0	0	0	0	1
+339	222	51601001		Depreciacion Maquinaria y Equipo Administracion			0	0	0	0	1
+340	223	51601501		Depreciacion Equipo de Oficina Administracion			0	0	0	0	1
+341	224	51602001		Depreciacion Equipo de Computo y Comunicacion Administracion			0	0	0	0	1
+342	225	51603501		Depreciacion Flota y Equipo de Transporte Administracion			0	0	0	0	1
+343	226	51950501		Gastos Diversos Comisiones Administracion			0	0	0	0	1
+344	227	51951001		Gastos Diversos Libros, Suscripciones y Revistas Administracion			0	0	0	0	1
+345	228	51952001		Gastos Diversos de Representacion y Relaciones Publicas Administracion			0	0	0	0	1
+346	229	51952501		Gastos Diversos Elementos de Aseo y Cafeteria Administracion			0	0	0	0	1
+347	230	51953001		Gastos Diversos utiles, Papeleria y Fotocopias Administracion			0	0	0	0	1
+348	231	51953501		Gastos Diversos Combustibles y Lubricantes Administracion			0	0	0	0	1
+349	232	51954501		Gastos Diversos Taxis y Buses Administracion			0	0	0	0	1
+350	233	51955001		Gastos Diversos Estampillas Administracion			0	0	0	0	1
+351	234	51956001		Gastos Diversos Casino y Restaurante Administracion			0	0	0	0	1
+352	235	51956501		Gastos Diversos Parqueaderos Administracion			0	0	0	0	1
+353	236	51959501		Otros Gastos Diversos			0	0	0	0	1
+354	237	51990501		Deterioro de Inversiones			0	0	0	0	1
+355	238	51991001		Deterioro Deudores			0	0	0	0	1
+356	239	51991501		Deterioro Propiedad, Planta y Equipo			0	0	0	0	1
+357	240	52050301		Salario Integral			0	0	0	0	1
+358	241	52050601		Salarios			0	0	0	0	1
+359	241	52050602		Sueldos para Apoyo a Aprendices			0	0	0	0	1
+360	242	52051501		Horas Extras y Recargos			0	0	0	0	1
+361	243	52051801		Comisiones			0	0	0	0	1
+362	244	52052401		Incapacidades			0	0	0	0	1
+363	245	52052701		Auxilio de Transporte			0	0	0	0	1
+364	246	52053001		Cesantias			0	0	0	0	1
+365	247	52053301		Intereses sobre Cesantias			0	0	0	0	1
+366	248	52053601		Prima de Servicios			0	0	0	0	1
+367	249	52053901		Vacaciones			0	0	0	0	1
+368	250	52054501		Auxilios			0	0	0	0	1
+369	251	52054801		Bonificaciones Constitutivas de salario			0	0	0	0	1
+370	251	52054825		Bonificaciones no Constitutivas de Salario			0	0	0	0	1
+371	252	52054901		Incentivos			0	0	0	0	1
+372	252	52054910		Otros Devengados en Valor			0	0	0	0	1
+373	253	52055101		Dotacion y Suministro a Trabajadores			0	0	0	0	1
+374	254	52056001		Indemnizaciones Laborales			0	0	0	0	1
+375	255	52056301		Capacitacion al Personal			0	0	0	0	1
+376	256	52056601		Gastos Deporte y Recreacion			0	0	0	0	1
+377	257	52056801		Aportes Riesgos Profesionales			0	0	0	0	1
+378	258	52056901		Aportes Salud Empleador			0	0	0	0	1
+379	259	52057001		Aportes Pension Empleador			0	0	0	0	1
+380	260	52057201		Aportes Caja de Compensacion Familiar			0	0	0	0	1
+381	261	52057501		Aportes ICBF			0	0	0	0	1
+382	262	52057801		Aportes SENA			0	0	0	0	1
+383	263	52058401		Gastos Medicos y Drogas			0	0	0	0	1
+384	264	52059501		Otros Gastos de Personal			0	0	0	0	1
+385	265	52101001		Honorarios Revisoria Fiscal Ventas			0	0	0	0	1
+386	266	52101501		Honorarios Auditoria Externa Ventas			0	0	0	0	1
+387	267	52102501		Honorarios Asesoria Juridica Ventas			0	0	0	0	1
+388	268	52103001		Honorarios Asesoria Financiera Ventas			0	0	0	0	1
+389	269	52103501		Honorarios Asesoria Tecnica Ventas			0	0	0	0	1
+390	270	52109501		Otros Honorarios Ventas			0	0	0	0	1
+391	271	52150501		Impuesto de Industria y Comercio Ventas			0	0	0	0	1
+392	272	52151501		Impuesto Predial o a la Propiedad Raiz Ventas			0	0	0	0	1
+393	273	52154001		Impuesto Vehiculos Ventas			0	0	0	0	1
+394	274	52157001		IVA Descontable Ventas			0	0	0	0	1
+395	275	52159501		Otros Impuestos Ventas			0	0	0	0	1
+396	276	52200501		Arrendamiento Terrenos Ventas			0	0	0	0	1
+397	277	52201001		Arrendamiento Construcciones y Edificaciones Ventas			0	0	0	0	1
+398	278	52201501		Arrendamiento Maquinaria y Equipo Ventas			0	0	0	0	1
+399	279	52202001		Arrendamiento Equipo de Oficina Ventas			0	0	0	0	1
+400	280	52202501		Arrendamiento Equipo de Computacion y Comunicacion Ventas			0	0	0	0	1
+401	281	52204001		Arrendamiento Flota y Equipo de Transporte Ventas			0	0	0	0	1
+402	282	52209501		Otros Arrendamientos Ventas			0	0	0	0	1
+403	283	52250501		Contribuciones Ventas			0	0	0	0	1
+404	284	52251001		Afiliaciones y Sostenimiento Ventas			0	0	0	0	1
+405	285	52300501		Seguros Manejo Ventas			0	0	0	0	1
+406	286	52301001		Seguros Cumplimiento Ventas			0	0	0	0	1
+407	287	52302001		Seguros Vida Colectiva Ventas			0	0	0	0	1
+408	288	52302501		Seguros Incendios Ventas			0	0	0	0	1
+409	289	52303501		Seguros Sustraccion y Hurto Ventas			0	0	0	0	1
+410	290	52304001		Seguro Flota y Equipo de Transporte Ventas			0	0	0	0	1
+411	291	52306001		Seguros Responsabilidad Civil Ventas			0	0	0	0	1
+412	292	52308501		Seguros Transporte de Mercancia Ventas			0	0	0	0	1
+413	293	52309501		Otros Seguros Ventas			0	0	0	0	1
+414	294	52350501		Servicios Aseo y Vigilancia Ventas			0	0	0	0	1
+415	295	52351001		Servicios Temporales Ventas			0	0	0	0	1
+416	296	52351501		Servicios Asistencia Tecnica Ventas			0	0	0	0	1
+417	297	52352501		Servicios Acueducto y Alcantarillado Ventas			0	0	0	0	1
+418	298	52353001		Servicios Energia Electrica Ventas			0	0	0	0	1
+419	299	52353501		Servicios Telefonia Fija Ventas			0	0	0	0	1
+420	299	52353502		Servicios Telefonia Movil Ventas			0	0	0	0	1
+421	299	52353503		Servicios de Internet Ventas			0	0	0	0	1
+422	300	52355001		Servicios Transporte, Fletes y Acarreo Ventas			0	0	0	0	1
+423	301	52355501		Servicio de Gas Ventas			0	0	0	0	1
+424	302	52359501		Otros Servicios Ventas			0	0	0	0	1
+425	303	52400501		Gastos Legales Notariales Ventas			0	0	0	0	1
+426	304	52401001		Gastos Legales Registro Mercantil Ventas			0	0	0	0	1
+427	305	52401501		Gastos Legales Tramites y Licencias Ventas			0	0	0	0	1
+428	306	52402001		Gastos Legales Aduaneros Ventas			0	0	0	0	1
+429	307	52409501		Otros Gastos Legales Ventas			0	0	0	0	1
+430	308	52450501		Mantenimiento Terrenos Ventas			0	0	0	0	1
+431	309	52451001		Mantenimiento Construcciones y Edificaciones Ventas			0	0	0	0	1
+432	310	52451501		Mantenimiento Maquinaria y Equipo Ventas			0	0	0	0	1
+433	311	52452001		Mantenimiento Equipo de Oficina Ventas			0	0	0	0	1
+434	312	52452501		Mantenimiento Equipo de Computacion y Comunicacion Ventas			0	0	0	0	1
+435	313	52454001		Mantenimiento Flota y Equipo de Transporte Ventas			0	0	0	0	1
+436	314	52456001		Mantenimiento Acueductos, Plantas y Redes Ventas			0	0	0	0	1
+437	315	52500501		Instalaciones Electricas Ventas			0	0	0	0	1
+438	316	52501501		Reparaciones Locativas Ventas			0	0	0	0	1
+439	317	52509501		Otras Adecuaciones e Instalaciones Ventas			0	0	0	0	1
+440	318	52550501		Gastos de Viaje Alojamiento y Manutencion Ventas			0	0	0	0	1
+441	319	52551501		Gastos de Viaje Pasajes Aereos Ventas			0	0	0	0	1
+442	320	52552001		Gastos de Viaje Pasajes Terrestres Ventas			0	0	0	0	1
+443	321	52559501		Otros Gastos de Viaje Ventas			0	0	0	0	1
+444	322	52600501		Depreciacion Construcciones y Edificaciones Ventas			0	0	0	0	1
+445	323	52601001		Depreciacion Maquinaria y Equipo Ventas			0	0	0	0	1
+446	324	52601501		Depreciacion Equipo de Oficina Ventas			0	0	0	0	1
+447	325	52602001		Depreciacion Equipo de Computo y Comunicacion Ventas			0	0	0	0	1
+448	326	52603501		Depreciacion Flota y Equipo de Transporte Ventas			0	0	0	0	1
+449	327	52950501		Gastos Diversos Comisiones Ventas			0	0	0	0	1
+450	328	52951001		Gastos Diversos Libros, Suscripciones y Revistas Ventas			0	0	0	0	1
+451	329	52952001		Gastos Diversos de Representacion y Relaciones Publicas Ventas			0	0	0	0	1
+452	330	52952501		Gastos Diversos Elementos de Aseo y Cafeteria Ventas			0	0	0	0	1
+453	331	52953001		Gastos Diversos utiles, Papeleria y Fotocopias Ventas			0	0	0	0	1
+454	332	52953501		Gastos Diversos Combustibles y Lubricantes Ventas			0	0	0	0	1
+455	333	52954501		Gastos Diversos Taxis y Buses Ventas			0	0	0	0	1
+456	334	52955001		Gastos Diversos Estampillas Ventas			0	0	0	0	1
+457	335	52956001		Gastos Diversos Casino y Restaurante Ventas			0	0	0	0	1
+458	336	52956501		Gastos Diversos Parqueaderos Ventas			0	0	0	0	1
+459	337	52959501		Otros Gastos Diversos			0	0	0	0	1
+460	338	52990501		Deterioro de Inversiones			0	0	0	0	1
+461	339	52991001		Deterioro Deudores			0	0	0	0	1
+462	340	52991501		Deterioro Propiedad, Planta y Equipo			0	0	0	0	1
+463	341	53050501		Gastos Bancarios			0	0	0	0	1
+464	342	53051501		Gastos por Comisiones			0	0	0	0	1
+465	343	53052001		Gastos por Intereses			0	0	0	0	1
+466	344	53052501		Gastos por Diferencia en Cambio			0	0	0	0	1
+467	345	53053501		Descuentos Comerciales Condicionados			0	0	0	0	1
+468	346	53055001		Gravamen Movimiento Financiero			0	0	0	0	1
+469	347	53059501		Otros Gastos Financieros			0	0	0	0	1
+470	348	53101501		Perdida en Venta de Propiedad, Planta y Equipo			0	0	0	0	1
+471	349	53102501		Perdida en Venta de Otros Activos			0	0	0	0	1
+472	350	53103001		Perdida en Retiro de Propiedad, Planta y Equipo			0	0	0	0	1
+473	351	53103501		Perdida en Retiro de Inventarios			0	0	0	0	1
+474	352	53151501		Costos y Gastos de Ejercicios Anteriores			0	0	0	0	1
+475	353	53152001		Impuestos Asumidos			0	0	0	0	1
+476	354	53159501		Otros Gastos Extraordinarios			0	0	0	0	1
+477	355	53950501		Demandas Laborales			0	0	0	0	1
+478	356	53952001		Multas, Sanciones y Litigios			0	0	0	0	1
+479	357	53952501		Donaciones			0	0	0	0	1
+480	358	53959501		Otros Gastos No Operacionales Diversos			0	0	0	0	1
+481	359	54050501		Impuesto de Renta y Complementarios			0	0	0	0	1
+482	360	59050501		Ganancias y Perdidas			0	0	0	0	1
+483	361	61359501		Venta De Otros Productos			0	0	0	0	1
+484	362	62050501		Compras de Mercancias Debito			0	0	0	0	1
+485	363	62059001		Compras de Mercancias Credito			0	0	0	0	1
+486	364	62250501		Devolucion Compras de Inventario o Mercancias Debito			0	0	0	0	1
+487	365	62259001		Devolucion Compras de Inventario o Mercancias Credito			0	0	0	0	1
+488	366	72050301		Salario Integral			0	0	0	0	1
+489	367	72050601		Salarios			0	0	0	0	1
+490	367	72050602		Sueldos para Apoyo a Aprendices			0	0	0	0	1
+491	368	72051501		Horas Extras y Recargos			0	0	0	0	1
+492	369	72051801		Comisiones			0	0	0	0	1
+493	370	72052401		Incapacidades			0	0	0	0	1
+494	371	72052701		Auxilio de Transporte			0	0	0	0	1
+495	372	72053001		Cesantias			0	0	0	0	1
+496	373	72053301		Intereses sobre Cesantias			0	0	0	0	1
+497	374	72053601		Prima de Servicios			0	0	0	0	1
+498	375	72053901		Vacaciones			0	0	0	0	1
+499	376	72054501		Auxilios			0	0	0	0	1
+500	377	72054801		Bonificaciones Constitutivas de salario			0	0	0	0	1
+501	377	72054825		Bonificaciones no Constitutivas de Salario			0	0	0	0	1
+502	378	72054901		Incentivos			0	0	0	0	1
+503	378	72054910		Otros Devengados en Valor			0	0	0	0	1
+504	379	72055101		Dotacion y Suministro a Trabajadores			0	0	0	0	1
+505	380	72056001		Indemnizaciones Laborales			0	0	0	0	1
+506	381	72056301		Capacitacion al Personal			0	0	0	0	1
+507	382	72056601		Gastos Deporte y Recreacion			0	0	0	0	1
+508	383	72056801		Aportes Riesgos Profesionales			0	0	0	0	1
+509	384	72056901		Aportes Salud Empleador			0	0	0	0	1
+510	385	72057001		Aportes Pension Empleador			0	0	0	0	1
+511	386	72057201		Aportes Caja de Compensacion Familiar			0	0	0	0	1
+512	387	72057501		Aportes ICBF			0	0	0	0	1
+513	388	72057801		Aportes SENA			0	0	0	0	1
+514	389	72058401		Gastos Medicos y Drogas			0	0	0	0	1
+515	390	72059501		Otros Gastos de Personal			0	0	0	0	1
+516	391	73050301		Salario Integral			0	0	0	0	1
+517	392	73050601		Salarios			0	0	0	0	1
+518	392	73050602		Sueldos para Apoyo a Aprendices			0	0	0	0	1
+519	393	73051501		Horas Extras y Recargos			0	0	0	0	1
+520	394	73051801		Comisiones			0	0	0	0	1
+521	395	73052401		Incapacidades			0	0	0	0	1
+522	396	73052701		Auxilio de Transporte			0	0	0	0	1
+523	397	73053001		Cesantias			0	0	0	0	1
+524	398	73053301		Intereses sobre Cesantias			0	0	0	0	1
+525	399	73053601		Prima de Servicios			0	0	0	0	1
+526	400	73053901		Vacaciones			0	0	0	0	1
+527	401	73054501		Auxilios			0	0	0	0	1
+528	402	73054801		Bonificaciones Constitutivas de salario			0	0	0	0	1
+529	402	73054825		Bonificaciones no Constitutivas de Salario			0	0	0	0	1
+530	403	73054901		Incentivos			0	0	0	0	1
+531	403	73054910		Otros Devengados en Valor			0	0	0	0	1
+532	404	73055101		Dotacion y Suministro a Trabajadores			0	0	0	0	1
+533	405	73056001		Indemnizaciones Laborales			0	0	0	0	1
+534	406	73056301		Capacitacion al Personal			0	0	0	0	1
+535	407	73056601		Gastos Deporte y Recreacion			0	0	0	0	1
+536	408	73056801		Aportes Riesgos Profesionales			0	0	0	0	1
+537	409	73056901		Aportes Salud Empleador			0	0	0	0	1
+538	410	73057001		Aportes Pension Empleador			0	0	0	0	1
+539	411	73057201		Aportes Caja de Compensacion Familiar			0	0	0	0	1
+540	412	73057501		Aportes ICBF			0	0	0	0	1
+541	413	73057801		Aportes SENA			0	0	0	0	1
+542	414	73058401		Gastos Medicos y Drogas			0	0	0	0	1
+543	415	73059501		Otros Gastos de Personal			0	0	0	0	1

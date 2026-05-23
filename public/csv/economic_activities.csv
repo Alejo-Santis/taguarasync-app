@@ -1,0 +1,503 @@
+1	0111	 Cultivo de cereales (excepto arroz), legumbres y semillas oleaginosas 	 0.550	1
+2	0112	 Cultivo de arroz 	 0.550	1
+3	0113	 Cultivo de hortalizas, raíces y tubérculos 	 0.550	1
+4	0114	 Cultivo de tabaco 	 0.550	1
+5	0115	 Cultivo de plantas textiles 	 0.550	1
+6	0119	 Otros cultivos transitorios n.c.p. 	 0.550	1
+7	0121	 Cultivo de frutas tropicales y subtropicales 	 0.550	1
+8	0122	 Cultivo de plátano y banano 	 0.550	1
+9	0123	 Cultivo de café 	 0.550	1
+10	0124	 Cultivo de caña de azúcar 	 0.550	1
+11	0125	 Cultivo de flor de corte 	 0.550	1
+12	0126	 Cultivo de palma para aceite (palma africana) y otros frutos oleaginosos 	 0.550	1
+13	0127	 Cultivo de plantas con las que se preparan bebidas 	 0.550	1
+14	0128	 Cultivo de especias y de plantas aromáticas y medicinales 	 0.550	1
+15	0129	 Otros cultivos permanentes n.c.p. 	 0.550	1
+16	0130	 Propagación de plantas (actividades de los viveros, excepto viveros forestales) 	 0.550	1
+17	0141	 Cría de ganado bovino y bufalino 	 0.550	1
+18	0142	 Cría de caballos y otros equinos 	 0.550	1
+19	0143	 Cría de ovejas y cabras 	 0.550	1
+20	0144	 Cría de ganado porcino 	 0.550	1
+21	0145	 Cría de aves de corral 	 0.550	1
+22	0149	 Cría de otros animales n.c.p. 	 0.550	1
+23	0150	 Explotación mixta (agrícola y pecuaria) 	 0.550	1
+24	0161	 Actividades de apoyo a la agricultura 	 0.550	1
+25	0162	 Actividades de apoyo a la ganadería 	 0.550	1
+26	0163	 Actividades posteriores a la cosecha 	 0.550	1
+27	0164	 Tratamiento de semillas para propagación 	 0.550	1
+28	0170	 Caza ordinaria y mediante trampas y actividades de servicios conexas 	 0.550	1
+29	0210	 Silvicultura y otras actividades forestales 	 0.550	1
+30	0220	 Extracción de madera 	 0.550	1
+31	0230	 Recolección de productos forestales diferentes a la madera 	 0.550	1
+32	0240	 Servicios de apoyo a la silvicultura 	 0.550	1
+33	0311	 Pesca marítima 	 0.550	1
+34	0312	 Pesca de agua dulce 	 0.550	1
+35	0321	 Acuicultura marítima 	 0.550	1
+36	0322	 Acuicultura de agua dulce 	 0.550	1
+37	0510	 Extracción de hulla (carbón de piedra) 	 4.5	1
+38	0520	 Extracción de carbón lignito 	 4.5	1
+39	0610	 Extracción de petróleo crudo 	 4.5	1
+40	0620	 Extracción de gas natural 	 2.200	1
+41	0710	 Extracción de minerales de hierro 	 1.9	1
+42	0721	 Extracción de minerales de uranio y de torio 	 1.9	1
+43	0722	 Extracción de oro y otros metales preciosos 	 3.600	1
+44	0723	 Extracción de minerales de níquel 	 3.600	1
+45	0729	 Extracción de otros minerales metalíferos no ferrosos n.c.p. 	 1.9	1
+46	0811	 Extracción de piedra, arena, arcillas comunes, yeso y anhidrita 	 1.9	1
+47	0812	 Extracción de arcillas de uso industrial, caliza, caolín y bentonitas 	 1.9	1
+48	0820	 Extracción de esmeraldas, piedras preciosas y semipreciosas 	 1.9	1
+49	0891	 Extracción de minerales para la fabricación de abonos y productos químicos 	 1.9	1
+50	0892	 Extracción de halita (sal) 	 1.9	1
+51	0899	 Extracción de otros minerales no metálicos n.c.p. 	 1.9	1
+52	0910	 Actividades de apoyo para la extracción de petróleo y de gas natural 	 2.200	1
+53	0990	 Actividades de apoyo para otras actividades de explotación de minas y canteras 	 2.200	1
+54	1011	 Procesamiento y conservación de carne y productos cárnicos 	 0.550	1
+55	1012	 Procesamiento y conservación de pescados, crustáceos y moluscos 	 0.550	1
+56	1020	 Procesamiento y conservación de frutas, legumbres, hortalizas y tubérculos 	 0.550	1
+57	1031	 Extracción de aceites de origen vegetal crudos 	 0.550	1
+58	1032	 Elaboración de aceites y grasas de origen vegetal refinados 	 0.550	1
+59	1033	 Elaboración de aceites y grasas de origen animal 	 0.550	1
+60	1040	 Elaboración de productos lácteos 	 0.550	1
+61	1051	 Elaboración de productos de molinería 	 0.550	1
+62	1052	 Elaboración de almidones y productos derivados del almidón 	 0.550	1
+63	1061	 Trilla de café 	 0.550	1
+64	1062	 Descafeinado, tostión y molienda del café 	 0.550	1
+65	1063	 Otros derivados del café 	 0.550	1
+66	1071	 Elaboración y refinación de azúcar 	 0.550	1
+67	1072	 Elaboración de panela 	 0.550	1
+68	1081	 Elaboración de productos de panadería 	 0.550	1
+69	1082	 Elaboración de cacao, chocolate y productos de confitería 	 0.550	1
+70	1083	 Elaboración de macarrones, fideos, alcuzcuz y productos farináceos similares 	 0.550	1
+71	1084	 Elaboración de comidas y platos preparados 	 0.550	1
+72	1089	 Elaboración de otros productos alimenticios n.c.p. 	 0.550	1
+73	1090	 Elaboración de alimentos preparados para animales 	 0.550	1
+74	1101	 Destilación, rectificación y mezcla de bebidas alcohólicas 	 0.550	1
+75	1102	 Elaboración de bebidas fermentadas no destiladas 	 0.550	1
+76	1103	 Producción de malta, elaboración de cervezas y otras bebidas malteadas 	 0.550	1
+77	1104	 Elaboración de bebidas no alcohólicas, producción de aguas minerales y otras aguas embotelladas 	 0.550	1
+78	1200	 Elaboración de productos del tabaco 	 0.550	1
+79	1311	 Preparación e hilatura de fibras textiles 	 0.550	1
+80	1312	 Tejeduría de productos textiles 	 0.550	1
+81	1313	 Acabado de productos textiles 	 0.550	1
+82	1391	 Fabricación de tejidos de punto y ganchillo 	 0.550	1
+83	1392	 Confección de artículos con materiales textiles, excepto prendas de vestir 	 0.550	1
+84	1393	 Fabricación de tapetes y alfombras para pisos 	 0.550	1
+85	1394	 Fabricación de cuerdas, cordeles, cables, bramantes y redes 	 0.550	1
+86	1399	 Fabricación de otros artículos textiles n.c.p. 	 0.550	1
+87	1410	 Confección de prendas de vestir, excepto prendas de piel 	 0.550	1
+88	1420	 Fabricación de artículos de piel 	 0.550	1
+89	1430	 Fabricación de artículos de punto y ganchillo 	 0.550	1
+90	1511	" Curtido y recurtido de cueros; recurtido y teñido de pieles "	 0.550	1
+91	1512	 Fabricación de artículos de viaje, bolsos de mano y artículos similares elaborados en cuero, y fabricación de artículos de talabartería y guarnicionería 	 0.550	1
+92	1513	" Fabricación de artículos de viaje, bolsos de mano y artículos similares; artículos de talabartería y guarnicionería elaborados en otros materiales "	 0.550	1
+93	1521	 Fabricación de calzado de cuero y piel, con cualquier tipo de suela 	 0.550	1
+94	1522	 Fabricación de otros tipos de calzado, excepto calzado de cuero y piel 	 0.550	1
+95	1523	 Fabricación de partes del calzado 	 0.550	1
+96	1610	 Aserrado, acepillado e impregnación de la madera 	 0.550	1
+97	1620	" Fabricación de hojas de madera para enchapado; fabricación de tableros contrachapados, tableros laminados, tableros de partículas y otros tableros y paneles "	 0.550	1
+98	1630	 Fabricacion de partes y piezas de madera, de carpinteria y ebanisteria para la construccion 	 0.550	1
+99	1640	 Fabricación de recipientes de madera 	 0.550	1
+100	1690	" Fabricación de otros productos de madera; fabricación de artículos de corcho, cestería y espartería "	 0.550	1
+101	1701	" Fabricación de pulpas (pastas) celulósicas; papel y cartón "	 0.550	1
+102	1702	" Fabricación de papel y cartón ondulado (corrugado); fabricación de envases, empaques y de embalajes de papel y cartón "	 0.550	1
+103	1709	 Fabricación de otros artículos de papel y cartón 	 0.550	1
+104	1811	 Actividades de impresión 	 0.550	1
+105	1812	 Actividades de servicios relacionados con la impresión 	 0.550	1
+106	1820	 Producción de copias a partir de grabaciones originales 	 0.550	1
+107	1910	 Fabricación de productos de hornos de coque 	 0.550	1
+108	1921	 Fabricación de productos de la refinación del petróleo 	 0.550	1
+109	1922	 Actividad de mezcla de combustibles 	 0.550	1
+110	2011	 Fabricación de sustancias y productos químicos básicos 	 0.550	1
+111	2012	 Fabricación de abonos y compuestos inorgánicos nitrogenados 	 0.550	1
+112	2013	 Fabricación de plásticos en formas primarias 	 0.550	1
+113	2014	 Fabricación de caucho sintético en formas primarias 	 0.550	1
+114	2021	 Fabricación de plaguicidas y otros productos químicos de uso agropecuario 	 0.550	1
+115	2022	 Fabricación de pinturas, barnices y revestimientos similares, tintas para impresión y masillas 	 0.550	1
+116	2023	" Fabricación de jabones y detergentes, preparados para limpiar y pulir; perfumes y preparados de tocador "	 0.550	1
+117	2029	 Fabricación de otros productos químicos n.c.p. 	 0.550	1
+118	2030	 Fabricación de fibras sintéticas y artificiales 	 0.550	1
+119	2100	 Fabricación de productos farmacéuticos, sustancias químicas medicinales y productos botánicos de uso farmacéutico 	 0.550	1
+120	2211	 Fabricación de llantas y neumáticos de caucho 	 0.550	1
+121	2212	 Reencauche de llantas usadas 	 0.550	1
+122	2219	 Fabricación de formas básicas de caucho y otros productos de caucho n.c.p. 	 0.550	1
+123	2221	 Fabricación de formas básicas de plástico 	 0.550	1
+124	2229	 Fabricación de artículos de plástico n.c.p. 	 0.550	1
+125	2310	 Fabricación de vidrio y productos de vidrio 	 0.550	1
+126	2391	 Fabricación de productos refractarios 	 0.550	1
+127	2392	 Fabricación de materiales de arcilla para la construcción 	 0.550	1
+128	2393	 Fabricación de otros productos de cerámica y porcelana 	 0.550	1
+129	2394	 Fabricación de cemento, cal y yeso 	 0.550	1
+130	2395	 Fabricación de artículos de hormigón, cemento y yeso 	 0.550	1
+131	2396	 Corte, tallado y acabado de la piedra 	 0.550	1
+132	2399	 Fabricación de otros productos minerales no metálicos n.c.p. 	 0.550	1
+133	2410	 Industrias básicas de hierro y de acero 	 0.550	1
+134	2421	 Industrias básicas de metales preciosos 	 0.550	1
+135	2429	 Industrias básicas de otros metales no ferrosos 	 0.550	1
+136	2431	 Fundición de hierro y de acero 	 0.550	1
+137	2432	 Fundición de metales no ferrosos 	 0.550	1
+138	2511	 Fabricación de productos metálicos para uso estructural 	 0.550	1
+139	2512	 Fabricación de tanques, depósitos y recipientes de metal, excepto los utilizados para el envase o el transporte de mercancías 	 0.550	1
+140	2513	 Fabricación de generadores de vapor, excepto calderas de agua caliente para calefacción central 	 0.550	1
+141	2520	 Fabricación de armas y municiones 	 0.550	1
+142	2591	" Forja, prensado, estampado y laminado de metal; pulvimetalurgia "	 0.550	1
+143	2592	" Tratamiento y revestimiento de metales; mecanizado "	 0.550	1
+144	2593	 Fabricación de artículos de cuchillería, herramientas de mano y artículos de ferretería 	 0.550	1
+145	2599	 Fabricación de otros productos elaborados de metal n.c.p. 	 0.550	1
+146	2610	 Fabricación de componentes y tableros electrónicos 	 0.550	1
+147	2620	 Fabricación de computadoras y de equipo periférico 	 0.550	1
+148	2630	 Fabricación de equipos de comunicación 	 0.550	1
+149	2640	 Fabricación de aparatos electrónicos de consumo 	 0.550	1
+150	2651	 Fabricación de equipo de medición, prueba, navegación y control 	 0.550	1
+151	2652	 Fabricación de relojes 	 0.550	1
+152	2660	 Fabricación de equipo de irradiación y equipo electrónico de uso médico y terapéutico 	 0.550	1
+153	2670	 Fabricación de instrumentos ópticos y equipo fotográfico 	 0.550	1
+154	2680	 Fabricación de medios magnéticos y ópticos para almacenamiento de datos 	 0.550	1
+155	2711	 Fabricación de motores, generadores y transformadores eléctricos 	 0.550	1
+156	2712	 Fabricación de aparatos de distribución y control de la energía eléctrica 	 0.550	1
+157	2720	 Fabricación de pilas, baterías y acumuladores eléctricos 	 0.550	1
+158	2731	 Fabricación de hilos y cables eléctricos y de fibra óptica 	 0.550	1
+159	2732	 Fabricación de dispositivos de cableado 	 0.550	1
+160	2740	 Fabricación de equipos eléctricos de iluminación 	 0.550	1
+161	2750	 Fabricación de aparatos de uso doméstico 	 0.550	1
+162	2790	 Fabricación de otros tipos de equipo eléctrico n.c.p. 	 0.550	1
+163	2811	 Fabricación de motores, turbinas, y partes para motores de combustión interna 	 0.550	1
+164	2812	 Fabricación de equipos de potencia hidráulica y neumática 	 0.550	1
+165	2813	 Fabricación de otras bombas, compresores, grifos y válvulas 	 0.550	1
+166	2814	 Fabricación de cojinetes, engranajes, trenes de engranajes y piezas de transmisión 	 0.550	1
+167	2815	 Fabricación de hornos, hogares y quemadores industriales 	 0.550	1
+168	2816	 Fabricación de equipo de elevación y manipulación 	 0.550	1
+169	2817	 Fabricación de maquinaria y equipo de oficina (excepto computadoras y equipo periférico) 	 0.550	1
+170	2818	 Fabricación de herramientas manuales con motor 	 0.550	1
+171	2819	 Fabricación de otros tipos de maquinaria y equipo de uso general n.c.p.. 	 0.550	1
+172	2821	 Fabricación de maquinaria agropecuaria y forestal 	 0.550	1
+173	2822	 Fabricación de máquinas formadoras de metal y de máquinas herramienta 	 0.550	1
+174	2823	 Fabricación de maquinaria para la metalurgia 	 0.550	1
+175	2824	 Fabricación de maquinaria para explotación de minas y canteras y para obras de construcción 	 0.550	1
+176	2825	 Fabricación de maquinaria para la elaboración de alimentos, bebidas y tabaco 	 0.550	1
+177	2826	 Fabricación de maquinaria para la elaboración de productos textiles, prendas de vestir y cueros 	 0.550	1
+178	2829	 Fabricación de otros tipos de maquinaria y equipo de uso especial n.c.p. 	 0.550	1
+179	2910	 Fabricación de vehículos automotores y sus motores 	 0.550	1
+180	2920	" Fabricación de carrocerías para vehículos automotores; fabricación de remolques y semirremolques "	 0.550	1
+181	2930	 Fabricación de partes, piezas (autopartes) y accesorios (lujos) para vehículos automotores 	 0.550	1
+182	3011	 Construcción de barcos y de estructuras flotantes 	 0.550	1
+183	3012	 Construcción de embarcaciones de recreo y deporte 	 0.550	1
+184	3020	 Fabricación de locomotoras y de material rodante para ferrocarriles 	 0.550	1
+185	3030	 Fabricación de aeronaves, naves espaciales y de maquinaria conexa 	 0.550	1
+186	3040	 Fabricación de vehículos militares de combate 	 0.550	1
+187	3091	 Fabricación de motocicletas 	 0.550	1
+188	3092	 Fabricación de bicicletas y de sillas de ruedas para personas con discapacidad 	 0.550	1
+189	3099	 Fabricación de otros tipos de equipo de transporte n.c.p. 	 0.550	1
+190	3110	 Fabricación de muebles 	 0.550	1
+191	3120	 Fabricación de colchones y somieres 	 0.550	1
+192	3210	  	 0.550	1
+193	3211	 Fabricación de joyas y artículos conexos 	 0.550	1
+194	3212	 Fabricación de bisutería y artículos conexos 	 0.550	1
+195	3220	 Fabricación de instrumentos musicales 	 0.550	1
+196	3230	 Fabricación de artículos y equipo para la práctica del deporte 	 0.550	1
+197	3240	 Fabricación de juegos, juguetes y rompecabezas 	 0.550	1
+198	3250	 Fabricación de instrumentos, aparatos y materiales médicos y odontológicos (incluido mobiliario) 	 0.550	1
+199	3290	 Otras industrias manufactureras n.c.p. 	 0.550	1
+200	3311	 Mantenimiento y reparación especializado de productos elaborados en metal 	 0.550	1
+201	3312	 Mantenimiento y reparación especializado de maquinaria y equipo 	 0.550	1
+202	3313	 Mantenimiento y reparación especializado de equipo electrónico y óptico 	 0.550	1
+203	3314	 Mantenimiento y reparación especializado de equipo eléctrico 	 0.550	1
+204	3315	 Mantenimiento y reparación especializado de equipo de transporte, excepto los vehículos automotores, motocicletas y bicicletas 	 0.550	1
+205	3319	 Mantenimiento y reparación de otros tipos de equipos y sus componentes n.c.p. 	 0.550	1
+206	3320	 Instalación especializada de maquinaria y equipo industrial 	 0.550	1
+207	3511	 Generación de energía eléctrica 	 2.200	1
+208	3512	 Transmisión de energía eléctrica 	 2.200	1
+209	3513	 Distribución de energía eléctrica 	 2.200	1
+210	3514	 Comercialización de energía eléctrica 	 2.200	1
+211	3520	" Producción de gas; distribución de combustibles gaseosos por tuberías. "	 2.200	1
+212	3530	 Suministro de vapor y aire acondicionado 	 2.200	1
+213	3600	 Captación, tratamiento y distribución de agua 	 2.200	1
+214	3700	 Evacuación y tratamiento de aguas residuales 	 2.200	1
+215	3811	 Recolección de desechos no peligrosos 	 2.200	1
+216	3812	 Recolección de desechos peligrosos 	 2.200	1
+217	3821	 Tratamiento y disposición de desechos no peligrosos 	 2.200	1
+218	3822	 Tratamiento y disposición de desechos peligrosos 	 2.200	1
+219	3830	 Recuperación de materiales 	 2.200	1
+220	3900	 Actividades de saneamiento ambiental y otros servicios de gestión de desechos 	 2.200	1
+221	4111	 Construcción de edificios residenciales 	 1.100	1
+222	4112	 Construcción de edificios no residenciales 	 1.100	1
+223	4210	 Construcción de carreteras y vías de ferrocarril 	 1.100	1
+224	4220	 Construcción de proyectos de servicio público 	 1.100	1
+225	4290	 Construcción de otras obras de ingeniería civil 	 1.100	1
+226	4311	 Demolición 	 1.100	1
+227	4312	 Preparación del terreno 	 1.100	1
+228	4321	 Instalaciones eléctricas 	 1.100	1
+229	4322	 Instalaciones de fontanería, calefacción y aire acondicionado 	 1.100	1
+230	4329	 Otras instalaciones especializadas 	 1.100	1
+231	4330	 Terminación y acabado de edificios y obras de ingeniería civil 	 1.100	1
+232	4390	 Otras actividades especializadas para la construcción de edificios y obras de ingeniería civil 	 1.100	1
+233	4511	 Comercio de vehículos automotores nuevos 	 0.550	1
+234	4512	 Comercio de vehículos automotores usados 	 0.550	1
+235	4520	 Mantenimiento y reparación de vehículos automotores 	 0.550	1
+236	4530	 Comercio de partes, piezas (autopartes) y accesorios (lujos) para vehículos automotores 	 0.550	1
+237	4541	 Comercio de motocicletas y de sus partes, piezas y accesorios 	 0.550	1
+238	4542	 Mantenimiento y reparación de motocicletas y de sus partes y piezas 	 0.550	1
+239	4610	 Comercio al por mayor a cambio de una retribución o por contrata 	 0.550	1
+240	4620	" Comercio al por mayor de materias primas agropecuarias; animales vivos "	 0.550	1
+241	4631	 Comercio al por mayor de productos alimenticios 	 0.550	1
+242	4632	 Comercio al por mayor de bebidas y tabaco 	 0.550	1
+243	4641	" Comercio al por mayor de productos textiles; productos confeccionados para uso doméstico "	 0.550	1
+244	4642	 Comercio al por mayor de prendas de vestir 	 0.550	1
+245	4643	 Comercio al por mayor de calzado 	 0.550	1
+246	4644	 Comercio al por mayor de aparatos y equipo de uso doméstico 	 0.550	1
+247	4645	 Comercio al por mayor de productos farmacéuticos, medicinales, cosméticos y de tocador 	 0.550	1
+248	4649	 Comercio al por mayor de otros utensilios domésticos n.c.p. 	 0.550	1
+249	4651	 Comercio al por mayor de computadores, equipo periférico y programas de informática 	 0.550	1
+250	4652	 Comercio al por mayor de equipo, partes y piezas electrónicos y de telecomunicaciones 	 0.550	1
+251	4653	 Comercio al por mayor de maquinaria y equipo agropecuarios 	 0.550	1
+252	4659	 Comercio al por mayor de otros tipos de maquinaria y equipo n.c.p. 	 0.550	1
+253	4661	 Comercio al por mayor de combustibles sólidos, líquidos, gaseosos y productos conexos 	 0.550	1
+254	4662	 Comercio al por mayor de metales y productos metalíferos 	 0.550	1
+255	4663	 Comercio al por mayor de materiales de construcción, artículos de ferretería, pinturas, productos de vidrio, equipo y materiales de fontanería y calefacción 	 0.550	1
+256	4664	 Comercio al por mayor de productos químicos básicos, cauchos y plásticos en formas primarias y productos químicos de uso agropecuario 	 0.550	1
+257	4665	 Comercio al por mayor de desperdicios, desechos y chatarra 	 0.550	1
+258	4669	 Comercio al por mayor de otros productos n.c.p. 	 0.550	1
+259	4690	 Comercio al por mayor no especializado 	 0.550	1
+260	4711	 Comercio al por menor en establecimientos no especializados con surtido compuesto principalmente por alimentos, bebidas (alcohólicas y no alcohólicas) o tabaco 	 0.550	1
+261	4719	 Comercio al por menor en establecimientos no especializados, con surtido compuesto principalmente por productos diferentes de alimentos (víveres en general), bebidas (alcohólicas y no alcohólicas) y tabaco 	 0.550	1
+262	4721	 Comercio al por menor de productos agrícolas para el consumo en establecimientos especializados 	 0.550	1
+263	4722	 Comercio al por menor de leche, productos lácteos y huevos en establecimientos especializados 	 0.550	1
+264	4723	 Comercio al por menor de carnes (incluye aves de corral), productos cárnicos, pescados y productos de mar en establecimientos especializados 	 0.550	1
+265	4724	 Comercio al por menor de bebidas y productos de tabaco, en establecimientos especializados 	 0.550	1
+266	4729	 Comercio al por menor de otros productos alimenticios n.c.p., en establecimientos especializados 	 0.550	1
+267	4731	 Comercio al por menor de combustible para automotores 	 0.550	1
+268	4732	 Comercio al por menor de lubricantes (aceites y grasas) aditivos y productos de limpieza para vehículos automotores 	 0.550	1
+269	4741	 Comercio al por menor de computadores, equipos periféricos, programas de informática y equipos de telecomunicaciones en establecimientos especializados 	 0.550	1
+270	4742	 Comercio al por menor de equipos y aparatos de sonido y de video, en establecimientos especializados 	 0.550	1
+271	4751	 Comercio al por menor de productos textiles en establecimientos especializados 	 0.550	1
+272	4752	 Comercio al por menor de artículos de ferretería, pinturas y productos de vidrio en establecimientos especializados 	 0.550	1
+273	4753	 Comercio al por menor de tapices, alfombras y recubrimientos para paredes y pisos en establecimientos especializados 	 0.550	1
+274	4754	 Comercio al por menor de electrodomésticos y gasodomésticos, muebles y equipos de iluminación en establecimientos especializados. 	 0.550	1
+275	4755	 Comercio al por menor de artículos y utensilios de uso doméstico en establecimientos especializados. 	 0.550	1
+276	4759	 Comercio al por menor de otros artículos domésticos en establecimientos especializados 	 0.550	1
+277	4761	 Comercio al por menor de libros, periódicos, materiales y artículos de papelería y escritorio, en establecimientos especializados 	 0.550	1
+278	4762	 Comercio al por menor de artículos deportivos, en establecimientos especializados 	 0.550	1
+279	4769	 Comercio al por menor de otros artículos culturales y de entretenimiento n.c.p. en establecimientos especializados 	 0.550	1
+280	4771	 Comercio al por menor de prendas de vestir y sus accesorios (incluye artículos de piel) en establecimientos especializados 	 0.550	1
+281	4772	 Comercio al por menor de todo tipo de calzado y artículos de cuero y sucedáneos del cuero en establecimientos especializados. 	 0.550	1
+282	4773	 Comercio al por menor de productos farmacéuticos y medicinales, cosméticos y artículos de tocador en establecimientos especializados 	 0.550	1
+283	4774	 Comercio al por menor de otros productos nuevos, en establecimientos especializados 	 0.550	1
+284	4775	 Comercio al por menor de artículos de segunda mano 	 0.550	1
+285	4781	 Comercio al por menor de alimentos, bebidas y tabaco en puestos de venta móviles 	 0.550	1
+286	4782	 Comercio al por menor de productos textiles, prendas de vestir y calzado, en puestos de venta móviles 	 0.550	1
+287	4789	 Comercio al por menor de otros productos, en puestos de venta móviles 	 0.550	1
+288	4791	 Comercio al por menor realizado a través de internet 	 0.550	1
+289	4792	 Comercio al por menor realizado a través de casas de venta o por correo 	 0.550	1
+290	4799	 Otros tipos de comercio al por menor no realizado en establecimientos, puestos de venta o mercados 	 0.550	1
+291	4911	 Transporte férreo de pasajeros 	 1.100	1
+292	4912	 Transporte férreo de carga 	 1.100	1
+293	4921	 Transporte de pasajeros 	 1.100	1
+294	4922	 Transporte mixto 	 1.100	1
+295	4923	 Transporte de carga por carretera 	 1.100	1
+296	4930	 Transporte por tuberías 	 1.100	1
+297	5011	 Transporte de pasajeros marítimo y de cabotaje 	 1.100	1
+298	5012	 Transporte de carga marítimo y de cabotaje 	 1.100	1
+299	5021	 Transporte fluvial de pasajeros 	 1.100	1
+300	5022	 Transporte fluvial de carga 	 1.100	1
+301	5111	 Transporte aéreo nacional de pasajeros 	 1.100	1
+302	5112	 Transporte aéreo internacional de pasajeros 	 1.100	1
+303	5121	 Transporte aéreo nacional de carga 	 1.100	1
+304	5122	 Transporte aéreo internacional de carga 	 1.100	1
+305	5210	 Almacenamiento y depósito 	 1.100	1
+306	5221	 Actividades de estaciones, vías y servicios complementarios para el transporte terrestre 	 1.100	1
+307	5222	 Actividades de puertos y servicios complementarios para el transporte acuático 	 1.100	1
+308	5223	 Actividades de aeropuertos, servicios de navegación aérea y demás actividades conexas al transporte aéreo 	 1.100	1
+309	5224	 Manipulación de carga 	 1.100	1
+310	5229	 Otras actividades complementarias al transporte 	 1.100	1
+311	5310	 Actividades postales nacionales 	 1.100	1
+312	5320	 Actividades de mensajería 	 1.100	1
+313	5511	 Alojamiento en hoteles 	 1.100	1
+314	5512	 Alojamiento en aparta	hoteles	1
+315	5513	 Alojamiento en centros vacacionales 	 1.100	1
+316	5514	 Alojamiento rural 	 1.100	1
+317	5519	 Otros tipos de alojamiento para visitantes 	 1.100	1
+318	5520	 Actividades de zonas de camping y parques para vehículos recreacionales 	 1.100	1
+319	5530	 Servicio de estancia por horas 	 1.100	1
+320	5590	 Otros tipos de alojamiento n.c.p. 	 1.100	1
+321	5611	 Expendio a la mesa de comidas preparadas 	 1.100	1
+322	5612	 Expendio por autoservicio de comidas preparadas 	 1.100	1
+323	5613	 Expendio de comidas preparadas en cafeterías 	 1.100	1
+324	5619	 Otros tipos de expendio de comidas preparadas n.c.p. 	 1.100	1
+325	5621	 Catering para eventos 	 1.100	1
+326	5629	 Actividades de otros servicios de comidas 	 1.100	1
+327	5630	 Expendio de bebidas alcohólicas para el consumo dentro del establecimiento 	 1.100	1
+328	5811	 Edición de libros 	 1.100	1
+329	5812	 Edición de directorios y listas de correo 	 1.100	1
+330	5813	 Edición de periódicos, revistas y otras publicaciones periódicas 	 1.100	1
+331	5819	 Otros trabajos de edición 	 1.100	1
+332	5820	 Edición de programas de informática (software) 	 1.100	1
+333	5911	 Actividades de producción de películas cinematográficas, videos, programas, anuncios y comerciales de televisión 	 1.100	1
+334	5912	 Actividades de postproducción de películas cinematográficas, videos, programas, anuncios y comerciales de televisión 	 1.100	1
+335	5913	 Actividades de distribución de películas cinematográficas, videos, programas, anuncios y comerciales de televisión 	 1.100	1
+336	5914	 Actividades de exhibición de películas cinematográficas y videos 	 1.100	1
+337	5920	 Actividades de grabación de sonido y edición de música 	 1.100	1
+338	6010	 Actividades de programación y transmisión en el servicio de radiodifusión sonora 	 1.100	1
+339	6020	 Actividades de programación y transmisión de televisión 	 1.100	1
+340	6110	 Actividades de telecomunicaciones alámbricas 	 2.200	1
+341	6120	 Actividades de telecomunicaciones inalámbricas 	 2.200	1
+342	6130	 Actividades de telecomunicación satelital 	 2.200	1
+343	6190	 Otras actividades de telecomunicaciones 	 2.200	1
+344	6201	 Actividades de desarrollo de sistemas informáticos (planificación, análisis, diseño, programación, pruebas). 	 1.100	1
+345	6202	 Actividades de consultoría informática y actividades de administración de instalaciones informáticas 	 1.100	1
+346	6209	 Otras actividades de tecnologías de información y actividades de servicios informáticos 	 1.100	1
+347	6311	 Procesamiento de datos, alojamiento (hosting) y actividades relacionadas 	 1.100	1
+348	6312	 Portales web 	 1.100	1
+349	6391	 Actividades de agencias de noticias 	 1.100	1
+350	6399	 Otras actividades de servicios de información n.c.p. 	 1.100	1
+351	6412	 Bancos comerciales 	 1.100	1
+352	6421	 Actividades de las corporaciones financieras 	 1.100	1
+353	6422	 Actividades de las compañías de financiamiento 	 1.100	1
+354	6423	 Banca de segundo piso 	 1.100	1
+355	6424	 Actividades de las cooperativas financieras 	 1.100	1
+356	6431	 Fideicomisos, fondos y entidades financieras similares 	 1.100	1
+357	6432	 Fondos de cesantías 	 1.100	1
+358	6491	 Leasing financiero (arrendamiento financiero) 	 1.100	1
+359	6492	 Actividades financieras de fondos de empleados y otras formas asociativas del sector solidario 	 1.100	1
+360	6493	 Actividades de compra de cartera o factoring 	 1.100	1
+361	6494	 Otras actividades de distribución de fondos 	 1.100	1
+362	6495	 Instituciones especiales oficiales 	 1.100	1
+363	6496	 Capitalización 	 1.100	1
+364	6499	 Otras actividades de servicio financiero, excepto las de seguros y pensiones n.c.p. 	 1.100	1
+365	6511	 Seguros generales 	 1.100	1
+366	6512	 Seguros de vida 	 1.100	1
+367	6513	 Reaseguros 	 1.100	1
+368	6515	 Seguros de salud 	 1.100	1
+369	6521	 Servicios de seguros sociales de salud 	 1.100	1
+370	6522	 Servicios de seguros sociales en riesgos laborales. 	 1.100	1
+371	6523	 Servicios de seguros sociales de riesgos familia 	 1.100	1
+372	6531	 Régimen de prima media con prestación definida (rpm) 	 1.100	1
+373	6532	 Régimen de ahorro individual con solidaridad (rais). 	 1.100	1
+374	6611	 Administración de mercados financieros 	 1.100	1
+375	6612	 Corretaje de valores y de contratos de productos básicos 	 1.100	1
+376	6613	 Otras actividades relacionadas con el mercado de valores 	 1.100	1
+377	6614	 Actividades de las sociedades de intermediación cambiaria y de servicios financieros especiales. 	 1.100	1
+378	6615	 Actividades de los profesionales de compra y venta de divisas 	 1.100	1
+379	6619	 Otras actividades auxiliares de las actividades de servicios financieros n.c.p 	 1.100	1
+380	6621	 Actividades de agentes y corredores de seguros 	 1.100	1
+381	6629	 Evaluación de riesgos y daños y otras actividades de servicios auxiliares 	 1.100	1
+382	6630	 Actividades de administración de fondos 	 1.100	1
+383	6810	 Actividades inmobiliarias realizadas con bienes propios o arrendados 	 1.100	1
+384	6820	 Actividades inmobiliarias realizadas a cambio de una retribución o por contrata 	 1.100	1
+385	6910	 Actividades jurídicas 	 1.100	1
+386	6920	 Actividades de contabilidad, teneduría de libros, auditoria financiera y asesoría tributaria 	 1.100	1
+387	7010	 Actividades de administración empresarial 	 1.100	1
+388	7020	 Actividades de consultoría de gestión 	 1.100	1
+389	7111	 Actividades de arquitectura 	 1.100	1
+390	7112	 Actividades de ingeniería y otras actividades conexas de consultoría técnica. 	 1.100	1
+391	7120	 Ensayos y análisis técnicos 	 1.100	1
+392	7210	 Investigaciones y desarrollo experimental en el campo de las ciencias naturales y la ingeniería 	 1.100	1
+393	7220	 Investigaciones y desarrollo experimental en el campo de las ciencias sociales y las humanidades 	 1.100	1
+394	7310	 Publicidad 	 1.100	1
+395	7320	 Estudios de mercado y realización de encuestas de opinión pública 	 1.100	1
+396	7410	 Actividades especializadas de diseño 	 1.100	1
+397	7420	 Actividades de fotografía 	 1.100	1
+398	7490	 Otras actividades profesionales, científicas y técnicas n.c.p. 	 1.100	1
+399	7500	 Actividades veterinarias 	 1.100	1
+400	7710	 Alquiler y arrendamiento de vehículos automotores 	 1.100	1
+401	7721	 Alquiler y arrendamiento de equipo recreativo y deportivo 	 1.100	1
+402	7722	 Alquiler de videos y discos 	 1.100	1
+403	7729	 Alquiler y arrendamiento de otros efectos personales y enseres domésticos n.c.p. 	 1.100	1
+404	7730	 Alquiler y arrendamiento de otros tipos de maquinaria, equipo y bienes tangibles n.c.p. 	 1.100	1
+405	7740	 Arrendamiento de propiedad intelectual y productos similares, excepto obras protegidas por derechos de autor 	 1.100	1
+406	7810	 Actividades de agencias de gestión y colocación de empleo. 	 1.100	1
+407	7820	 Actividades de empresas de servicios temporales. 	 1.100	1
+408	7830	 Otras actividades de provisión de talento humano. 	 1.100	1
+409	7911	 Actividades de las agencias de viajes 	 1.100	1
+410	7912	 Actividades de operadores turísticos 	 1.100	1
+411	7990	 Otros servicios de reserva y actividades relacionadas 	 1.100	1
+412	8010	 Actividades de seguridad privada 	 1.100	1
+413	8020	 Actividades de servicios de sistemas de seguridad 	 1.100	1
+414	8030	 Actividades de detectives e investigadores privados 	 1.100	1
+415	8110	 Actividades combinadas de apoyo a instalaciones 	 1.100	1
+416	8121	 Limpieza general interior de edificios 	 1.100	1
+417	8129	 Otras actividades de limpieza de edificios e instalaciones industriales 	 1.100	1
+418	8130	 Actividades de paisajismo y servicios de mantenimiento conexos 	 1.100	1
+419	8211	 Actividades combinadas de servicios administrativos de oficina 	 1.100	1
+420	8219	 Fotocopiado, preparación de documentos y otras actividades especializadas de apoyo a oficina 	 1.100	1
+421	8220	 Actividades de centros de llamadas (call center) 	 1.100	1
+422	8230	 Organización de convenciones y eventos comerciales 	 1.100	1
+423	8291	 Actividades de agencias de cobranza y oficinas de calificación crediticia 	 1.100	1
+424	8292	 Actividades de envase y empaque 	 1.100	1
+425	8299	 Otras actividades de servicio de apoyo a las empresas n.c.p. 	 1.100	1
+426	8411	 Actividades legislativas de la administración publica 	 1.100	1
+427	8412	 Actividades ejecutivas de la administración publica 	 1.100	1
+428	8413	 Regulación de las actividades de organismos que prestan servicios de salud, educativos, culturales y otros servicios sociales, excepto servicios de seguridad social 	 1.100	1
+429	8414	 Actividades reguladoras y facilitadoras de la actividad económica 	 1.100	1
+430	8415	 Actividades de los órganos de control y otras instituciones. 	 1.100	1
+431	8421	 Relaciones exteriores 	 1.100	1
+432	8422	 Actividades de defensa 	 1.100	1
+433	8423	 Orden público y actividades de seguridad 	 1.100	1
+434	8424	 Administración de justicia 	 1.100	1
+435	8430	 Actividades de planes de seguridad social de afiliación obligatoria 	 1.100	1
+436	8511	 Educación de la primera infancia 	 1.100	1
+437	8512	 Educación preescolar 	 1.100	1
+438	8513	 Educación básica primaria 	 1.100	1
+439	8521	 Educación básica secundaria 	 1.100	1
+440	8522	 Educación media académica 	 1.100	1
+441	8523	 Educación media técnica. 	 1.100	1
+442	8530	 Establecimientos que combinan diferentes niveles de educación 	 1.100	1
+443	8541	 Educación técnica profesional 	 1.100	1
+444	8542	 Educación tecnológica 	 1.100	1
+445	8543	 Educación de instituciones universitarias o de escuelas tecnológicas 	 1.100	1
+446	8544	 Educación de universidades 	 1.100	1
+447	8551	 Formación para el trabajo. 	 1.100	1
+448	8552	 Enseñanza deportiva y recreativa 	 1.100	1
+449	8553	 Enseñanza cultural 	 1.100	1
+450	8559	 Otros tipos de educación n.c.p. 	 1.100	1
+451	8560	 Actividades de apoyo a la educación 	 1.100	1
+452	8610	 Actividades de hospitales y clínicas, con internación 	 1.100	1
+453	8621	 Actividades de la práctica médica, sin internación 	 1.100	1
+454	8622	 Actividades de la práctica odontológica 	 1.100	1
+455	8691	 Actividades de apoyo diagnóstico 	 1.100	1
+456	8692	 Actividades de apoyo terapéutico 	 1.100	1
+457	8699	 Otras actividades de atención de la salud humana 	 1.100	1
+458	8710	 Actividades de atención residencial medicalizada de tipo general 	 1.100	1
+459	8720	 Actividades de atención residencial, para el cuidado de pacientes con retardo mental, enfermedad mental y consumo de sustancias psicoactivas 	 1.100	1
+460	8730	 Actividades de atención en instituciones para el cuidado de personas mayores y/o discapacitadas 	 1.100	1
+461	8790	 Otras actividades de atención en instituciones con alojamiento 	 1.100	1
+462	8810	 Actividades de asistencia social sin alojamiento para personas mayores y discapacitadas 	 1.100	1
+463	8891	 Actividades de guarderias para niños y niñas. 	 1.100	1
+464	8899	 Otras actividades de asistencia social sin alojamiento n.c.p. 	 1.100	1
+465	9001	 Creación literaria 	 1.100	1
+466	9002	 Creación musical 	 1.100	1
+467	9003	 Creación teatral 	 1.100	1
+468	9004	 Creación audiovisual 	 1.100	1
+469	9005	 Artes plásticas y visuales 	 1.100	1
+470	9006	 Actividades teatrales 	 1.100	1
+471	9007	 Actividades de espectáculos musicales en vivo 	 1.100	1
+472	9008	 Otras actividades de espectáculos en vivo n.c.p. 	 1.100	1
+473	9101	 Actividades de bibliotecas y archivos 	 1.100	1
+474	9102	 Actividades y funcionamiento de museos, conservación de edificios y sitios históricos 	 1.100	1
+475	9103	 Actividades de jardines botánicos, zoológicos y reservas naturales 	 1.100	1
+476	9200	 Actividades de juegos de azar y apuestas 	 1.100	1
+477	9200	 Actividades de juegos de azar y apuestas 	 0.550	1
+478	9311	 Gestión de instalaciones deportivas 	 1.100	1
+479	9312	 Actividades de clubes deportivos 	 1.100	1
+480	9319	 Otras actividades deportivas 	 1.100	1
+481	9321	 Actividades de parques de atracciones y parques temáticos 	 1.100	1
+482	9329	 Otras actividades recreativas y de esparcimiento n.c.p. 	 1.100	1
+483	9411	 Actividades de asociaciones empresariales y de empleadores 	 1.100	1
+484	9412	 Actividades de asociaciones profesionales 	 1.100	1
+485	9420	 Actividades de sindicatos de empleados 	 1.100	1
+486	9491	 Actividades de asociaciones religiosas 	 1.100	1
+487	9492	 Actividades de asociaciones políticas 	 1.100	1
+488	9499	 Actividades de otras asociaciones n.c.p. 	 1.100	1
+489	9511	 Mantenimiento y reparación de computadoras y de equipo periférico 	 1.100	1
+490	9512	 Mantenimiento y reparación de equipos de comunicación 	 1.100	1
+491	9521	 Mantenimiento y reparación de aparatos electrónicos de consumo 	 1.100	1
+492	9522	 Mantenimiento y reparación de aparatos y equipos domésticos y de jardinería 	 1.100	1
+493	9523	 Reparación de calzado y artículos de cuero 	 1.100	1
+494	9524	 Reparación de muebles y accesorios para el hogar 	 1.100	1
+495	9529	 Mantenimiento y reparación de otros efectos personales y enseres domésticos 	 1.100	1
+496	9601	 Lavado y limpieza, incluso la limpieza en seco, de productos textiles y de piel 	 1.100	1
+497	9602	 Peluquería y otros tratamientos de belleza 	 1.100	1
+498	9603	 Pompas fúnebres y actividades relacionadas 	 1.100	1
+499	9609	 Otras actividades de servicios personales n.c.p. 	 1.100	1
+500	9700	 Actividades de los hogares individuales como empleadores de personal doméstico 	 1.100	1
+501	9810	 Actividades no diferenciadas de los hogares individuales como productores de bienes para uso propio 	 1.100	1
+502	9820	 Actividades no diferenciadas de los hogares individuales como productores de servicios para uso propio 	 1.100	1
+503	9900	 Actividades de organizaciones y entidades extraterritoriales 	 1.100	1

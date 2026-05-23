@@ -28,6 +28,7 @@ class StoreCustomerRequest extends FormRequest
                     ->where('identification_type_code', $this->identification_type_code)
                     ->whereNull('deleted_at'),
             ],
+            'merchant_registration' => ['nullable', 'string', 'max:30'],
             'first_name' => ['nullable', 'string', 'max:120'],
             'last_name' => ['nullable', 'string', 'max:120'],
             'business_name' => ['nullable', 'string', 'max:220'],
@@ -50,6 +51,7 @@ class StoreCustomerRequest extends FormRequest
         return [
             'identification_type_code' => 'tipo de documento',
             'identification_number' => 'número de documento',
+            'merchant_registration' => 'registro mercantil',
             'first_name' => 'nombre',
             'last_name' => 'apellido',
             'business_name' => 'razón social',

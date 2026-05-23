@@ -9,9 +9,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\ProcessSaleRequest;
 use App\Models\CashSession;
 use App\Models\Customer;
+use App\Models\DianIdentificationType;
+use App\Models\DianRegimeType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -36,6 +39,11 @@ class PosController extends Controller
                 'opened_at' => $session->opened_at->format('H:i'),
                 'sales_count' => $session->sales()->count(),
                 'sales_total' => $session->salesTotal(),
+            ],
+            'customerFormOptions' => [
+                'identification_types' => DianIdentificationType::where('is_active', true)
+                    ->orderBy('name')->get(['code', 'name']),
+                'regime_types' => DianRegimeType::orderBy('name')->get(['code', 'name']),
             ],
         ]);
     }
@@ -69,9 +77,42 @@ class PosController extends Controller
                 'full_name' => $c->full_name,
                 'identification' => $c->identification_type_code.' '.$c->identification_number.($c->verification_digit ? '-'.$c->verification_digit : ''),
                 'regime' => $c->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
+                'regime_code' => $c->regime_type_code,
             ]);
 
         return response()->json($customers);
+    }
+
+    public function quickStoreCustomer(Request $request): JsonResponse
+    {
+        $tenantId = $request->user()->tenant_id;
+
+        $validated = $request->validate([
+            'identification_type_code' => ['required', 'string', Rule::exists('dian_identification_types', 'code')],
+            'identification_number' => [
+                'required', 'string', 'max:30',
+                Rule::unique('customers', 'identification_number')
+                    ->where('tenant_id', $tenantId)
+                    ->where('identification_type_code', $request->string('identification_type_code')->toString())
+                    ->whereNull('deleted_at'),
+            ],
+            'first_name' => ['nullable', 'string', 'max:120'],
+            'last_name' => ['nullable', 'string', 'max:120'],
+            'business_name' => ['nullable', 'string', 'max:220'],
+            'regime_type_code' => ['nullable', 'string', Rule::exists('dian_regime_types', 'code')],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'email' => ['nullable', 'email', 'max:180'],
+        ]);
+
+        $customer = Customer::create($validated);
+
+        return response()->json([
+            'id' => $customer->id,
+            'full_name' => $customer->full_name,
+            'identification' => $customer->identification_type_code.' '.$customer->identification_number,
+            'regime' => $customer->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
+            'regime_code' => $customer->regime_type_code,
+        ], 201);
     }
 
     public function store(ProcessSaleRequest $request, ProcessSale $processSale): RedirectResponse

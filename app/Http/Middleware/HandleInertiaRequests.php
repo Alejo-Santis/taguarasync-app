@@ -47,6 +47,12 @@ class HandleInertiaRequests extends Middleware
                     'slug' => $tenant->slug,
                     'status' => $tenant->status->value,
                 ] : null,
+                'permissions' => fn () => $request->user()
+                    ? $request->user()->getAllPermissions()->pluck('name')->values()->all()
+                    : [],
+                'roles' => fn () => $request->user()
+                    ? $request->user()->getRoleNames()->values()->all()
+                    : [],
             ],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

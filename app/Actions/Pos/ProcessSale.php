@@ -41,7 +41,7 @@ class ProcessSale
             $amountTendered = isset($data['amount_tendered']) ? (int) $data['amount_tendered'] : null;
             $change = ($amountTendered !== null) ? max(0, $amountTendered - $totals['total']) : null;
 
-            $feEnabled = config('fe.enabled') && $user->tenant?->fe_environment !== null;
+            $feEnabled = config('fe.enabled') && $user->tenant?->feConfig?->electronic_invoicing_enabled;
 
             $sale = Sale::create([
                 'uuid' => (string) Str::uuid(),

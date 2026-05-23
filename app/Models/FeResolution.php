@@ -4,11 +4,10 @@ namespace App\Models;
 
 use App\Enums\FeEnvironment;
 use App\Enums\FeResolutionType;
-use App\Exceptions\FeResolutionExhaustedException;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable([
     'tenant_id',
@@ -20,7 +19,6 @@ use Illuminate\Support\Facades\DB;
     'technical_key',
     'from_number',
     'to_number',
-    'current_number',
     'valid_from',
     'valid_until',
     'environment',
@@ -30,9 +28,17 @@ class FeResolution extends Model
 {
     use BelongsToTenant;
 
+    /**
+     * @return HasOne<FeSend, $this>
+     */
+    public function send(): HasOne
+    {
+        return $this->hasOne(FeSend::class, 'resolution_id');
+    }
+
     public function hasRemainingNumbers(): bool
     {
-        return $this->current_number < $this->to_number;
+        return ($this->send?->next_consecutive ?? 0) < $this->to_number;
     }
 
     public function isExpired(): bool
@@ -41,27 +47,18 @@ class FeResolution extends Model
     }
 
     /**
-     * Atomically reserves and returns the next consecutive number.
-     * Uses a row-level lock to prevent duplicate assignment under concurrency.
-     *
-     * @throws FeResolutionExhaustedException
+     * Delegates consecutive number reservation to the FeSend record.
+     * Atomic via row-level lock in FeSend::consumeNextNumber().
      */
     public function consumeNextNumber(): int
     {
-        return DB::transaction(function () {
-            $fresh = static::withoutGlobalScopes()->lockForUpdate()->findOrFail($this->id);
+        $send = $this->send ?? FeSend::create([
+            'tenant_id' => $this->tenant_id,
+            'resolution_id' => $this->id,
+            'next_consecutive' => $this->from_number - 1,
+        ]);
 
-            if ($fresh->current_number >= $fresh->to_number) {
-                throw new FeResolutionExhaustedException(
-                    "La resolución {$fresh->code} no tiene números disponibles (máx: {$fresh->to_number})."
-                );
-            }
-
-            $next = $fresh->current_number + 1;
-            $fresh->update(['current_number' => $next]);
-
-            return $next;
-        });
+        return $send->consumeNextNumber();
     }
 
     protected function casts(): array

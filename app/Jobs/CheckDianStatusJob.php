@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Enums\FeStatus;
 use App\Models\FeSubmission;
 use App\Models\Sale;
+use App\Models\Tenant;
 use App\Services\Fe\NextpymeClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -28,6 +29,9 @@ class CheckDianStatusJob implements ShouldQueue
 
     public function handle(NextpymeClient $client): void
     {
+        $tenant = Tenant::with('feConfig')->find($this->tenantId);
+        $client = $client->forTenant((string) ($tenant?->feConfig?->api_token ?? ''));
+
         try {
             $response = $client->getDocumentStatus($this->xmlDocumentKey);
         } catch (Throwable) {
@@ -46,14 +50,21 @@ class CheckDianStatusJob implements ShouldQueue
                 'responded_at' => now(),
             ]);
 
-        $dianStatus = $response['dian_code'] ?? $response['status'] ?? null;
+        // Parse status from the nested DIAN response
+        // GetStatus uses GetStatusResponse/GetStatusResult (not SendBillSyncResponse)
+        $dianResult = $response['ResponseDian']['Envelope']['Body']['GetStatusResponse']['GetStatusResult']
+            ?? $response['ResponseDian']['Envelope']['Body']['SendBillSyncResponse']['SendBillSyncResult']
+            ?? [];
+
+        $isValid = ($dianResult['IsValid'] ?? null) === 'true';
+        $statusCode = $dianResult['StatusCode'] ?? null;
 
         if ($this->documentType === 'invoice') {
-            $this->updateSaleStatus($dianStatus);
+            $this->updateSaleStatus($isValid, $statusCode);
         }
     }
 
-    private function updateSaleStatus(?string $dianStatus): void
+    private function updateSaleStatus(bool $isValid, ?string $statusCode): void
     {
         $sale = Sale::withoutGlobalScopes()->find($this->documentId);
 
@@ -62,8 +73,8 @@ class CheckDianStatusJob implements ShouldQueue
         }
 
         $feStatus = match (true) {
-            in_array($dianStatus, ['00', 'accepted', 'ACCEPTED', '0']) => FeStatus::Accepted,
-            in_array($dianStatus, ['99', 'rejected', 'REJECTED']) => FeStatus::Rejected,
+            $isValid || $statusCode === '00' => FeStatus::Accepted,
+            $statusCode === '99' => FeStatus::Rejected,
             default => null,
         };
 

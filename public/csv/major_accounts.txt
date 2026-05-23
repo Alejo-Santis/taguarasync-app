@@ -1,0 +1,141 @@
+1	1105		Caja		11		1	1
+2	1110		Bancos		11		1	1
+3	1120		Cuentas de Ahorro		11		1	1
+4	1305		Clientes		13		1	3
+5	1330		Anticipos		13		1	3
+6	1345		Ingresos por Cobrar		13		1	3
+7	1355		Activos Fiscales		13		1	3
+8	1365		Cuentas por Cobrar a Trabajadores		13		1	3
+9	1380		Depositarios		13		1	3
+10	1399		Provisiones		13		1	3
+11	1435		Inventario de Mercancias No Fabricadas por la Empresa		14		1	4
+12	1504		Terrenos		15		1	5
+13	1516		Construcciones y Edificaciones		15		1	5
+14	1520		Maquinaria y Equipo		15		1	5
+15	1524		Equipo de Oficina		15		1	5
+16	1528		Equipo de Computo y Comunicacion		15		1	5
+17	1540		Flota y Equipo de Transporte		15		1	5
+18	1592		Depreciacion Acumulada		15		1	5
+19	1635		Licencias		16		1	6
+20	1705		Gastos Pagados por Anticipado		17		1	7
+21	1710		Cargos Diferidos		17		1	7
+22	1805		Impuesto Corriente		18		1	8
+23	1945		De Inversiones		19		1	9
+24	2105		Pasivos Financieros Bancos Nacionales		21		1	10
+25	2115		Pasivos Financieros Corporaciones Financieras		21		1	10
+26	2195		Otras Obligaciones		21		1	10
+27	2205		Proveedores Nacionales		22		1	11
+28	2210		Proveedores del Exterior		22		1	11
+29	2335		Costos y Gastos por Pagar		23		1	12
+30	2355		Deudas con Accionistas o Socios		23		1	12
+31	2360		Dividendos o Participaciones por Pagar		23		1	12
+32	2365		Retencion en la Fuente		23		1	12
+33	2367		Impuesto a las Ventas Retenido		23		1	12
+34	2368		Impuesto de Industria y Comercio Retenido		23		1	12
+35	2370		Retenciones y Aportes de Nomina		23		1	12
+36	2380		Acreedores - Depositarios		23		1	12
+37	2404		Impuesto de Renta y Complementarios		24		1	13
+38	2408		Impuesto a las Ventas por Pagar		24		1	13
+39	2412		Impuesto de Industria y Comercio		24		1	13
+40	2480		Impuesto al Consumo en Ventas		24		1	13
+41	2505		Salarios por Pagar		25		1	14
+42	2510		Cesantias Consolidadas		25		1	14
+43	2515		Intereses Sobre Cesantias		25		1	14
+44	2520		Prima de Servicios		25		1	14
+45	2525		Vacaciones Consolidadas		25		1	14
+46	2615		Provisiones para Obligaciones Fiscales		26		1	15
+47	2805		Otros Pasivos, Anticipos y Avances Recibidos		28		1	16
+48	2815		Ingresos Recibidos para Terceros		28		1	16
+49	3105		Capital Suscrito y Pagado		31		1	17
+50	3205		Prima en Colocacion de Acciones, Cuotas o Partes de Interes Social		32		1	18
+51	3305		Reservas Obligatorias		33		1	19
+52	3605		Utilidad del Ejercicio		36		1	20
+53	3610		Perdida del Ejercicio		36		1	20
+54	3705		Utilidades Acumuladas		37		1	21
+55	3710		Perdidas Acumuladas		37		1	21
+56	3805		De Inversiones		38		1	22
+57	3810		De Propiedad Planta y Equipo		38		1	22
+58	4135		Comercio al por Mayor y al por Menor		41		1	23
+59	4175		Devoluciones en Ventas (DB)		41		1	23
+60	4205		Otras Ventas		42		1	24
+61	4210		Financieros		42		1	24
+62	4295		Diversos		42		1	24
+63	5105		Gasto de Personal		51		1	27
+64	5110		Gastos Honorarios Administracion		51		1	27
+65	5115		Gastos Impuestos Administracion		51		1	27
+66	5120		Gastos Arrendamientos Administracion		51		1	27
+67	5125		Gastos Contribuciones y Afiliaciones Administracion		51		1	27
+68	5130		Gastos Seguros Administracion		51		1	27
+69	5135		Gastos Servicios Administracion		51		1	27
+70	5140		Gastos Legales Administracion		51		1	27
+71	5145		Gastos Mantenimiento Administracion		51		1	27
+72	5150		Gastos Adecuacion e Instalacion Administracion		51		1	27
+73	5155		Gastos de Viaje Administracion		51		1	27
+74	5160		Gastos Depreciaciones Administracion		51		1	27
+75	5195		Gastos Diversos Administracion		51		1	27
+76	5199		Deterioro del Valor de los Activos		51		1	27
+77	5205		Gasto de Personal		52		1	28
+78	5210		Gastos Honorarios Ventas		52		1	28
+79	5215		Gastos Impuestos Ventas		52		1	28
+80	5220		Gastos Arrendamientos Ventas		52		1	28
+81	5225		Gastos Contribuciones y Afiliaciones Ventas		52		1	28
+82	5230		Gastos Seguros Ventas		52		1	28
+83	5235		Gastos Servicios Ventas		52		1	28
+84	5240		Gastos Legales Ventas		52		1	28
+85	5245		Gastos Mantenimiento Administracion		52		1	28
+86	5250		Gastos Adecuacion e Instalacion Ventas		52		1	28
+87	5255		Gastos de Viaje Ventas		52		1	28
+88	5260		Gastos Depreciaciones Ventas		52		1	28
+89	5295		Gastos Diversos Ventas		52		1	28
+90	5299		Deterioro del Valor de los Activos		52		1	28
+91	5305		Gastos No Operacionales Financieros		53		1	29
+92	5310		Perdida en Venta y Retiro de Bienes		53		1	29
+93	5315		Gastos Extraordinarios		53		1	29
+94	5395		Gastos Diversos		53		1	29
+95	5405		Impuesto a las Ganancias		54		1	30
+96	5905		Ganancias y Perdidas		59		1	31
+97	6135		Comercio al por Mayor y al por Menor		61		1	32
+98	6205		Compras de Mercancias		62		1	33
+99	6225		Devoluciones en Compra de Inventario o Mercancias		62		1	33
+100	7205		Gasto de Personal		72		1	35
+101	7305		Gasto de Personal		73		1	36
+102	8105		Bienes y valores entregados en custodia		81		1	38
+103	8110		Bienes y valores entregados en garantia		81		1	38
+104	8115		Bienes y valores en poder de terceros		81		1	38
+105	8120		Litigios y/o demandas		81		1	38
+106	8125		Promesas de compraventa		81		1	38
+107	8195		Diversas		81		1	38
+108	8305		Bienes recibidos en arrendamiento financiero		83		1	40
+109	8310		Titulos de inversion no colocados		83		1	40
+110	8315		Propiedades, planta y equipo totalmente depreciados, agotados y/o amortizados		83		1	40
+111	8320		Creditos a favor no utilizados		83		1	40
+112	8325		Activos castigados		83		1	40
+113	8330		Titulos de inversion amortizados		83		1	40
+114	8335		Capitalizacion por revalorizacion de patrimonio		83		1	40
+115	8395		Otras cuentas deudoras de control		83		1	40
+116	8399		Ajustes por inflacion activos		83		1	40
+117	9105		Bienes y valores recibidos en custodia		91		1	44
+118	9110		Bienes y valores recibidos en garantia		91		1	44
+119	9115		Bienes y valores recibidos de terceros		91		1	44
+120	9120		Litigios y/o demandas		91		1	44
+121	9125		Promesas de compraventa		91		1	44
+122	9130		Contratos de administracion delegada		91		1	44
+123	9135		Cuentas en participacion		91		1	44
+124	9195		Otras responsabilidades contingentes		91		1	44
+125	9305		Contratos de arrendamiento financiero		93		1	46
+126	9395		Otras cuentas de orden acreedoras de control		93		1	46
+127	9399		Ajustes por inflacion patrimonio		93		1	46
+128	4215		Dividendos y participaciones		42		1	24
+129	4218		Ingresos metodo de participacion		42		1	24
+130	4220		Arrendamientos		42		1	24
+131	4225		Comisiones		42		1	24
+132	4230		Honorarios		42		1	24
+133	4235		Servicios		42		1	24
+134	4240		Utilidad en venta de inversiones		42		1	24
+135	4245		Utilidad en venta de propiedades, planta y equipo		42		1	24
+136	4248		Utilidad en venta de otros bienes		42		1	24
+137	4250		Recuperaciones		42		1	24
+138	4255		Indemnizaciones		42		1	24
+139	4260		Participaciones en concesiones		42		1	24
+140	4265		Ingresos de ejercicios anteriores		42		1	24
+141	4275		Devoluciones en otras ventas (DB)		42		1	24

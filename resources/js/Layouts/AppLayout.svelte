@@ -66,43 +66,51 @@
 
     let searchModalOpen = $state(false);
 
-    const navGroups = [
+    const perms = auth?.permissions ?? [];
+    const can = (p) => perms.includes(p);
+
+    const allNavGroups = [
         {
             items: [
-                { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard' },
+                { label: 'Panel', href: '/dashboard', icon: LayoutDashboard, section: 'dashboard', perm: 'dashboard.view' },
             ],
         },
         {
             group: 'Ventas',
             items: [
-                { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos' },
-                { label: 'Ventas', href: '/sales', icon: ReceiptText, section: 'sales' },
-                { label: 'Clientes', href: '/customers', icon: User, section: 'customers' },
-                { label: 'Facturacion', href: null, icon: FileText, soon: true },
+                { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos', perm: 'pos.sell' },
+                { label: 'Ventas', href: '/sales', icon: ReceiptText, section: 'sales', perm: 'sales.view' },
+                { label: 'Clientes', href: '/customers', icon: User, section: 'customers', perm: 'sales.view' },
+                { label: 'Facturación FE', href: '/fe/submissions', icon: FileText, section: 'fe-submissions', perm: 'billing.view' },
             ],
         },
         {
             group: 'Inventario',
             items: [
-                { label: 'Productos', href: '/products', icon: Package, section: 'products' },
-                { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory' },
-                { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases' },
+                { label: 'Productos', href: '/products', icon: Package, section: 'products', perm: 'products.view' },
+                { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory', perm: 'inventory.view' },
+                { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases', perm: 'purchases.view' },
             ],
         },
         {
             group: 'Análisis',
             items: [
-                { label: 'Reportes', href: '/reports/sales', icon: BarChart3, section: 'reports' },
+                { label: 'Reportes', href: '/reports/sales', icon: BarChart3, section: 'reports', perm: 'reports.view' },
             ],
         },
         {
             group: 'Administración',
             items: [
-                { label: 'Equipo', href: '/team', icon: Users, section: 'team' },
-                { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion' },
+                { label: 'Equipo', href: '/team', icon: Users, section: 'team', perm: 'users.manage' },
+                { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion', perm: 'settings.manage' },
             ],
         },
     ];
+
+    // Filter groups and items by permission
+    const navGroups = allNavGroups
+        .map((g) => ({ ...g, items: g.items.filter((i) => !i.perm || can(i.perm)) }))
+        .filter((g) => g.items.length > 0);
 
     const navItemsFlat = navGroups.flatMap((g) => g.items);
 

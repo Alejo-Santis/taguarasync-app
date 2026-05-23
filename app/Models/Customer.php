@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
     'tenant_id',
     'identification_type_code',
     'identification_number',
+    'merchant_registration',
     'verification_digit',
     'first_name',
     'last_name',

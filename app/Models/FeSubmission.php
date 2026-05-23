@@ -11,9 +11,11 @@ use Illuminate\Database\Eloquent\Model;
     'document_type',
     'document_id',
     'xml_document_key',
+    'attempts',
     'request_payload',
     'response_payload',
     'response_status',
+    'is_non_recoverable',
     'submitted_at',
     'responded_at',
 ])]
@@ -26,6 +28,7 @@ class FeSubmission extends Model
         return [
             'request_payload' => 'array',
             'response_payload' => 'array',
+            'is_non_recoverable' => 'boolean',
             'submitted_at' => 'datetime',
             'responded_at' => 'datetime',
         ];

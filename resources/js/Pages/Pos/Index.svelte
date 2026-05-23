@@ -18,11 +18,12 @@
         ShoppingCart,
         Trash2,
         User,
+        UserPlus,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, activeSession } = $props();
+    let { auth, activeSession, customerFormOptions } = $props();
 
     const page = usePage();
     let completedSale = $derived(page.props.completedSale ?? null);
@@ -168,6 +169,78 @@
     };
 
     const clearCustomer = () => { selectedCustomer = null; customerQuery = ''; };
+
+    // Create customer modal
+    let createCustomerOpen = $state(false);
+    let createCustomerLoading = $state(false);
+    let createCustomerErrors = $state({});
+    let createForm = $state({
+        identification_type_code: '13',
+        identification_number: '',
+        first_name: '',
+        last_name: '',
+        business_name: '',
+        regime_type_code: '49',
+        phone: '',
+        email: '',
+    });
+
+    const isNitForm = $derived(createForm.identification_type_code === '31');
+
+    const getCsrfToken = () => {
+        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    };
+
+    const openCreateCustomer = () => {
+        createCustomerErrors = {};
+        createForm = {
+            identification_type_code: '13',
+            identification_number: /^\d+$/.test(customerQuery.trim()) ? customerQuery.trim() : '',
+            first_name: '',
+            last_name: '',
+            business_name: '',
+            regime_type_code: '49',
+            phone: '',
+            email: '',
+        };
+        createCustomerOpen = true;
+    };
+
+    const submitCreateCustomer = async () => {
+        if (createCustomerLoading) return;
+        createCustomerLoading = true;
+        createCustomerErrors = {};
+
+        try {
+            const res = await fetch('/pos/customers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                },
+                body: JSON.stringify(createForm),
+            });
+
+            if (res.status === 422) {
+                const data = await res.json();
+                createCustomerErrors = data.errors ?? {};
+                return;
+            }
+
+            if (!res.ok) throw new Error();
+
+            const customer = await res.json();
+            selectCustomer(customer);
+            createCustomerOpen = false;
+            customerQuery = '';
+        } catch {
+            createCustomerErrors = { _general: ['Error al crear el cliente. Intenta de nuevo.'] };
+        } finally {
+            createCustomerLoading = false;
+        }
+    };
 
     // Payment
     const openPayment = () => {
@@ -338,41 +411,88 @@
                         <User size={14} class="text-success flex-shrink-0" />
                         <div class="min-w-0 flex-grow-1" style="font-size:.8rem">
                             <div class="fw-semibold text-truncate">{selectedCustomer.full_name}</div>
-                            <div class="text-secondary">{selectedCustomer.identification} · {selectedCustomer.regime}</div>
+                            <div class="d-flex align-items-center gap-1 flex-wrap" style="font-size:.73rem; color:var(--bs-secondary-color)">
+                                <span>{selectedCustomer.identification}</span>
+                                <span class="badge {selectedCustomer.regime_code === '48' ? 'text-bg-warning' : 'text-bg-secondary'}" style="font-size:.6rem">
+                                    {selectedCustomer.regime}
+                                </span>
+                            </div>
                         </div>
                         <button class="btn btn-link p-0 text-secondary" type="button" onclick={clearCustomer} aria-label="Quitar cliente">
                             <X size={13} />
                         </button>
                     </div>
                 {:else}
-                    <div class="position-relative">
-                        <div class="taguara-filter-input" style="gap:.4rem">
-                            <User size={13} class="text-secondary" />
-                            <input
-                                class="form-control form-control-sm border-0 p-0 bg-transparent"
-                                type="search"
-                                placeholder="Buscar cliente (opcional)"
-                                value={customerQuery}
-                                oninput={onCustomerInput}
-                                style="font-size:.8rem"
-                            />
-                        </div>
-                        {#if customerDropOpen && customerResults.length > 0}
-                            <div class="position-absolute start-0 end-0 bg-white border rounded shadow-sm" style="top:100%; z-index:200; max-height:180px; overflow-y:auto">
-                                {#each customerResults as c}
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="position-relative flex-grow-1">
+                            <div class="taguara-filter-input" style="gap:.4rem">
+                                <User size={13} class="text-secondary" />
+                                <input
+                                    class="form-control form-control-sm border-0 p-0 bg-transparent"
+                                    type="search"
+                                    placeholder="Buscar cliente..."
+                                    value={customerQuery}
+                                    oninput={onCustomerInput}
+                                    style="font-size:.8rem"
+                                />
+                            </div>
+                            {#if customerDropOpen && customerResults.length > 0}
+                                <div class="position-absolute start-0 end-0 bg-white border rounded shadow-sm" style="top:100%; z-index:200; max-height:180px; overflow-y:auto">
+                                    {#each customerResults as c}
+                                        <button
+                                            class="w-100 text-start px-3 py-2 border-0 bg-transparent"
+                                            type="button"
+                                            style="font-size:.8rem"
+                                            onclick={() => selectCustomer(c)}
+                                        >
+                                            <div class="fw-semibold">{c.full_name}</div>
+                                            <div class="d-flex align-items-center gap-1" style="color:var(--bs-secondary-color)">
+                                                <span>{c.identification}</span>
+                                                <span class="badge {c.regime_code === '48' ? 'text-bg-warning' : 'text-bg-secondary'}" style="font-size:.6rem">{c.regime}</span>
+                                            </div>
+                                        </button>
+                                    {/each}
                                     <button
-                                        class="w-100 text-start px-3 py-2 border-0 bg-transparent"
+                                        class="w-100 text-start px-3 py-2 border-0 bg-transparent border-top d-flex align-items-center gap-2 text-primary"
                                         type="button"
                                         style="font-size:.8rem"
-                                        onclick={() => selectCustomer(c)}
+                                        onclick={openCreateCustomer}
                                     >
-                                        <div class="fw-semibold">{c.full_name}</div>
-                                        <div class="text-secondary">{c.identification}</div>
+                                        <UserPlus size={13} />
+                                        Crear nuevo cliente
                                     </button>
-                                {/each}
-                            </div>
-                        {/if}
+                                </div>
+                            {:else if customerQuery.length >= 2}
+                                <div class="position-absolute start-0 end-0 bg-white border rounded shadow-sm" style="top:100%; z-index:200;">
+                                    <button
+                                        class="w-100 text-start px-3 py-2 border-0 bg-transparent d-flex align-items-center gap-2 text-primary"
+                                        type="button"
+                                        style="font-size:.8rem"
+                                        onclick={openCreateCustomer}
+                                    >
+                                        <UserPlus size={13} />
+                                        Crear cliente "{customerQuery}"
+                                    </button>
+                                </div>
+                            {/if}
+                        </div>
+                        <button
+                            class="btn btn-light border flex-shrink-0"
+                            style="padding:.25rem .45rem"
+                            type="button"
+                            onclick={openCreateCustomer}
+                            title="Crear nuevo cliente"
+                            aria-label="Crear nuevo cliente"
+                        >
+                            <UserPlus size={14} />
+                        </button>
                     </div>
+                    {#if !customerQuery}
+                        <div class="d-flex align-items-center gap-1 mt-1" style="font-size:.72rem; color:var(--bs-secondary-color)">
+                            <User size={11} />
+                            <span>Consumidor final — sin cliente asignado</span>
+                        </div>
+                    {/if}
                 {/if}
             </div>
 
@@ -515,6 +635,123 @@
                     {:else}
                         <CheckCircle2 size={18} />
                         Confirmar venta
+                    {/if}
+                </button>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Create Customer Modal -->
+    {#if createCustomerOpen}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={() => (createCustomerOpen = false)} role="presentation"></div>
+        <div class="taguara-pos-modal" style="max-width:420px" transition:scale={{ duration: 180, start: 0.96 }}>
+            <div class="taguara-pos-modal-header">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="taguara-kpi-icon text-bg-primary"><UserPlus size={18} /></span>
+                    <div>
+                        <p class="text-uppercase small fw-semibold mb-1" style="color:var(--bs-primary)">Nuevo cliente</p>
+                        <h2 class="h5 mb-0">Registro rápido</h2>
+                    </div>
+                </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={() => (createCustomerOpen = false)}><X size={17} /></button>
+            </div>
+
+            <div class="taguara-pos-modal-body">
+                {#if createCustomerErrors._general}
+                    <div class="alert alert-danger small py-2 d-flex gap-2">
+                        <AlertCircle size={15} class="flex-shrink-0 mt-1" />
+                        {createCustomerErrors._general[0]}
+                    </div>
+                {/if}
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold mb-1" for="cc-id-type">Tipo de documento *</label>
+                        <select id="cc-id-type" class="form-select form-select-sm" bind:value={createForm.identification_type_code}>
+                            {#each customerFormOptions.identification_types as type}
+                                <option value={type.code}>{type.name}</option>
+                            {/each}
+                        </select>
+                        {#if createCustomerErrors.identification_type_code}
+                            <div class="text-danger" style="font-size:.75rem">{createCustomerErrors.identification_type_code[0]}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold mb-1" for="cc-id-num">Número de documento *</label>
+                        <input
+                            id="cc-id-num"
+                            class="form-control form-control-sm"
+                            bind:value={createForm.identification_number}
+                            placeholder="Ej. 1234567890"
+                        />
+                        {#if createCustomerErrors.identification_number}
+                            <div class="text-danger" style="font-size:.75rem">{createCustomerErrors.identification_number[0]}</div>
+                        {/if}
+                    </div>
+
+                    {#if isNitForm}
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold mb-1" for="cc-biz-name">Razón social *</label>
+                            <input id="cc-biz-name" class="form-control form-control-sm" bind:value={createForm.business_name} placeholder="Nombre de la empresa" />
+                            {#if createCustomerErrors.business_name}
+                                <div class="text-danger" style="font-size:.75rem">{createCustomerErrors.business_name[0]}</div>
+                            {/if}
+                        </div>
+                    {:else}
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-1" for="cc-fname">Nombre *</label>
+                            <input id="cc-fname" class="form-control form-control-sm" bind:value={createForm.first_name} placeholder="Nombre" />
+                            {#if createCustomerErrors.first_name}
+                                <div class="text-danger" style="font-size:.75rem">{createCustomerErrors.first_name[0]}</div>
+                            {/if}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-1" for="cc-lname">Apellido</label>
+                            <input id="cc-lname" class="form-control form-control-sm" bind:value={createForm.last_name} placeholder="Apellido" />
+                        </div>
+                    {/if}
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold mb-1">Régimen IVA</label>
+                        <div class="d-flex gap-2">
+                            {#each customerFormOptions.regime_types as regime}
+                                <button
+                                    type="button"
+                                    class="btn btn-sm flex-fill {createForm.regime_type_code === regime.code ? 'btn-dark' : 'btn-outline-secondary'}"
+                                    onclick={() => (createForm.regime_type_code = regime.code)}
+                                >
+                                    {regime.name}
+                                </button>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold mb-1" for="cc-phone">Teléfono</label>
+                        <input id="cc-phone" class="form-control form-control-sm" bind:value={createForm.phone} type="tel" placeholder="Opcional" />
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-semibold mb-1" for="cc-email">Email</label>
+                        <input id="cc-email" class="form-control form-control-sm" bind:value={createForm.email} type="email" placeholder="Opcional" />
+                        {#if createCustomerErrors.email}
+                            <div class="text-danger" style="font-size:.75rem">{createCustomerErrors.email[0]}</div>
+                        {/if}
+                    </div>
+                </div>
+
+                <button
+                    class="btn btn-taguara w-100 mt-4 d-inline-flex align-items-center justify-content-center gap-2"
+                    type="button"
+                    onclick={submitCreateCustomer}
+                    disabled={createCustomerLoading}
+                >
+                    {#if createCustomerLoading}
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Guardando...
+                    {:else}
+                        <UserPlus size={16} />
+                        Crear cliente
                     {/if}
                 </button>
             </div>

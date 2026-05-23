@@ -18,7 +18,7 @@
     import AppLayout from '../../../Layouts/AppLayout.svelte';
     import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
 
-    let { auth, tenant, resolutions, options } = $props();
+    let { auth, tenant, fe_config, resolutions, options } = $props();
 
     // ── Algoritmo DV colombiano (DIAN) ─────────────────────────────────────────
     const calculateDv = (nit) => {
@@ -34,27 +34,33 @@
         return String(r === 0 || r === 1 ? r : 11 - r);
     };
 
-    // ── Formulario empresa + fiscal ────────────────────────────────────────────
+    // ── Formulario unificado (tenant básico + fe_config) ──────────────────────
     const fiscalForm = useForm({
+        // Datos básicos del tenant
         name: tenant.name ?? '',
         legal_name: tenant.legal_name ?? '',
         nit: tenant.nit ?? '',
+        merchant_registration: tenant.merchant_registration ?? '',
         email: tenant.email ?? '',
         phone: tenant.phone ?? '',
         address: tenant.address ?? '',
         city: tenant.city ?? '',
         department: tenant.department ?? '',
-        identification_type_code: tenant.identification_type_code ?? '',
-        organization_type_code: tenant.organization_type_code ?? '',
-        regime_type_code: tenant.regime_type_code ?? '',
-        fiscal_responsibilities: tenant.fiscal_responsibilities ?? [],
         municipality_code: tenant.municipality_code ?? '',
-        fe_municipality_api_id: tenant.fe_municipality_api_id ?? '',
-        economic_activity_code: tenant.economic_activity_code ?? '',
-        fe_environment: tenant.fe_environment ?? 'test',
+
+        // Configuración FE (va a tenant_fe_configs)
+        electronic_invoicing_enabled: fe_config.electronic_invoicing_enabled ?? false,
+        identification_type_code: fe_config.identification_type_code ?? '',
+        organization_type_code: fe_config.organization_type_code ?? '',
+        regime_type_code: fe_config.regime_type_code ?? '',
+        fiscal_responsibilities: fe_config.fiscal_responsibilities ?? [],
+        economic_activity_code: fe_config.economic_activity_code ?? '',
+        environment: fe_config.environment ?? 'test',
+        api_token: '',
+        software_id: fe_config.software_id ?? '',
     });
 
-    // DV reactivo: se recalcula cada vez que cambia el NIT
+    // DV reactivo
     const dv = $derived(calculateDv(fiscalForm.nit));
 
     const saveFiscal = () => {
@@ -69,6 +75,11 @@
             fiscalForm.department = m.department_name;
         }
     };
+
+    // Derive municipality API ID for display (auto-resolved via dian_municipalities.api_id)
+    const selectedMunicipalityApiId = $derived(
+        options.municipalities.find((m) => m.code === fiscalForm.municipality_code)?.api_id ?? null
+    );
 
     const onResponsibilitiesChange = (e) => {
         fiscalForm.fiscal_responsibilities = Array.from(e.target.selectedOptions).map((o) => o.value);
@@ -89,7 +100,7 @@
         to_number: '',
         valid_from: '',
         valid_until: '',
-        environment: tenant.fe_environment ?? 'test',
+        environment: fe_config.environment ?? 'test',
     });
 
     $effect(() => {
@@ -102,7 +113,7 @@
     const openCreate = () => {
         editingResolution = null;
         resolutionForm.reset();
-        resolutionForm.environment = fiscalForm.fe_environment;
+        resolutionForm.environment = fiscalForm.environment;
         drawerOpen = true;
     };
 
@@ -210,7 +221,7 @@
                         {/if}
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label" for="nit">NIT</label>
                         <div class="input-group input-group-sm">
                             <input
@@ -230,7 +241,22 @@
                         {/if}
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-2">
+                        <label class="form-label" for="merchant-reg">Reg. mercantil</label>
+                        <input
+                            id="merchant-reg"
+                            class="form-control form-control-sm"
+                            type="text"
+                            maxlength="30"
+                            placeholder="0000000-00"
+                            bind:value={fiscalForm.merchant_registration}
+                        />
+                        {#if fiscalForm.errors.merchant_registration}
+                            <div class="invalid-feedback">{fiscalForm.errors.merchant_registration}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-md-3">
                         <label class="form-label" for="company-email">Correo</label>
                         <input
                             id="company-email"
@@ -269,7 +295,12 @@
                             {/each}
                         </select>
                         {#if fiscalForm.city}
-                            <div class="form-text">{fiscalForm.department}</div>
+                            <div class="form-text">
+                                {fiscalForm.department}
+                                {#if selectedMunicipalityApiId}
+                                    · <span class="text-success">ID Nextpyme: {selectedMunicipalityApiId} ✓</span>
+                                {/if}
+                            </div>
                         {/if}
                     </div>
                 </div>
@@ -340,40 +371,21 @@
                         {/if}
                     </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label" for="ciiu">Código actividad económica (CIIU)</label>
-                        <input
+                    <div class="col-md-5">
+                        <label class="form-label" for="ciiu">Actividad económica (CIIU)</label>
+                        <select
                             id="ciiu"
-                            class="form-control"
+                            class="form-select"
                             class:is-invalid={fiscalForm.errors.economic_activity_code}
-                            type="text"
-                            maxlength="10"
-                            placeholder="4773"
                             bind:value={fiscalForm.economic_activity_code}
-                        />
+                        >
+                            <option value="">Seleccionar...</option>
+                            {#each options.economic_activities as a}
+                                <option value={a.code}>{a.code} – {a.name}</option>
+                            {/each}
+                        </select>
                         {#if fiscalForm.errors.economic_activity_code}
                             <div class="invalid-feedback">{fiscalForm.errors.economic_activity_code}</div>
-                        {/if}
-                    </div>
-
-                    <div class="col-md-3">
-                        <label class="form-label" for="municipality-api-id">
-                            ID municipio API
-                            <span class="text-secondary fw-normal" style="font-size:.8rem">(Nextpyme)</span>
-                        </label>
-                        <input
-                            id="municipality-api-id"
-                            class="form-control"
-                            class:is-invalid={fiscalForm.errors.fe_municipality_api_id}
-                            type="number"
-                            min="0"
-                            placeholder="149"
-                            bind:value={fiscalForm.fe_municipality_api_id}
-                        />
-                        {#if fiscalForm.errors.fe_municipality_api_id}
-                            <div class="invalid-feedback">{fiscalForm.errors.fe_municipality_api_id}</div>
-                        {:else}
-                            <div class="form-text">ID que Nextpyme asigna a tu municipio</div>
                         {/if}
                     </div>
 
@@ -382,15 +394,42 @@
                         <select
                             id="fe-env"
                             class="form-select"
-                            class:is-invalid={fiscalForm.errors.fe_environment}
-                            bind:value={fiscalForm.fe_environment}
+                            class:is-invalid={fiscalForm.errors.environment}
+                            bind:value={fiscalForm.environment}
                         >
                             {#each options.environments as env}
                                 <option value={env.value}>{env.label}</option>
                             {/each}
                         </select>
-                        {#if fiscalForm.errors.fe_environment}
-                            <div class="invalid-feedback">{fiscalForm.errors.fe_environment}</div>
+                        {#if fiscalForm.errors.environment}
+                            <div class="invalid-feedback">{fiscalForm.errors.environment}</div>
+                        {/if}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label" for="fe-api-token">
+                            Token API Nextpyme
+                            {#if fe_config.api_token_set}
+                                <span class="badge text-bg-success ms-1" style="font-size:.7rem">Configurado</span>
+                            {:else}
+                                <span class="badge text-bg-warning text-dark ms-1" style="font-size:.7rem">No configurado</span>
+                            {/if}
+                        </label>
+                        <input
+                            id="fe-api-token"
+                            class="form-control font-monospace"
+                            class:is-invalid={fiscalForm.errors.api_token}
+                            type="password"
+                            placeholder={fe_config.api_token_set ? 'Dejar vacío para mantener el token actual' : 'Pegar el Bearer token de tu cuenta Nextpyme'}
+                            autocomplete="off"
+                            bind:value={fiscalForm.api_token}
+                        />
+                        {#if fiscalForm.errors.api_token}
+                            <div class="invalid-feedback">{fiscalForm.errors.api_token}</div>
+                        {:else}
+                            <div class="form-text">
+                                Se guarda cifrado. Si dejas este campo vacío, se usa el token global del servidor (FE_API_TOKEN en .env).
+                            </div>
                         {/if}
                     </div>
 
@@ -434,7 +473,7 @@
             <div class="taguara-panel-header align-items-start">
                 <div>
                     <p class="text-uppercase small fw-semibold text-success mb-1">Resoluciones DIAN</p>
-                    <h3 class="h5 mb-0">{resolutions.total} resolución{resolutions.total !== 1 ? 'es' : ''} registrada{resolutions.total !== 1 ? 's' : ''}</h3>
+                    <h3 class="h5 mb-0">{resolutions.length} resolución{resolutions.length !== 1 ? 'es' : ''} registrada{resolutions.length !== 1 ? 's' : ''}</h3>
                 </div>
                 <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="button" onclick={openCreate}>
                     <Plus size={17} />
@@ -456,7 +495,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each resolutions.data as item}
+                        {#each resolutions as item}
                             <tr onclick={() => openEdit(item)}>
                                 <td>
                                     <span class="taguara-table-name">{item.type_label}</span>
@@ -537,17 +576,6 @@
                 </table>
             </div>
 
-            {#if resolutions.links.length > 3}
-                <nav class="taguara-pagination mt-3">
-                    {#each resolutions.links as link}
-                        {#if link.url}
-                            <Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
-                        {:else}
-                            <span class="btn btn-sm btn-light border disabled">{@html link.label}</span>
-                        {/if}
-                    {/each}
-                </nav>
-            {/if}
         </section>
     </div>
 

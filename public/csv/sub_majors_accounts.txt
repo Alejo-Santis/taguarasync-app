@@ -1,0 +1,552 @@
+1	110505		Caja General		1105		1	1
+2	110510		Cajas Menores		1105		1	1
+3	111005		Moneda Nacional		1110		1	2
+4	112005		Bancos		1120		1	3
+5	130505		Clientes Nacionales		1305		1	4
+6	130510		Clientes Del Exterior		1305		1	4
+7	133005		Anticipos a Proveedores		1330		1	5
+8	133015		Anticipos a Trabajadores		1330		1	5
+9	133095		Otros Anticipos		1330		1	5
+10	135505		Anticipo de Impuestos de Renta y Complementarios		1355		1	7
+11	135515		Retencion en la Fuente		1355		1	7
+12	135517		Impuesto a las Ventas Retenido		1355		1	7
+13	135518		Impuesto de Industria y Comercio Retenido		1355		1	7
+14	135550		Autorretencion Especial por Renta		1355		1	7
+15	136595		Otras Cuentas por Cobrar a Trabajadores		1365		1	8
+16	138020		Depositarios		1380		1	9
+17	139905		Provisiones Clientes		1399		1	10
+18	143505		Inventario de Mercancias No Fabricadas por la Empresa		1435		1	11
+19	143598		Inventario de Mercancias No Fabricadas por la Empresa		1435		1	11
+20	150405		Terrenos		1504		1	12
+21	151605		Construcciones y Edificaciones		1516		1	13
+22	151610		Construcciones y Edificaciones Oficinas		1516		1	13
+23	151615		Construcciones y Edificaciones Oficinas		1516		1	13
+24	151680		Construcciones y Edificaciones Bodegas		1516		1	13
+25	151695		Otras Construcciones y Edificaciones		1516		1	13
+26	152005		Maquinaria, Equipo y Herramientas		1520		1	14
+27	152405		Equipo de Oficina Muebles y Enseres		1524		1	15
+28	152410		Equipo de Oficina Equipos		1524		1	15
+29	152495		Otros Equipo de Oficina		1524		1	15
+30	152805		Equipos de Procesamientos de Datos		1528		1	16
+31	152810		Equipos de Telecomunicaciones		1528		1	16
+32	152825		Lineas Telefonicas		1528		1	16
+33	152895		Lineas Telefonicas		1528		1	16
+34	154005		Autos, Camionetas y Camperos		1540		1	17
+35	154008		Camiones, Volquetas y Furgones		1540		1	17
+36	154020		Montacargas		1540		1	17
+37	154030		Motocicletas		1540		1	17
+38	154095		Otra Flota y Equipo de Transporte		1540		1	17
+39	159205		Depreciacion Construcciones y Edificaciones		1592		1	18
+40	159210		Depreciacion Maquinaria y Equipo		1592		1	18
+41	159215		Depreciacion Equipo de Oficina		1592		1	18
+42	159220		Depreciacion Equipo de Computo y Comunicacion		1592		1	18
+43	159235		Depreciacion Flota y Equipo de Transporte		1592		1	18
+44	163501		Derecho de uso		1635		1	19
+45	170510		Gastos Pagados por Anticipado Honorarios		1705		1	20
+46	170520		Gastos Pagados por Anticipado Seguros y Finanzas		1705		1	20
+47	170524		Gastos Pagados por Anticipado Arrendamientos		1705		1	20
+48	170595		Otros Gastos Pagados por Anticipado		1705		1	20
+49	210505		Pasivos Financieros Bancos Nacionales Sobregiros		2105		1	24
+50	210510		Pasivos Financieros Bancos Nacionales Pagares		2105		1	24
+51	210525		Pasivos Financieros Bancos Nacionales Tarjetas de Credito		2105		1	24
+52	211505		Pasivos Financieros Corporaciones Financieras Pagares		2115		1	25
+53	211515		Pasivos Financieros Corporaciones Financieras Pagares		2115		1	25
+54	219505		Otras Obligaciones con Particulares		2195		1	26
+55	219520		Otras Obligaciones con Socios o Accionistas		2195		1	26
+56	220505		Proveedores Nacionales		2205		1	27
+57	221005		Proveedores del Exterior		2210		1	28
+58	233505		Costos y Gastos por Pagar		2335		1	29
+59	233510		Gastos Legales por Pagar		2335		1	29
+60	233520		Comisiones por Pagar		2335		1	29
+61	233525		Honorarios por Pagar		2335		1	29
+62	233530		Servicios Tecnicos por Pagar		2335		1	29
+63	233535		Servicios de Mantenimiento por Pagar		2335		1	29
+64	233540		Servicios de Mantenimiento por Pagar		2335		1	29
+65	233545		Transportes, Fletes y Acarreos por Pagar		2335		1	29
+66	233550		Servicios Publicos por Pagar		2335		1	29
+67	233555		Servicios Publicos por Pagar		2335		1	29
+68	233560		Gastos de Viaje por Pagar		2335		1	29
+69	233565		Gastos de Representacion y Relaciones Publicas por Pagar		2335		1	29
+70	233570		Servicios Aduaneros por Pagar		2335		1	29
+71	233595		Otros Costos y Gastos por Pagar		2335		1	29
+72	235505		Deudas con Accionistas		2355		1	30
+73	236005		Dividendos por Pagar		2360		1	31
+74	236505		Retencion en la Fuente Salarios y Pagos Laborales		2365		1	32
+75	236515		Retencion en la Fuente - Honorarios		2365		1	32
+76	236520		Retencion en la Fuente - Comisiones		2365		1	32
+77	236521		Retencion en la Fuente - Consultoria		2365		1	32
+78	236525		Retencion en la Fuente - Servicios		2365		1	32
+79	236530		Retencion en la Fuente - Arrendamientos		2365		1	32
+80	236535		Retencion en la Fuente - Rendimientos Financieros		2365		1	32
+81	236540		Retencion en la Fuente - Compras		2365		1	32
+82	236561		Retencion en la Fuente - Construccion		2365		1	32
+83	236575		Autorretenciones Renta		2365		1	32
+84	236595		Pago Retencion en la Fuente por Renta		2365		1	32
+85	236705		IVA Retenido a Proveedores del Regimen Ordinario		2367		1	33
+86	236710		IVA Retenido a Proveedores del Simple		2367		1	33
+87	236795		Pago Retencion en la Fuente por IVA		2367		1	33
+88	236805		Retencion de ICA		2368		1	34
+89	236895		Pago Retencion en la Fuente por ICA		2368		1	34
+90	237005		Aportes a Entidades Promotoras de Salud EPS		2370		1	35
+91	237006		Aportes a administradoras de Riesgos Laborales		2370		1	35
+92	237010		Aportes al ICBF, SENA y Cajas de Compensacion		2370		1	35
+93	237025		Embargos Judiciales		2370		1	35
+94	237030		Libranzas		2370		1	35
+95	237045		Fondos		2370		1	35
+96	237095		Otras Retenciones y Aportes de Nomina		2370		1	35
+97	238030		Fondos de Cesantias y/o Pensiones		2380		1	36
+98	240405		Impuesto de Renta y Complementarios		2404		1	37
+99	240410		Impuesto de Renta Vigencias Fiscales Anteriores		2404		1	37
+100	240801		IVA Generado en Ventas		2408		1	38
+101	240830		IVA Descontable Compras		2408		1	38
+102	240895		Pago IVA		2408		1	38
+103	241205		Impuesto de Industria y Comercio - Vigencia Fiscal Corriente		2412		1	39
+104	241210		Impuesto de Industria y Comercio - Vigencias Fiscales Anteriores		2412		1	39
+105	248005		Impuesto al Consumo en Ventas		2480		1	40
+106	248095		Pago Impuesto al Consumo		2480		1	40
+107	250505		Salarios por Pagar		2505		1	41
+108	250510		Bonificaciones por Pagar		2505		1	41
+109	251010		Cesantias Consolidadas Ley 50 de 1990 y Normas Posteriores		2510		1	42
+110	251095		Pago de Cesantias		2510		1	42
+111	251510		Intereses Sobre Cesantias		2515		1	43
+112	251595		Pago de Intereses sobre Cesantias		2515		1	43
+113	252010		Prima de Servicios		2520		1	44
+114	252095		Pago de Prima de Servicio		2520		1	44
+115	252510		Vacaciones Consolidadas		2525		1	45
+116	252595		Pago de Vacaciones		2525		1	45
+117	261505		Provision Impuesto de Renta y Complementarios		2615		1	46
+118	261510		Provision Impuesto de Industria y Comercio		2615		1	46
+119	280505		Otros Pasivos, Anticipos y Avances Recibidos de Clientes		2805		1	47
+120	281505		Ingresos Recibidos para Terceros		2815		1	48
+121	310505		Capital Autorizado		3105		1	49
+122	320505		Prima en Colocacion de Acciones, Cuotas o Partes de Interes Social		3205		1	50
+123	330505		Reservas Obligatorias		3305		1	51
+124	360505		Utilidad del Ejercicio		3605		1	52
+125	361005		Perdida del Ejercicio		3610		1	53
+126	370505		Utilidad Exenta a Disposicion de la Asamblea		3705		1	54
+127	371005		Perdidas de Ejercicios Anteriores		3710		1	55
+128	380505		De Inversiones		3805		1	56
+129	381008		Construcciones y Edificaciones		3810		1	57
+130	381012		Maquinaria y Equipo		3810		1	57
+131	413595		Venta De Otros Productos		4135		1	58
+132	417505		Devoluciones en Ventas (DB)		4175		1	59
+133	421005		Intereses		4210		1	61
+134	421020		Diferencia en Cambio		4210		1	61
+135	421040		Descuentos Comerciales		4210		1	61
+136	421095		Otros Ingresos No Operacionales		4210		1	61
+137	429505		Diversos		4295		1	62
+138	429581		Ajuste al Peso		4295		1	62
+139	510503		Salario Integral		5105		1	63
+140	510506		Sueldos		5105		1	63
+141	510515		Horas Extras y Recargos		5105		1	63
+142	510518		Comisiones		5105		1	63
+143	510524		Incapacidades		5105		1	63
+144	510527		Auxilio de Transporte		5105		1	63
+145	510530		Cesantias		5105		1	63
+146	510533		Intereses Sobre Cesantias		5105		1	63
+147	510536		Prima de Servicios		5105		1	63
+148	510539		Vacaciones		5105		1	63
+149	510545		Auxilios		5105		1	63
+150	510548		Bonificaciones		5105		1	63
+151	510549		Otros Devengados en Valor		5105		1	63
+152	510551		Dotacion y Suministro a Trabajadores		5105		1	63
+153	510560		Indemnizaciones Laborales		5105		1	63
+154	510563		Capacitacion al Personal		5105		1	63
+155	510566		Gastos Deporte y Recreacion		5105		1	63
+156	510568		Aportes Riesgos Profesionales		5105		1	63
+157	510569		Aportes Salud		5105		1	63
+158	510570		Aportes Pension		5105		1	63
+159	510572		Aportes Caja de Compensacion Familiar		5105		1	63
+160	510575		Aportes ICBF		5105		1	63
+161	510578		Aportes SENA		5105		1	63
+162	510584		Gastos Medicos y Drogas		5105		1	63
+163	510595		Otros Gastos de Personal		5105		1	63
+164	511010		Honorarios Revisoria Fiscal Administracion		5110		1	64
+165	511015		Honorarios Auditoria Externa Administracion		5110		1	64
+166	511025		Honorarios Asesoria Juridica Administracion		5110		1	64
+167	511030		Honorarios Asesoria Financiera Administracion		5110		1	64
+168	511035		Honorarios Asesoria Tecnica Administracion		5110		1	64
+169	511095		Otros Honorarios Administracion		5110		1	64
+170	511505		Impuesto de Industria y Comercio Administracion		5115		1	65
+171	511515		Impuesto Predial o a la Propiedad Raiz Administracion		5115		1	65
+172	511540		Impuesto Vehiculos Administracion		5115		1	65
+173	511570		IVA Descontable Administracion		5115		1	65
+174	511595		Otros Impuestos Administracion		5115		1	65
+175	512005		Arrendamiento Terrenos Administracion		5120		1	66
+176	512010		Arrendamiento Construcciones y Edificaciones Administracion		5120		1	66
+177	512015		Arrendamiento Maquinaria y Equipo Administracion		5120		1	66
+178	512020		Arrendamiento Equipo de Oficina Administracion		5120		1	66
+179	512025		Arrendamiento Equipo de Computacion y Comunicacion Administracion		5120		1	66
+180	512040		Arrendamiento Flota y Equipo de Transporte Administracion		5120		1	66
+181	512095		Otros Arrendamientos Administracion		5120		1	66
+182	512505		Contribuciones Administracion		5125		1	67
+183	512510		Afiliaciones y Sostenimiento Administracion		5125		1	67
+184	513005		Seguros Manejo Administracion		5130		1	68
+185	513010		Seguros Cumplimiento Administracion		5130		1	68
+186	513020		Seguros Vida Colectiva Administracion		5130		1	68
+187	513025		Seguros Incendios Administracion		5130		1	68
+188	513035		Seguros Sustraccion y Hurto Administracion		5130		1	68
+189	513040		Seguro Flota y Equipo de Transporte Administracion		5130		1	68
+190	513060		Seguros Responsabilidad Civil Administracion		5130		1	68
+191	513085		Seguros Transporte de Mercancia Administracion		5130		1	68
+192	513095		Otros Seguros administracion		5130		1	68
+193	513505		Servicios Aseo y Vigilancia Administracion		5135		1	69
+194	513510		Servicios Temporales Administracion		5135		1	69
+195	513515		Servicios Asistencia Tecnica Administracion		5135		1	69
+196	513525		Servicios Acueducto y Alcantarillado Administracion		5135		1	69
+197	513530		Servicios Energia Electrica Administracion		5135		1	69
+198	513535		Servicios Telefonia e Internet Administracion		5135		1	69
+199	513550		Servicios Transporte, Fletes y Acarreo Administracion		5135		1	69
+200	513555		Servicio de Gas Administracion		5135		1	69
+201	513595		Otros Servicios Administracion		5135		1	69
+202	514005		Gastos Legales Notariales Administracion		5140		1	70
+203	514010		Gastos Legales Registro Mercantil Administracion		5140		1	70
+204	514015		Gastos Legales Tramites y Licencias Administracion		5140		1	70
+205	514020		Gastos Legales Aduaneros Administracion		5140		1	70
+206	514095		Otros Gastos Legales Administracion		5140		1	70
+207	514505		Mantenimiento Terrenos Administracion		5145		1	71
+208	514510		Mantenimiento Construcciones y Edificaciones Administracion		5145		1	71
+209	514515		Mantenimiento Maquinaria y Equipo Administracion		5145		1	71
+210	514520		Mantenimiento Equipo de Oficina Administracion		5145		1	71
+211	514525		Mantenimiento Equipo de Computacion y Comunicacion Administracion		5145		1	71
+212	514540		Mantenimiento Flota y Equipo de Transporte Administracion		5145		1	71
+213	514560		Mantenimiento Acueductos, Plantas y Redes Administracion		5145		1	71
+214	515005		Instalaciones Electricas Administracion		5150		1	72
+215	515015		Reparaciones Locativas Administracion		5150		1	72
+216	515095		Otras Adecuaciones e Instalaciones Administracion		5150		1	72
+217	515505		Gastos de Viaje Alojamiento y Manutencion Administracion		5155		1	73
+218	515515		Gastos de Viaje Pasajes Aereos Administracion		5155		1	73
+219	515520		Gastos de Viaje Pasajes Terrestres Administracion		5155		1	73
+220	515595		Otros Gastos de Viaje Administracion		5155		1	73
+221	516005		Depreciacion Construcciones y Edificaciones Administracion		5160		1	74
+222	516010		Depreciacion Maquinaria y Equipo Administracion		5160		1	74
+223	516015		Depreciacion Equipo de Oficina Administracion		5160		1	74
+224	516020		Depreciacion Equipo de Computo y Comunicacion Administracion		5160		1	74
+225	516035		Depreciacion Flota y Equipo de Transporte Administracion		5160		1	74
+226	519505		Gastos Diversos Comisiones Administracion		5195		1	75
+227	519510		Gastos Diversos Libros, Suscripciones y Revistas Administracion		5195		1	75
+228	519520		Gastos Diversos de Representacion y Relaciones Publicas Administracion		5195		1	75
+229	519525		Gastos Diversos Elementos de Aseo y Cafeteria Administracion		5195		1	75
+230	519530		Gastos Diversos utiles, Papeleria y Fotocopias Administracion		5195		1	75
+231	519535		Gastos Diversos Combustibles y Lubricantes Administracion		5195		1	75
+232	519545		Gastos Diversos Taxis y Buses Administracion		5195		1	75
+233	519550		Gastos Diversos Estampillas Administracion		5195		1	75
+234	519560		Gastos Diversos Casino y Restaurante Administracion		5195		1	75
+235	519565		Gastos Diversos Parqueaderos Administracion		5195		1	75
+236	519595		Otros Gastos Diversos		5195		1	75
+237	519905		Deterioro de Inversiones		5199		1	76
+238	519910		Deterioro Deudores		5199		1	76
+239	519915		Deterioro Propiedad, Planta y Equipo		5199		1	76
+240	520503		Salario Integral		5205		1	77
+241	520506		Sueldos		5205		1	77
+242	520515		Horas Extras y Recargos		5205		1	77
+243	520518		Comisiones		5205		1	77
+244	520524		Incapacidades		5205		1	77
+245	520527		Auxilio de Transporte		5205		1	77
+246	520530		Cesantias		5205		1	77
+247	520533		Intereses Sobre Cesantias		5205		1	77
+248	520536		Prima de Servicios		5205		1	77
+249	520539		Vacaciones		5205		1	77
+250	520545		Auxilios		5205		1	77
+251	520548		Bonificaciones		5205		1	77
+252	520549		Otros Devengados en Valor		5205		1	77
+253	520551		Dotacion y Suministro a Trabajadores		5205		1	77
+254	520560		Indemnizaciones Laborales		5205		1	77
+255	520563		Capacitacion al Personal		5205		1	77
+256	520566		Gastos Deporte y Recreacion		5205		1	77
+257	520568		Aportes Riesgos Profesionales		5205		1	77
+258	520569		Aportes Salud		5205		1	77
+259	520570		Aportes Pension		5205		1	77
+260	520572		Aportes Caja de Compensacion Familiar		5205		1	77
+261	520575		Aportes ICBF		5205		1	77
+262	520578		Aportes SENA		5205		1	77
+263	520584		Gastos Medicos y Drogas		5205		1	77
+264	520595		Otros Gastos de Personal		5205		1	77
+265	521010		Honorarios Revisoria Fiscal Ventas		5210		1	78
+266	521015		Honorarios Auditoria Externa Ventas		5210		1	78
+267	521025		Honorarios Asesoria Juridica Ventas		5210		1	78
+268	521030		Honorarios Asesoria Financiera Ventas		5210		1	78
+269	521035		Honorarios Asesoria Tecnica Ventas		5210		1	78
+270	521095		Otros Honorarios Ventas		5210		1	78
+271	521505		Impuesto de Industria y Comercio Ventas		5215		1	79
+272	521515		Impuesto Predial o a la Propiedad Raiz Ventas		5215		1	79
+273	521540		Impuesto Vehiculos Ventas		5215		1	79
+274	521570		IVA Descontable Ventas		5215		1	79
+275	521595		Otros Impuestos Ventas		5215		1	79
+276	522005		Arrendamiento Terrenos Ventas		5220		1	80
+277	522010		Arrendamiento Construcciones y Edificaciones Ventas		5220		1	80
+278	522015		Arrendamiento Maquinaria y Equipo Ventas		5220		1	80
+279	522020		Arrendamiento Equipo de Oficina Ventas		5220		1	80
+280	522025		Arrendamiento Equipo de Computacion y Comunicacion Ventas		5220		1	80
+281	522040		Arrendamiento Flota y Equipo de Transporte Ventas		5220		1	80
+282	522095		Otros Arrendamientos Ventas		5220		1	80
+283	522505		Contribuciones Ventas		5225		1	81
+284	522510		Afiliaciones y Sostenimiento Ventas		5225		1	81
+285	523005		Seguros Manejo Ventas		5230		1	82
+286	523010		Seguros Cumplimiento Ventas		5230		1	82
+287	523020		Seguros Vida Colectiva Ventas		5230		1	82
+288	523025		Seguros Incendios Ventas		5230		1	82
+289	523035		Seguros Sustraccion y Hurto Ventas		5230		1	82
+290	523040		Seguro Flota y Equipo de Transporte Ventas		5230		1	82
+291	523060		Seguros Responsabilidad Civil Ventas		5230		1	82
+292	523085		Seguros Transporte de Mercancia Ventas		5230		1	82
+293	523095		Otros Seguros Ventas		5230		1	82
+294	523505		Servicios Aseo y Vigilancia Ventas		5235		1	83
+295	523510		Servicios Temporales Ventas		5235		1	83
+296	523515		Servicios Asistencia Tecnica Ventas		5235		1	83
+297	523525		Servicios Acueducto y Alcantarillado Ventas		5235		1	83
+298	523530		Servicios Energia Electrica Ventas		5235		1	83
+299	523535		Servicios Telefonia e Internet Ventas		5235		1	83
+300	523550		Servicios Transporte, Fletes y Acarreo Ventas		5235		1	83
+301	523555		Servicio de Gas Ventas		5235		1	83
+302	523595		Otros Servicios Ventas		5235		1	83
+303	524005		Gastos Legales Notariales Ventas		5240		1	84
+304	524010		Gastos Legales Registro Mercantil Ventas		5240		1	84
+305	524015		Gastos Legales Tramites y Licencias Ventas		5240		1	84
+306	524020		Gastos Legales Aduaneros Ventas		5240		1	84
+307	524095		Otros Gastos Legales Ventas		5240		1	84
+308	524505		Mantenimiento Terrenos Ventas		5245		1	85
+309	524510		Mantenimiento Construcciones y Edificaciones Ventas		5245		1	85
+310	524515		Mantenimiento Maquinaria y Equipo Ventas		5245		1	85
+311	524520		Mantenimiento Equipo de Oficina Ventas		5245		1	85
+312	524525		Mantenimiento Equipo de Computacion y Comunicacion Ventas		5245		1	85
+313	524540		Mantenimiento Flota y Equipo de Transporte Ventas		5245		1	85
+314	524560		Mantenimiento Acueductos, Plantas y Redes Ventas		5245		1	85
+315	525005		Instalaciones Electricas Ventas		5250		1	86
+316	525015		Reparaciones Locativas Ventas		5250		1	86
+317	525095		Otras Adecuaciones e Instalaciones Ventas		5250		1	86
+318	525505		Gastos de Viaje Alojamiento y Manutencion Ventas		5255		1	87
+319	525515		Gastos de Viaje Pasajes Aereos Ventas		5255		1	87
+320	525520		Gastos de Viaje Pasajes Terrestres Ventas		5255		1	87
+321	525595		Otros Gastos de Viaje Ventas		5255		1	87
+322	526005		Depreciacion Construcciones y Edificaciones Ventas		5260		1	88
+323	526010		Depreciacion Maquinaria y Equipo Ventas		5260		1	88
+324	526015		Depreciacion Equipo de Oficina Ventas		5260		1	88
+325	526020		Depreciacion Equipo de Computo y Comunicacion Ventas		5260		1	88
+326	526035		Depreciacion Flota y Equipo de Transporte Ventas		5260		1	88
+327	529505		Gastos Diversos Comisiones Ventas		5295		1	89
+328	529510		Gastos Diversos Libros, Suscripciones y Revistas Ventas		5295		1	89
+329	529520		Gastos Diversos de Representacion y Relaciones Publicas Ventas		5295		1	89
+330	529525		Gastos Diversos Elementos de Aseo y Cafeteria Ventas		5295		1	89
+331	529530		Gastos Diversos utiles, Papeleria y Fotocopias Ventas		5295		1	89
+332	529535		Gastos Diversos Combustibles y Lubricantes Ventas		5295		1	89
+333	529545		Gastos Diversos Taxis y Buses Ventas		5295		1	89
+334	529550		Gastos Diversos Estampillas Ventas		5295		1	89
+335	529560		Gastos Diversos Casino y Restaurante Ventas		5295		1	89
+336	529565		Gastos Diversos Parqueaderos Ventas		5295		1	89
+337	529595		Otros Gastos Diversos		5295		1	89
+338	529905		Deterioro de Inversiones		5299		1	90
+339	529910		Deterioro Deudores		5299		1	90
+340	529915		Deterioro Propiedad, Planta y Equipo		5299		1	90
+341	530505		Gastos Bancarios		5305		1	91
+342	530515		Gastos por Comisiones		5305		1	91
+343	530520		Gastos por Intereses		5305		1	91
+344	530525		Gastos por Diferencia en Cambio		5305		1	91
+345	530535		Descuentos Comerciales Condicionados		5305		1	91
+346	530550		Gravamen Movimiento Financiero		5305		1	91
+347	530595		Otros Gastos Financieros		5305		1	91
+348	531015		Perdida en Venta de Propiedad, Planta y Equipo		5310		1	92
+349	531025		Perdida en Venta de Otros Activos		5310		1	92
+350	531030		Perdida en Retiro de Propiedad, Planta y Equipo		5310		1	92
+351	531035		Perdida en Retiro de Inventarios		5310		1	92
+352	531515		Costos y Gastos de Ejercicios Anteriores		5315		1	93
+353	531520		Impuestos Asumidos		5315		1	93
+354	531595		Otros Gastos Extraordinarios		5315		1	93
+355	539505		Demandas Laborales		5395		1	94
+356	539520		Multas, Sanciones y Litigios		5395		1	94
+357	539525		Donaciones		5395		1	94
+358	539595		Otros Gastos No Operacionales Diversos		5395		1	94
+359	540505		Impuesto de Renta y Complementarios		5405		1	95
+360	590505		Ganancias y Perdidas		5905		1	96
+361	613595		Venta De Otros Productos		6135		1	97
+362	620505		Compras de Mercancias Debito		6205		1	98
+363	620590		Compras de Mercancias Credito		6205		1	98
+364	622505		Devolucion Compras de Inventario o Mercancias Debito		6225		1	99
+365	622590		Devolucion Compras de Inventario o Mercancias Credito		6225		1	99
+366	720503		Salario Integral		7205		1	100
+367	720506		Sueldos		7205		1	100
+368	720515		Horas Extras y Recargos		7205		1	100
+369	720518		Comisiones		7205		1	100
+370	720524		Incapacidades		7205		1	100
+371	720527		Auxilio de Transporte		7205		1	100
+372	720530		Cesantias		7205		1	100
+373	720533		Intereses Sobre Cesantias		7205		1	100
+374	720536		Prima de Servicios		7205		1	100
+375	720539		Vacaciones		7205		1	100
+376	720545		Auxilios		7205		1	100
+377	720548		Bonificaciones		7205		1	100
+378	720549		Otros Devengados en Valor		7205		1	100
+379	720551		Dotacion y Suministro a Trabajadores		7205		1	100
+380	720560		Indemnizaciones Laborales		7205		1	100
+381	720563		Capacitacion al Personal		7205		1	100
+382	720566		Gastos Deporte y Recreacion		7205		1	100
+383	720568		Aportes Riesgos Profesionales		7205		1	100
+384	720569		Aportes Salud		7205		1	100
+385	720570		Aportes Pension		7205		1	100
+386	720572		Aportes Caja de Compensacion Familiar		7205		1	100
+387	720575		Aportes ICBF		7205		1	100
+388	720578		Aportes SENA		7205		1	100
+389	720584		Gastos Medicos y Drogas		7205		1	100
+390	720595		Otros Gastos de Personal		7205		1	100
+391	730503		Salario Integral		7305		1	101
+392	730506		Sueldos		7305		1	101
+393	730515		Horas Extras y Recargos		7305		1	101
+394	730518		Comisiones		7305		1	101
+395	730524		Incapacidades		7305		1	101
+396	730527		Auxilio de Transporte		7305		1	101
+397	730530		Cesantias		7305		1	101
+398	730533		Intereses Sobre Cesantias		7305		1	101
+399	730536		Prima de Servicios		7305		1	101
+400	730539		Vacaciones		7305		1	101
+401	730545		Auxilios		7305		1	101
+402	730548		Bonificaciones		7305		1	101
+403	730549		Otros Devengados en Valor		7305		1	101
+404	730551		Dotacion y Suministro a Trabajadores		7305		1	101
+405	730560		Indemnizaciones Laborales		7305		1	101
+406	730563		Capacitacion al Personal		7305		1	101
+407	730566		Gastos Deporte y Recreacion		7305		1	101
+408	730568		Aportes Riesgos Profesionales		7305		1	101
+409	730569		Aportes Salud		7305		1	101
+410	730570		Aportes Pension		7305		1	101
+411	730572		Aportes Caja de Compensacion Familiar		7305		1	101
+412	730575		Aportes ICBF		7305		1	101
+413	730578		Aportes SENA		7305		1	101
+414	730584		Gastos Medicos y Drogas		7305		1	101
+415	730595		Otros Gastos de Personal		7305		1	101
+416	930505		Bienes muebles		9305		1	125
+417	930510		Bienes inmuebles		9305		1	125
+418	939505		Documentos por cobrar descontados		9395		1	126
+419	939510		Convenios de pago		9395		1	126
+420	939515		Contratos de construcciones e instalaciones por ejecutar		9395		1	126
+421	939525		Adjudicaciones pendientes de legalizar		9395		1	126
+422	939530		Reserva articulo 3ro Ley 4 de 1980		9395		1	126
+423	939535		Reserva costo reposicion semovientes		9395		1	126
+424	939595		Diversas		9395		1	126
+425	939599		Ajustes por inflacion		9395		1	126
+426	939905		Capital social		9399		1	127
+427	939910		Superavit de capital		9399		1	127
+428	939915		Reservas		9399		1	127
+429	939925		Dividendos o participaciones decretadas en acciones, cuotas o partes de interes social		9399		1	127
+430	939930		Resultados de ejercicios anteriores		9399		1	127
+431	531040		Perdida en Retiro de Otros Activos		5310		1	92
+432	420505		Materia prima		4205		1	60
+433	420510		Material de desecho		4205		1	60
+434	420515		Materiales varios		4205		1	60
+435	420520		Productos de diversificacion		4205		1	60
+436	420525		Excedentes de exportacion		4205		1	60
+437	420530		Envases y empaques		4205		1	60
+438	420535		Productos agricolas		4205		1	60
+439	420540		De propaganda		4205		1	60
+440	420545		Productos en remate		4205		1	60
+441	420550		Combustibles y lubricantes		4205		1	60
+442	420599		Ajustes por inflacion		4205		1	60
+443	422005		Terrenos		4220		1	130
+444	422010		Construcciones y edificios		4220		1	130
+445	422015		Maquinaria y equipo		4220		1	130
+446	422020		Equipo de oficina		4220		1	130
+447	422025		Equipo de computacion y comunicacion		4220		1	130
+448	422030		Equipo medico-cientifico		4220		1	130
+449	422035		Equipo de hoteles y restaurantes		4220		1	130
+450	422040		Flota y equipo de transporte		4220		1	130
+451	422045		Flota y equipo fluvial y/o maritimo		4220		1	130
+452	422050		Flota y equipo aereo		4220		1	130
+453	422055		Flota y equipo ferreo		4220		1	130
+454	422060		Acueductos, plantas y redes		4220		1	130
+455	422062		Envases y empaques		4220		1	130
+456	422065		Plantaciones agricolas y forestales		4220		1	130
+457	422070		Aerodromos		4220		1	130
+458	422075		Semovientes		4220		1	130
+459	422099		Ajustes por inflacion		4220		1	130
+460	422505		Sobre inversiones		4225		1	131
+461	422510		De concesionarios		4225		1	131
+462	422515		De actividades financieras		4225		1	131
+463	422520		Por venta de servicios de taller		4225		1	131
+464	422525		Por venta de seguros		4225		1	131
+465	422530		Por ingresos para terceros		4225		1	131
+466	422535		Por distribucion de peliculas		4225		1	131
+467	422540		Derechos de autor		4225		1	131
+468	422545		Derechos de programacion		4225		1	131
+469	422599		Ajustes por inflacion		4225		1	131
+470	423005		Asesorias		4230		1	132
+471	423010		Asistencia tecnica		4230		1	132
+472	423015		Administracion de vinculadas		4230		1	132
+473	423099		Ajustes por inflacion		4230		1	132
+474	423505		De báscula		4235		1	133
+475	423510		De transporte		4235		1	133
+476	423515		De prensa		4235		1	133
+477	423520		Administrativos		4235		1	133
+478	423525		Tecnicos		4235		1	133
+479	423530		De computacion		4235		1	133
+480	423535		De telefax		4235		1	133
+481	423540		Taller de vehiculos		4235		1	133
+482	423545		De recepcion de aeronaves		4235		1	133
+483	423550		De transporte programa gas natural		4235		1	133
+484	423555		Por contratos		4235		1	133
+485	423560		De trilla		4235		1	133
+486	423565		De mantenimiento		4235		1	133
+487	423570		Al personal		4235		1	133
+488	423575		De casino		4235		1	133
+489	423580		Fletes		4235		1	133
+490	423585		Entre compañias		4235		1	133
+491	423595		Otros		4235		1	133
+492	423599		Ajustes por inflacion		4235		1	133
+493	424005		Acciones		4240		1	134
+494	424010		Cuotas o partes de interes social		4240		1	134
+495	424015		Bonos		4240		1	134
+496	424020		Cedulas		4240		1	134
+497	424025		Certificados		4240		1	134
+498	424030		Papeles comerciales		4240		1	134
+499	424035		Titulos		4240		1	134
+500	424045		Derechos fiduciarios		4240		1	134
+501	424050		Obligatorias		4240		1	134
+502	424095		Otras		4240		1	134
+503	424099		Ajustes por inflacion		4240		1	134
+504	424504		Terrenos		4245		1	135
+505	424506		Materiales industria petrolera		4245		1	135
+506	424508		Construcciones en curso		4245		1	135
+507	424512		Maquinaria en montaje		4245		1	135
+508	424516		Construcciones y edificaciones		4245		1	135
+509	424520		Maquinaria y equipo		4245		1	135
+510	424524		Equipo de oficina		4245		1	135
+511	424528		Equipo de computacion y comunicacion		4245		1	135
+512	424532		Equipo medico-cientifico		4245		1	135
+513	424536		Equipo de hoteles y restaurantes		4245		1	135
+514	424540		Flota y equipo de transporte		4245		1	135
+515	424544		Flota y equipo fluvial y/o maritimo		4245		1	135
+516	424548		Flota y equipo aereo		4245		1	135
+517	424552		Flota y equipo ferreo		4245		1	135
+518	424556		Acueductos, plantas y redes		4245		1	135
+519	424560		Armamento de vigilancia		4245		1	135
+520	424562		Envases y empaques		4245		1	135
+521	424564		Plantaciones agricolas y forestales		4245		1	135
+522	424568		Vias de comunicacion		4245		1	135
+523	424572		Minas y Canteras		4245		1	135
+524	424580		Pozos artesianos		4245		1	135
+525	424584		Yacimientos		4245		1	135
+526	424588		Semovientes		4245		1	135
+527	424599		Ajustes por inflacion		4245		1	135
+528	424805		Intangibles		4248		1	136
+529	424810		Otros activos		4248		1	136
+530	424899		Ajustes por inflacion		4248		1	136
+531	425005		Deudas malas		4250		1	137
+532	425010		Seguros		4250		1	137
+533	425015		Reclamos		4250		1	137
+534	425020		Reintegro por personal en comision		4250		1	137
+535	425025		Reintegro garantias		4250		1	137
+536	425030		Descuentos concedidos		4250		1	137
+537	425035		De provisiones		4250		1	137
+538	425040		Gastos bancarios		4250		1	137
+539	425045		De depreciacion		4250		1	137
+540	425050		Reintegro de otros costos y gastos		4250		1	137
+541	425060		Recuperacion de activos castigados o provisiones de inventarios		4250		1	137
+542	425099		Ajustes por inflacion		4250		1	137
+543	425505		Por siniestro		4255		1	138
+544	425510		Por suministros		4255		1	138
+545	425515		Lucro cesante compañias de seguros		4255		1	138
+546	425520		Daño emergente compañias de seguros		4255		1	138
+547	425525		Por perdida de mercancia		4255		1	138
+548	425530		Por incumplimiento de contratos		4255		1	138
+549	425535		De terceros		4255		1	138
+550	425540		Por incapacidades ISS		4255		1	138
+551	425595		Otras		4255		1	138
+552	425599		Ajustes por inflacion		4255		1	138

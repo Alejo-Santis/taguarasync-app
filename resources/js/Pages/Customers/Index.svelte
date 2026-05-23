@@ -54,6 +54,7 @@
     const form = useForm({
         identification_type_code: '',
         identification_number: '',
+        merchant_registration: '',
         first_name: '',
         last_name: '',
         business_name: '',
@@ -85,6 +86,7 @@
         editingItem = item;
         form.identification_type_code = item.identification_type_code ?? '';
         form.identification_number = item.identification_number ?? '';
+        form.merchant_registration = item.merchant_registration ?? '';
         form.first_name = item.first_name ?? '';
         form.last_name = item.last_name ?? '';
         form.business_name = item.business_name ?? '';
@@ -345,6 +347,20 @@
                         </div>
 
                         {#if form.identification_type_code === '31'}
+                            <!-- Registro mercantil solo aplica a empresas (NIT) -->
+                            <div>
+                                <label class="form-label" for="merchant-reg">Registro mercantil</label>
+                                <input
+                                    id="merchant-reg"
+                                    class="form-control"
+                                    type="text"
+                                    maxlength="30"
+                                    placeholder="0000000-00"
+                                    bind:value={form.merchant_registration}
+                                />
+                                <div class="form-text">Requerido para facturación electrónica a personas jurídicas.</div>
+                            </div>
+
                             <!-- Empresa -->
                             <div>
                                 <label class="form-label" for="business-name">Razón social <span class="text-danger">*</span></label>

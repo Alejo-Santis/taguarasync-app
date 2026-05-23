@@ -9,6 +9,7 @@ use App\Models\DianIdentificationType;
 use App\Models\DianMunicipality;
 use App\Models\DianOrganizationType;
 use App\Models\DianRegimeType;
+use App\Models\EconomicActivity;
 use App\Models\FeResolution;
 use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\RedirectResponse;
@@ -19,16 +20,17 @@ class FeSettingsController extends Controller
 {
     public function index(CurrentTenant $currentTenant): Response
     {
-        $tenant = $currentTenant->get();
+        $tenant = $currentTenant->get()->load('feConfig');
+        $feConfig = $tenant->feConfig;
 
         $resolutions = FeResolution::withoutGlobalScopes()
+            ->with('send')
             ->where('tenant_id', $tenant->id)
             ->orderBy('type')
             ->orderByDesc('is_active')
             ->orderByDesc('created_at')
-            ->paginate(10)
-            ->withQueryString()
-            ->through(fn (FeResolution $r) => [
+            ->get()
+            ->map(fn (FeResolution $r) => [
                 'id' => $r->id,
                 'code' => $r->code,
                 'type' => $r->type->value,
@@ -39,7 +41,7 @@ class FeSettingsController extends Controller
                 'technical_key' => $r->technical_key,
                 'from_number' => $r->from_number,
                 'to_number' => $r->to_number,
-                'current_number' => $r->current_number,
+                'current_number' => $r->send?->next_consecutive ?? 0,
                 'valid_from' => $r->valid_from->format('Y-m-d'),
                 'valid_until' => $r->valid_until->format('Y-m-d'),
                 'environment' => $r->environment->value,
@@ -54,20 +56,25 @@ class FeSettingsController extends Controller
                 'name' => $tenant->name ?? '',
                 'legal_name' => $tenant->legal_name ?? '',
                 'nit' => $tenant->nit ?? '',
+                'merchant_registration' => $tenant->merchant_registration ?? '',
                 'verification_digit' => $tenant->verification_digit ?? '',
                 'email' => $tenant->email ?? '',
                 'phone' => $tenant->phone ?? '',
                 'address' => $tenant->address ?? '',
                 'city' => $tenant->city ?? '',
                 'department' => $tenant->department ?? '',
-                'identification_type_code' => $tenant->identification_type_code ?? '',
-                'organization_type_code' => $tenant->organization_type_code ?? '',
-                'regime_type_code' => $tenant->regime_type_code ?? '',
-                'fiscal_responsibilities' => $tenant->fiscal_responsibilities ?? [],
                 'municipality_code' => $tenant->municipality_code ?? '',
-                'fe_municipality_api_id' => $tenant->fe_municipality_api_id ?? '',
-                'economic_activity_code' => $tenant->economic_activity_code ?? '',
-                'fe_environment' => $tenant->fe_environment->value ?? 'test',
+            ],
+            'fe_config' => [
+                'electronic_invoicing_enabled' => $feConfig?->electronic_invoicing_enabled ?? false,
+                'identification_type_code' => $feConfig?->identification_type_code ?? '',
+                'organization_type_code' => $feConfig?->organization_type_code ?? '',
+                'regime_type_code' => $feConfig?->regime_type_code ?? '',
+                'fiscal_responsibilities' => $feConfig?->fiscal_responsibilities ?? [],
+                'economic_activity_code' => $feConfig?->economic_activity_code ?? '',
+                'environment' => $feConfig?->environment?->value ?? 'test',
+                'api_token_set' => ! empty($feConfig?->api_token),
+                'software_id' => $feConfig?->software_id ?? '',
             ],
             'resolutions' => $resolutions,
             'options' => [
@@ -78,7 +85,9 @@ class FeSettingsController extends Controller
                 'fiscal_responsibilities' => DianFiscalResponsibility::orderBy('code')
                     ->get(['code', 'name']),
                 'municipalities' => DianMunicipality::orderBy('department_name')->orderBy('name')
-                    ->get(['code', 'name', 'department_name']),
+                    ->get(['code', 'api_id', 'name', 'department_name']),
+                'economic_activities' => EconomicActivity::orderBy('code')
+                    ->get(['code', 'name']),
                 'resolution_types' => [
                     ['value' => 'invoice', 'label' => 'Factura de venta'],
                     ['value' => 'credit_note', 'label' => 'Nota crédito'],
@@ -95,12 +104,42 @@ class FeSettingsController extends Controller
     public function update(UpdateFeSettingsRequest $request, CurrentTenant $currentTenant): RedirectResponse
     {
         $data = $request->validated();
+        $tenant = $currentTenant->get();
 
-        if (! empty($data['nit'])) {
-            $data['verification_digit'] = $this->calculateNitDv($data['nit']);
+        // Datos básicos del tenant
+        $tenantData = collect($data)->only([
+            'name', 'legal_name', 'nit', 'merchant_registration',
+            'email', 'phone', 'address', 'city', 'department', 'municipality_code',
+        ])->filter(fn ($v) => $v !== null)->toArray();
+
+        if (! empty($tenantData['nit'])) {
+            $tenantData['verification_digit'] = $this->calculateNitDv($tenantData['nit']);
         }
 
-        $currentTenant->get()->update($data);
+        $tenant->update($tenantData);
+
+        // Configuración FE — separada en tenant_fe_configs
+        $feData = collect($data)->only([
+            'electronic_invoicing_enabled',
+            'identification_type_code',
+            'organization_type_code',
+            'regime_type_code',
+            'fiscal_responsibilities',
+            'economic_activity_code',
+            'environment',
+            'api_token',
+            'software_id',
+        ])->filter(fn ($v) => $v !== null)->toArray();
+
+        // Si el token viene vacío, no lo sobreescribimos
+        if (isset($feData['api_token']) && $feData['api_token'] === '') {
+            unset($feData['api_token']);
+        }
+
+        $tenant->feConfig()->updateOrCreate(
+            ['tenant_id' => $tenant->id],
+            $feData
+        );
 
         return back()->with('success', 'Configuración actualizada correctamente.');
     }

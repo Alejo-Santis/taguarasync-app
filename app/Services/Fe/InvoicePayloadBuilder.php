@@ -3,9 +3,11 @@
 namespace App\Services\Fe;
 
 use App\Models\Customer;
+use App\Models\DianMunicipality;
 use App\Models\FeResolution;
 use App\Models\Sale;
 use App\Models\Tenant;
+use App\Models\TenantFeConfig;
 
 class InvoicePayloadBuilder
 {
@@ -13,6 +15,7 @@ class InvoicePayloadBuilder
     public function build(Sale $sale, Tenant $tenant, FeResolution $resolution, int $invoiceNumber): array
     {
         $customer = $sale->customer;
+        $feConfig = $tenant->feConfig;
 
         return [
             'date' => $sale->created_at->format('Y-m-d'),
@@ -22,9 +25,10 @@ class InvoicePayloadBuilder
             'type_document_id' => config('fe.map.doc_types.invoice'),
             'resolution_number' => $resolution->resolution_number,
             'notes' => $sale->notes,
+            'foot_note' => 'Generado por Taguara Sync | Sistema de gestión farmacéutica',
             'sendmail' => $customer?->email !== null,
             'sendmailtome' => true,
-            'customer' => $this->buildCustomer($customer, $tenant),
+            'customer' => $this->buildCustomer($customer, $tenant, $feConfig),
             'invoice_lines' => $this->buildLines($sale),
             'tax_totals' => $this->buildTaxTotals($sale),
             'payment_form' => $this->buildPaymentForm($sale),
@@ -38,15 +42,43 @@ class InvoicePayloadBuilder
     }
 
     /** @return array<string, mixed> */
-    private function buildCustomer(?Customer $customer, Tenant $tenant): array
+    private function buildCustomer(?Customer $customer, Tenant $tenant, ?TenantFeConfig $feConfig): array
     {
-        if (! $customer) {
-            return $this->buildAnonymousCustomer($tenant);
-        }
-
         $idTypeMap = config('fe.map.id_types');
         $orgTypeMap = config('fe.map.org_types');
         $regimeMap = config('fe.map.regime_types');
+        $liabilityMap = config('fe.map.liabilities');
+
+        // Derive municipality_id from DANE code via dian_municipalities.api_id
+        // Falls back to manual override in tenant_fe_configs if set
+        $tenantMunicipalityId = $feConfig?->municipality_api_id
+            ?? DianMunicipality::where('code', $tenant->municipality_code)->value('api_id')
+            ?? 0;
+
+        if (! $customer) {
+            return [
+                'identification_number' => '222222222222',
+                'dv' => null,
+                'name' => 'Consumidor Final',
+                'email' => null,
+                'phone' => null,
+                'address' => $tenant->address,
+                'municipality_id' => $tenantMunicipalityId,
+                'merchant_registration' => $tenant->merchant_registration ?? '0000000-00',
+                'type_document_identification_id' => 3,
+                'type_organization_id' => 2,
+                'type_liability_id' => $liabilityMap['no_responsible'],
+                'type_regime_id' => 2,
+            ];
+        }
+
+        $customerMunicipalityId = DianMunicipality::where('code', $customer->municipality_code)->value('api_id')
+            ?? $tenantMunicipalityId;
+
+        $regimeCode = $customer->regime_type_code ?? '49';
+        $liabilityId = $regimeCode === '48'
+            ? $liabilityMap['responsible']
+            : $liabilityMap['no_responsible'];
 
         return [
             'identification_number' => $customer->identification_number,
@@ -55,29 +87,12 @@ class InvoicePayloadBuilder
             'email' => $customer->email,
             'phone' => $customer->phone,
             'address' => $customer->address,
-            'municipality_id' => $tenant->fe_municipality_api_id ?? 0,
-            'merchant_registration' => '0000000-00',
+            'municipality_id' => $customerMunicipalityId,
+            'merchant_registration' => $customer->merchant_registration ?? '0000000-00',
             'type_document_identification_id' => $idTypeMap[$customer->identification_type_code] ?? 3,
             'type_organization_id' => $orgTypeMap[$customer->organization_type_code] ?? 2,
-            'type_regime_id' => $regimeMap[$customer->regime_type_code] ?? 2,
-        ];
-    }
-
-    /** @return array<string, mixed> */
-    private function buildAnonymousCustomer(Tenant $tenant): array
-    {
-        return [
-            'identification_number' => '222222222222',
-            'dv' => null,
-            'name' => 'Consumidor Final',
-            'email' => null,
-            'phone' => null,
-            'address' => null,
-            'municipality_id' => $tenant->fe_municipality_api_id ?? 0,
-            'merchant_registration' => '0000000-00',
-            'type_document_identification_id' => 3,
-            'type_organization_id' => 2,
-            'type_regime_id' => 2,
+            'type_liability_id' => $liabilityId,
+            'type_regime_id' => $regimeMap[$regimeCode] ?? 2,
         ];
     }
 
@@ -103,7 +118,7 @@ class InvoicePayloadBuilder
                 'price_amount' => number_format($unitPrice, 2, '.', ''),
                 'line_extension_amount' => number_format($subtotal, 2, '.', ''),
                 'free_of_charge_indicator' => false,
-                'type_item_identification_id' => 4,
+                'type_item_identification_id' => config('fe.map.item_identification_default'),
                 'tax_totals' => $taxRate > 0 ? [
                     [
                         'tax_id' => config('fe.map.iva_tax_id'),
@@ -172,7 +187,6 @@ class InvoicePayloadBuilder
     private function buildMonetaryTotals(Sale $sale): array
     {
         $subtotal = $sale->subtotal / 100;
-        $taxTotal = $sale->tax_total / 100;
         $total = $sale->total / 100;
 
         return [

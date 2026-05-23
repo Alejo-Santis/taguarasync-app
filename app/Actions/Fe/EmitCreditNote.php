@@ -19,12 +19,14 @@ class EmitCreditNote
     {
         $creditNote->load(['items', 'sale.customer']);
 
+        $feConfig = $tenant->feConfig;
+
         $resolution = FeResolution::withoutGlobalScopes()
             ->where('tenant_id', $tenant->id)
             ->where('type', 'credit_note')
             ->where('is_active', true)
             ->where('valid_until', '>=', now()->toDateString())
-            ->where('environment', $tenant->fe_environment->value)
+            ->where('environment', $feConfig?->environment?->value ?? 'test')
             ->first();
 
         $noteNumber = $resolution
@@ -41,8 +43,10 @@ class EmitCreditNote
 
         $this->recordSubmission($creditNote, $payload, $tenant);
 
+        $client = $this->client->forTenant((string) ($feConfig?->api_token ?? ''));
+
         try {
-            $response = $this->client->createCreditNote($payload);
+            $response = $client->createCreditNote($payload);
 
             $cufe = $response['cufe'] ?? $response['uuid'] ?? null;
             $qr = $response['qr'] ?? $response['qrcode'] ?? null;
@@ -72,6 +76,7 @@ class EmitCreditNote
     {
         $sale = $creditNote->sale;
         $customer = $sale->customer;
+        $feConfig = $tenant->feConfig;
         $idTypeMap = config('fe.map.id_types');
         $orgTypeMap = config('fe.map.org_types');
         $regimeMap = config('fe.map.regime_types');
@@ -83,8 +88,8 @@ class EmitCreditNote
             'email' => $customer->email,
             'phone' => $customer->phone,
             'address' => $customer->address,
-            'municipality_id' => $tenant->fe_municipality_api_id ?? 0,
-            'merchant_registration' => '0000000-00',
+            'municipality_id' => $feConfig?->municipality_api_id ?? 0,
+            'merchant_registration' => $customer->merchant_registration ?? '0000000-00',
             'type_document_identification_id' => $idTypeMap[$customer->identification_type_code] ?? 3,
             'type_organization_id' => $orgTypeMap[$customer->organization_type_code] ?? 2,
             'type_regime_id' => $regimeMap[$customer->regime_type_code] ?? 2,
@@ -94,9 +99,9 @@ class EmitCreditNote
             'name' => 'Consumidor Final',
             'email' => null,
             'phone' => null,
-            'address' => null,
-            'municipality_id' => $tenant->fe_municipality_api_id ?? 0,
-            'merchant_registration' => '0000000-00',
+            'address' => $tenant->address,
+            'municipality_id' => $feConfig?->municipality_api_id ?? 0,
+            'merchant_registration' => $tenant->merchant_registration ?? '0000000-00',
             'type_document_identification_id' => 3,
             'type_organization_id' => 2,
             'type_regime_id' => 2,
