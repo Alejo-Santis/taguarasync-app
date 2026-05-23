@@ -1,4 +1,5 @@
 <script>
+    import { tick } from 'svelte';
     import { router, usePage, useForm } from '@inertiajs/svelte';
     import { fade, scale } from 'svelte/transition';
     import {
@@ -11,6 +12,7 @@
         Lock,
         Minus,
         Package,
+        PackageCheck,
         Plus,
         PrinterCheck,
         Search,
@@ -36,6 +38,7 @@
     let searchResults = $state([]);
     let isSearching = $state(false);
     let searchTimeout = null;
+    let productSearchInput = $state(null);
 
     // Cart state
     let cart = $state([]);
@@ -46,6 +49,7 @@
     let paymentMethod = $state('cash');
     let amountTendered = $state('');
     let isProcessing = $state(false);
+    let amountTenderedInput = $state(null);
 
     // Receipt
     let receipt = $state(null);
@@ -66,6 +70,12 @@
     const cartTotal = $derived(cartSubtotal + cartTax);
     const cartCount = $derived(cart.reduce((s, i) => s + i.quantity, 0));
     const hasCart = $derived(cart.length > 0);
+    const cashSuggestions = $derived([
+        cartTotal,
+        Math.ceil(cartTotal / 1000) * 1000,
+        Math.ceil(cartTotal / 5000) * 5000,
+        Math.ceil(cartTotal / 10000) * 10000,
+    ].filter((value, index, values) => value > 0 && values.indexOf(value) === index));
 
     const change = $derived(
         paymentMethod === 'cash' && amountTendered !== ''
@@ -145,6 +155,7 @@
     let customerResults = $state([]);
     let customerTimeout = null;
     let customerDropOpen = $state(false);
+    let customerSearchInput = $state(null);
 
     const searchCustomers = async (q) => {
         if (q.trim().length < 2) { customerResults = []; return; }
@@ -242,11 +253,41 @@
         }
     };
 
+    const focusProductSearch = async () => {
+        await tick();
+        productSearchInput?.focus();
+        productSearchInput?.select();
+    };
+
+    const focusCustomerSearch = async () => {
+        await tick();
+        customerSearchInput?.focus();
+        customerSearchInput?.select();
+    };
+
+    const focusAmountTendered = async () => {
+        await tick();
+        amountTenderedInput?.focus();
+        amountTenderedInput?.select();
+    };
+
     // Payment
-    const openPayment = () => {
-        paymentMethod = 'cash';
+    const setPaymentMethod = async (method) => {
+        paymentMethod = method;
+        amountTendered = '';
+        if (method === 'cash') {
+            await focusAmountTendered();
+        }
+    };
+
+    const openPayment = async (method = 'cash') => {
+        if (!hasCart) return;
+        paymentMethod = method;
         amountTendered = '';
         paymentOpen = true;
+        if (method === 'cash') {
+            await focusAmountTendered();
+        }
     };
 
     const confirmSale = () => {
@@ -291,44 +332,121 @@
     const closeSession = () => {
         router.get(`/pos/session/${activeSession.uuid}/close`);
     };
+
+    const closeOverlays = () => {
+        if (receipt) {
+            receipt = null;
+            return;
+        }
+
+        if (createCustomerOpen) {
+            createCustomerOpen = false;
+            return;
+        }
+
+        if (paymentOpen) {
+            paymentOpen = false;
+            return;
+        }
+
+        customerDropOpen = false;
+    };
+
+    const handleKeyboardShortcuts = (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+        const shortcuts = {
+            F2: () => focusProductSearch(),
+            F3: () => focusCustomerSearch(),
+            F4: () => openPayment('cash'),
+            F6: () => paymentOpen ? setPaymentMethod('cash') : openPayment('cash'),
+            F7: () => paymentOpen ? setPaymentMethod('card') : openPayment('card'),
+            F8: () => paymentOpen ? setPaymentMethod('transfer') : openPayment('transfer'),
+            F9: () => {
+                if (paymentOpen && canConfirm) confirmSale();
+            },
+            Escape: () => closeOverlays(),
+        };
+
+        if (!shortcuts[event.key]) return;
+
+        event.preventDefault();
+        shortcuts[event.key]();
+    };
 </script>
+
+<svelte:window onkeydown={handleKeyboardShortcuts} />
 
 <AppLayout title="POS" activeSection="pos" {auth}>
     <!-- Session header bar -->
     <div class="taguara-pos-session-bar">
-        <div class="d-flex align-items-center gap-3">
-            <span class="taguara-pos-session-tag">
-                <span class="fw-semibold">{activeSession.register_name}</span>
-                <span class="text-secondary">·</span>
-                <Clock size={13} />
-                <span>Desde {activeSession.opened_at}</span>
-            </span>
-            <span class="text-secondary small">
-                {activeSession.sales_count} ventas · {fmt(activeSession.sales_total)}
-            </span>
+        <div class="taguara-pos-session-main">
+            <span class="taguara-pos-session-icon"><PackageCheck size={18} /></span>
+            <div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <strong>{activeSession.register_name}</strong>
+                    <span class="taguara-pos-session-code">{activeSession.register_code}</span>
+                    <span class="taguara-pos-session-time"><Clock size={13} /> Desde {activeSession.opened_at}</span>
+                </div>
+                <div class="taguara-pos-session-sub">Turno activo para venta rapida y facturacion POS</div>
+            </div>
         </div>
-        <button class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={closeSession}>
+
+        <div class="taguara-pos-session-metrics">
+            <div>
+                <span>{activeSession.sales_count}</span>
+                <small>ventas</small>
+            </div>
+            <div>
+                <span>{fmt(activeSession.sales_total)}</span>
+                <small>vendido</small>
+            </div>
+            <div>
+                <span>{cartCount}</span>
+                <small>items carrito</small>
+            </div>
+        </div>
+
+        <button class="taguara-pos-close-btn" type="button" onclick={closeSession}>
             <Lock size={13} />
             Cerrar caja
         </button>
+    </div>
+
+    <div class="taguara-pos-shortcuts" aria-label="Atajos del punto de venta">
+        <span><kbd>F2</kbd>Producto</span>
+        <span><kbd>F3</kbd>Cliente</span>
+        <span><kbd>F4</kbd>Cobrar</span>
+        <span><kbd>F6</kbd>Efectivo</span>
+        <span><kbd>F7</kbd>Tarjeta</span>
+        <span><kbd>F8</kbd>Transferencia</span>
+        <span><kbd>F9</kbd>Confirmar</span>
+        <span><kbd>Esc</kbd>Cerrar</span>
     </div>
 
     <div class="taguara-pos">
         <!-- Left: product search -->
         <div class="taguara-pos-search">
             <div class="taguara-pos-searchbar">
-                <Search size={18} class="text-secondary flex-shrink-0" />
-                <input
-                    class="form-control border-0 shadow-none"
-                    type="search"
-                    placeholder="Buscar por nombre, codigo o barras..."
-                    value={searchQuery}
-                    oninput={handleSearch}
-                    autofocus
-                />
-                {#if isSearching}
-                    <span class="spinner-border spinner-border-sm text-secondary flex-shrink-0" role="status"></span>
-                {/if}
+                <div class="taguara-pos-search-input">
+                    <Search size={21} class="text-success flex-shrink-0" />
+                    <input
+                        class="form-control border-0 shadow-none"
+                        type="search"
+                        placeholder="Escanea codigo de barras o busca medicamento..."
+                        bind:this={productSearchInput}
+                        value={searchQuery}
+                        oninput={handleSearch}
+                    />
+                    {#if isSearching}
+                        <span class="spinner-border spinner-border-sm text-secondary flex-shrink-0" role="status"></span>
+                    {/if}
+                </div>
+                <div class="taguara-pos-search-tools">
+                    <span class="taguara-pos-chip">Codigo</span>
+                    <span class="taguara-pos-chip">Nombre</span>
+                    <span class="taguara-pos-chip">Lote FEFO</span>
+                </div>
             </div>
 
             {#if searchResults.length > 0}
@@ -337,8 +455,8 @@
                         <article class="taguara-pos-product-card">
                             <div class="taguara-pos-product-header">
                                 <div class="min-w-0">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <span class="fw-semibold">{product.commercial_name}</span>
+                                    <div class="taguara-pos-product-title">
+                                        <span>{product.commercial_name}</span>
                                         {#if product.is_controlled}
                                             <ShieldAlert size={13} class="text-warning flex-shrink-0" />
                                         {/if}
@@ -347,7 +465,8 @@
                                         {[product.pharmaceutical_form, product.concentration].filter(Boolean).join(' · ')}
                                     </div>
                                 </div>
-                                <span class="badge text-bg-light border text-secondary small">
+                                <span class="taguara-pos-stock-pill">
+                                    <Package size={13} />
                                     {product.available_units} {product.minimum_unit_code}
                                 </span>
                             </div>
@@ -380,9 +499,14 @@
                 </div>
             {:else if searchQuery.length === 0}
                 <div class="taguara-pos-hint">
-                    <Search size={40} class="text-secondary mb-3" />
-                    <p class="fw-semibold mb-1">Busca un producto para comenzar</p>
-                    <p class="text-secondary small mb-0">Escribe al menos 2 caracteres — nombre, codigo o codigo de barras.</p>
+                    <div class="taguara-pos-hint-icon"><Search size={42} /></div>
+                    <p class="fw-semibold mb-1">Listo para vender</p>
+                    <p class="text-secondary small mb-3">Escanea un codigo o escribe nombre, principio activo, lote o codigo interno.</p>
+                    <div class="taguara-pos-hint-grid">
+                        <span>FEFO automatico</span>
+                        <span>Stock visible</span>
+                        <span>Cliente rapido</span>
+                    </div>
                 </div>
             {/if}
         </div>
@@ -390,18 +514,23 @@
         <!-- Right: cart -->
         <aside class="taguara-pos-cart">
             <div class="taguara-pos-cart-header">
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <ShoppingCart size={18} />
+                        <span class="fw-semibold">Venta actual</span>
+                    </div>
+                    <div class="taguara-table-sub">{hasCart ? `${cart.length} productos · ${cartCount} unidades` : 'Sin productos agregados'}</div>
+                </div>
                 <div class="d-flex align-items-center gap-2">
-                    <ShoppingCart size={18} />
-                    <span class="fw-semibold">Carrito</span>
                     {#if hasCart}
                         <span class="badge text-bg-success">{cartCount}</span>
                     {/if}
+                    {#if hasCart}
+                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={clearCart} aria-label="Vaciar carrito">
+                            <Trash2 size={14} />
+                        </button>
+                    {/if}
                 </div>
-                {#if hasCart}
-                    <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={clearCart} aria-label="Vaciar carrito">
-                        <Trash2 size={14} />
-                    </button>
-                {/if}
             </div>
 
             <!-- Customer selector -->
@@ -425,15 +554,15 @@
                 {:else}
                     <div class="d-flex align-items-center gap-2">
                         <div class="position-relative flex-grow-1">
-                            <div class="taguara-filter-input" style="gap:.4rem">
+                            <div class="taguara-pos-customer-search">
                                 <User size={13} class="text-secondary" />
                                 <input
                                     class="form-control form-control-sm border-0 p-0 bg-transparent"
                                     type="search"
                                     placeholder="Buscar cliente..."
+                                    bind:this={customerSearchInput}
                                     value={customerQuery}
                                     oninput={onCustomerInput}
-                                    style="font-size:.8rem"
                                 />
                             </div>
                             {#if customerDropOpen && customerResults.length > 0}
@@ -499,8 +628,9 @@
             <div class="taguara-pos-cart-items">
                 {#if !hasCart}
                     <div class="taguara-pos-cart-empty">
-                        <ShoppingCart size={28} class="text-secondary mb-2" />
-                        <p class="text-secondary small mb-0">Agrega productos desde la busqueda</p>
+                        <ShoppingCart size={30} class="text-secondary mb-2" />
+                        <p class="fw-semibold mb-1">Carrito vacío</p>
+                        <p class="text-secondary small mb-0">Agrega productos desde la busqueda o escanea el codigo de barras.</p>
                     </div>
                 {:else}
                     {#each cart as item, index}
@@ -579,26 +709,29 @@
                     <button
                         type="button"
                         class={`taguara-pos-method-btn${paymentMethod === 'cash' ? ' active' : ''}`}
-                        onclick={() => { paymentMethod = 'cash'; amountTendered = ''; }}
+                        onclick={() => setPaymentMethod('cash')}
                     >
                         <DollarSign size={20} />
-                        Efectivo
+                        <span>Efectivo</span>
+                        <kbd>F6</kbd>
                     </button>
                     <button
                         type="button"
                         class={`taguara-pos-method-btn${paymentMethod === 'card' ? ' active' : ''}`}
-                        onclick={() => { paymentMethod = 'card'; amountTendered = ''; }}
+                        onclick={() => setPaymentMethod('card')}
                     >
                         <CreditCard size={20} />
-                        Tarjeta
+                        <span>Tarjeta</span>
+                        <kbd>F7</kbd>
                     </button>
                     <button
                         type="button"
                         class={`taguara-pos-method-btn${paymentMethod === 'transfer' ? ' active' : ''}`}
-                        onclick={() => { paymentMethod = 'transfer'; amountTendered = ''; }}
+                        onclick={() => setPaymentMethod('transfer')}
                     >
                         <ChevronRight size={20} />
-                        Transferencia
+                        <span>Transferencia</span>
+                        <kbd>F8</kbd>
                     </button>
                 </div>
 
@@ -612,8 +745,16 @@
                             min={cartTotal}
                             step="1000"
                             bind:value={amountTendered}
+                            bind:this={amountTenderedInput}
                             placeholder={String(cartTotal)}
                         />
+                        <div class="taguara-pos-cash-suggestions">
+                            {#each cashSuggestions as value}
+                                <button type="button" onclick={() => amountTendered = String(value)}>
+                                    {fmt(value)}
+                                </button>
+                            {/each}
+                        </div>
                     </div>
                     {#if change !== null && amountTendered !== '' && Number(amountTendered) >= cartTotal}
                         <div class="taguara-pos-change-display mt-3">
@@ -634,7 +775,7 @@
                         Procesando...
                     {:else}
                         <CheckCircle2 size={18} />
-                        Confirmar venta
+                        Confirmar venta <kbd class="taguara-btn-kbd">F9</kbd>
                     {/if}
                 </button>
             </div>
@@ -713,7 +854,7 @@
                     {/if}
 
                     <div class="col-12">
-                        <label class="form-label small fw-semibold mb-1">Régimen IVA</label>
+                        <div class="form-label small fw-semibold mb-1">Régimen IVA</div>
                         <div class="d-flex gap-2">
                             {#each customerFormOptions.regime_types as regime}
                                 <button

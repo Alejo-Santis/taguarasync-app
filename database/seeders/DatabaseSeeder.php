@@ -58,6 +58,7 @@ class DatabaseSeeder extends Seeder
             ActiveIngredientsSeeder::class,
             ProductCatalogSeeder::class,
             OtcProductsSeeder::class,
+            PaymentMethodSeeder::class,
             DemoSuppliersSeeder::class,
             DemoPurchaseReceiptsSeeder::class,
             DemoCashRegisterSeeder::class,

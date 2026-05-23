@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToTenant;
+use Database\Factories\BankAccountMovementFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+#[Fillable([
+    'tenant_id',
+    'bank_account_id',
+    'sale_payment_id',
+    'user_id',
+    'type',
+    'amount',
+    'reference',
+    'status',
+    'occurred_at',
+    'description',
+])]
+class BankAccountMovement extends Model
+{
+    /** @use HasFactory<BankAccountMovementFactory> */
+    use BelongsToTenant, HasFactory;
+
+    /**
+     * @return BelongsTo<BankAccount, $this>
+     */
+    public function bankAccount(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class);
+    }
+
+    /**
+     * @return BelongsTo<SalePayment, $this>
+     */
+    public function salePayment(): BelongsTo
+    {
+        return $this->belongsTo(SalePayment::class);
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'occurred_at' => 'datetime',
+        ];
+    }
+}

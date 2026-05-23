@@ -6,9 +6,12 @@ use App\Actions\Inventory\RegisterInventoryMovement;
 use App\Enums\FeStatus;
 use App\Enums\InventoryLotStatus;
 use App\Enums\SaleStatus;
+use App\Models\BankAccountMovement;
 use App\Models\InventoryLot;
+use App\Models\PaymentMethod as PaymentMethodConfig;
 use App\Models\ProductPresentation;
 use App\Models\Sale;
+use App\Models\SalePayment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -23,6 +26,14 @@ class ProcessSale
      *     payment_form?: string|null,
      *     amount_tendered?: int|null,
      *     notes?: string|null,
+     *     payments?: array<int, array{
+     *         payment_method_id: int,
+     *         bank_account_id?: int|null,
+     *         amount: int,
+     *         amount_tendered?: int|null,
+     *         reference?: string|null,
+     *         notes?: string|null
+     *     }>,
      *     items: array<int, array{
      *         product_id: int,
      *         product_presentation_id: int,
@@ -40,11 +51,13 @@ class ProcessSale
 
             $amountTendered = isset($data['amount_tendered']) ? (int) $data['amount_tendered'] : null;
             $change = ($amountTendered !== null) ? max(0, $amountTendered - $totals['total']) : null;
+            $payments = $this->normalizePayments($data, $user, $totals['total'], $amountTendered, $change);
 
             $feEnabled = config('fe.enabled') && $user->tenant?->feConfig?->electronic_invoicing_enabled;
 
             $sale = Sale::create([
                 'uuid' => (string) Str::uuid(),
+                'tenant_id' => $user->tenant_id,
                 'user_id' => $user->id,
                 'customer_id' => $data['customer_id'] ?? null,
                 'cash_session_id' => $cashSessionId,
@@ -98,6 +111,25 @@ class ProcessSale
                 $saleItem->forceFill(['inventory_movement_id' => $movement->id])->save();
             }
 
+            foreach ($payments as $paymentData) {
+                $payment = $sale->payments()->create([
+                    'tenant_id' => $user->tenant_id,
+                    'cash_session_id' => $cashSessionId,
+                    'payment_method_id' => $paymentData['payment_method_id'],
+                    'bank_account_id' => $paymentData['bank_account_id'] ?? null,
+                    'user_id' => $user->id,
+                    'amount' => $paymentData['amount'],
+                    'amount_tendered' => $paymentData['amount_tendered'] ?? null,
+                    'change_amount' => $paymentData['change_amount'] ?? null,
+                    'reference' => $paymentData['reference'] ?? null,
+                    'status' => 'confirmed',
+                    'paid_at' => now(),
+                    'notes' => $paymentData['notes'] ?? null,
+                ]);
+
+                $this->registerBankMovement($payment, $user);
+            }
+
             return $sale->refresh();
         });
 
@@ -107,6 +139,107 @@ class ProcessSale
         }
 
         return $sale;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizePayments(array $data, User $user, int $total, ?int $amountTendered, ?int $change): array
+    {
+        if (! empty($data['payments'])) {
+            return collect($data['payments'])->map(fn (array $payment): array => [
+                'payment_method_id' => (int) $payment['payment_method_id'],
+                'bank_account_id' => isset($payment['bank_account_id']) ? (int) $payment['bank_account_id'] : null,
+                'amount' => (int) $payment['amount'],
+                'amount_tendered' => isset($payment['amount_tendered']) ? (int) $payment['amount_tendered'] : null,
+                'change_amount' => null,
+                'reference' => $payment['reference'] ?? null,
+                'notes' => $payment['notes'] ?? null,
+            ])->all();
+        }
+
+        $method = $this->paymentMethodForLegacyValue((string) $data['payment_method'], $user);
+
+        return [[
+            'payment_method_id' => $method->id,
+            'bank_account_id' => null,
+            'amount' => $total,
+            'amount_tendered' => $amountTendered,
+            'change_amount' => $change,
+            'reference' => null,
+            'notes' => null,
+        ]];
+    }
+
+    private function paymentMethodForLegacyValue(string $legacyValue, User $user): PaymentMethodConfig
+    {
+        $code = match ($legacyValue) {
+            'card' => 'card_credit',
+            default => $legacyValue,
+        };
+
+        $defaults = [
+            'cash' => [
+                'name' => 'Efectivo',
+                'type' => 'cash',
+                'dian_payment_method_code' => '10',
+                'affects_cash' => true,
+                'sort_order' => 10,
+            ],
+            'card_credit' => [
+                'name' => 'Tarjeta credito',
+                'type' => 'card',
+                'dian_payment_method_code' => '48',
+                'requires_reference' => true,
+                'sort_order' => 20,
+            ],
+            'transfer' => [
+                'name' => 'Transferencia bancaria',
+                'type' => 'transfer',
+                'dian_payment_method_code' => '47',
+                'requires_reference' => true,
+                'requires_bank_account' => true,
+                'allows_attachment' => true,
+                'sort_order' => 40,
+            ],
+        ];
+
+        $definition = $defaults[$code] ?? $defaults['cash'];
+
+        return PaymentMethodConfig::query()->firstOrCreate(
+            ['tenant_id' => $user->tenant_id, 'code' => $code],
+            [
+                'tenant_id' => $user->tenant_id,
+                'payment_form' => '1',
+                'requires_reference' => false,
+                'requires_bank_account' => false,
+                'allows_attachment' => false,
+                'affects_cash' => false,
+                'is_active' => true,
+                ...$definition,
+            ],
+        );
+    }
+
+    private function registerBankMovement(SalePayment $payment, User $user): void
+    {
+        if (! $payment->bank_account_id) {
+            return;
+        }
+
+        BankAccountMovement::create([
+            'tenant_id' => $user->tenant_id,
+            'bank_account_id' => $payment->bank_account_id,
+            'sale_payment_id' => $payment->id,
+            'user_id' => $user->id,
+            'type' => 'inflow',
+            'amount' => $payment->amount,
+            'reference' => $payment->reference,
+            'status' => 'pending',
+            'occurred_at' => $payment->paid_at ?? now(),
+            'description' => "Pago de venta {$payment->sale->document_number}",
+        ]);
     }
 
     private function findFEFOLot(int $productId, int $minUnitsNeeded): InventoryLot

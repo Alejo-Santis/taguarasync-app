@@ -29,6 +29,13 @@ class ProcessSaleRequest extends FormRequest
                 Rule::requiredIf($this->input('payment_method') === PaymentMethod::Cash->value),
             ],
             'notes' => ['nullable', 'string', 'max:500'],
+            'payments' => ['nullable', 'array', 'min:1', 'max:5'],
+            'payments.*.payment_method_id' => ['required_with:payments', 'integer', Rule::exists('payment_methods', 'id')->where('tenant_id', $tenantId)],
+            'payments.*.bank_account_id' => ['nullable', 'integer', Rule::exists('bank_accounts', 'id')->where('tenant_id', $tenantId)],
+            'payments.*.amount' => ['required_with:payments', 'integer', 'min:1'],
+            'payments.*.amount_tendered' => ['nullable', 'integer', 'min:0'],
+            'payments.*.reference' => ['nullable', 'string', 'max:120'],
+            'payments.*.notes' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => [
                 'required', 'integer',
@@ -46,14 +53,25 @@ class ProcessSaleRequest extends FormRequest
     {
         return [
             function ($validator): void {
+                $total = collect($this->input('items', []))->reduce(function (int $carry, array $item): int {
+                    $subtotal = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
+                    $tax = (int) round($subtotal * (((float) ($item['tax_rate'] ?? 0)) / 100));
+
+                    return $carry + $subtotal + $tax;
+                }, 0);
+
+                if ($this->filled('payments')) {
+                    $paid = collect($this->input('payments', []))->sum(fn (array $payment): int => (int) ($payment['amount'] ?? 0));
+
+                    if ($paid < $total) {
+                        $validator->errors()->add('payments', 'Los pagos registrados no cubren el total de la venta.');
+                    }
+
+                    return;
+                }
+
                 if ($this->input('payment_method') === PaymentMethod::Cash->value) {
                     $tendered = (int) $this->input('amount_tendered', 0);
-                    $total = collect($this->input('items', []))->reduce(function (int $carry, array $item): int {
-                        $subtotal = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
-                        $tax = (int) round($subtotal * (((float) ($item['tax_rate'] ?? 0)) / 100));
-
-                        return $carry + $subtotal + $tax;
-                    }, 0);
 
                     if ($tendered < $total) {
                         $validator->errors()->add('amount_tendered', 'El monto recibido es menor al total de la venta.');

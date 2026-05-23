@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Fe\TestNextpymeConnection;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\UpdateFeSettingsRequest;
 use App\Models\DianFiscalResponsibility;
@@ -12,7 +13,9 @@ use App\Models\DianRegimeType;
 use App\Models\EconomicActivity;
 use App\Models\FeResolution;
 use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -142,6 +145,20 @@ class FeSettingsController extends Controller
         );
 
         return back()->with('success', 'Configuración actualizada correctamente.');
+    }
+
+    public function testConnection(
+        Request $request,
+        CurrentTenant $currentTenant,
+        TestNextpymeConnection $testConnection
+    ): JsonResponse {
+        $validated = $request->validate([
+            'api_token' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        return response()->json(
+            $testConnection->execute($currentTenant->get(), $validated['api_token'] ?? null)
+        );
     }
 
     private function calculateNitDv(string $nit): string

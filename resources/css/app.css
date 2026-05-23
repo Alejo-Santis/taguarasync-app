@@ -1455,58 +1455,190 @@ body {
 
 .taguara-pos {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 0;
-    height: calc(100vh - 76px); /* viewport minus topbar */
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 0.875rem;
+    height: calc(100vh - 206px);
     overflow: hidden;
+    padding: 0.875rem 1.25rem 1.25rem;
+    background:
+        linear-gradient(180deg, rgba(20, 108, 67, 0.055), transparent 280px),
+        #f4f7f9;
+}
+
+.taguara-pos-shortcuts {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    padding: 0.55rem 1.25rem 0;
+    color: var(--taguara-muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.taguara-pos-shortcuts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 28px;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 7px;
+    background: #fff;
+}
+
+.taguara-pos-shortcuts kbd,
+.taguara-pos-method-btn kbd,
+.taguara-btn-kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 25px;
+    min-height: 20px;
+    padding: 0.1rem 0.3rem;
+    border: 1px solid rgba(15, 23, 42, 0.14);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: #fff;
+    color: var(--taguara-text);
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+    box-shadow: none;
 }
 
 .taguara-pos-search {
     display: flex;
     flex-direction: column;
-    border-right: 1px solid var(--taguara-border);
-    background: var(--taguara-surface);
+    border: 1px solid var(--taguara-border);
+    border-radius: 10px;
+    background: #fff;
     overflow: hidden;
+    box-shadow: var(--taguara-shadow-sm);
 }
 
 .taguara-pos-searchbar {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.875rem;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.875rem 1rem;
+    padding: 1rem;
     border-bottom: 1px solid var(--taguara-border);
-    background: #fff;
+    background: linear-gradient(180deg, #fff, #f8fbfa);
 }
 
-.taguara-pos-searchbar input {
+.taguara-pos-search-input {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-height: 58px;
+    padding: 0 1rem;
+    border: 1px solid rgba(20, 108, 67, 0.22);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: inset 0 0 0 1px rgba(20, 108, 67, 0.03);
+}
+
+.taguara-pos-search-input:focus-within {
+    border-color: rgba(20, 108, 67, 0.52);
+    box-shadow: 0 0 0 4px rgba(20, 108, 67, 0.08);
+}
+
+.taguara-pos-search-input input {
     flex: 1;
     min-width: 0;
     background: transparent;
+    font-size: 1.05rem;
+}
+
+.taguara-pos-search-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.taguara-pos-chip {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 7px;
+    background: var(--taguara-surface);
+    color: var(--taguara-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .taguara-pos-results {
     flex: 1;
     overflow-y: auto;
-    padding: 0.875rem;
+    padding: 1rem;
     display: grid;
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 0.875rem;
     align-content: start;
 }
 
 .taguara-pos-hint {
     flex: 1;
     display: grid;
-    place-items: center;
+    place-content: center;
     text-align: center;
     padding: 3rem 2rem;
     color: var(--taguara-muted);
+    background:
+        radial-gradient(circle at center, rgba(20, 108, 67, 0.07), transparent 240px),
+        #fff;
+}
+
+.taguara-pos-hint-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    justify-self: center;
+    width: 86px;
+    height: 86px;
+    border: 1px solid rgba(20, 108, 67, 0.18);
+    border-radius: 16px;
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary);
+    margin-bottom: 1rem;
+}
+
+.taguara-pos-hint-grid {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.taguara-pos-hint-grid span {
+    padding: 0.35rem 0.6rem;
+    border-radius: 7px;
+    border: 1px solid var(--taguara-border);
+    background: #fff;
+    color: var(--taguara-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
 }
 
 .taguara-pos-product-card {
     background: #fff;
     border: 1px solid var(--taguara-border);
     border-radius: 8px;
-    padding: 0.875rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    transition: border-color 0.12s, box-shadow 0.12s, transform 0.12s;
+}
+
+.taguara-pos-product-card:hover {
+    border-color: rgba(20, 108, 67, 0.32);
+    box-shadow: var(--taguara-shadow-sm);
+    transform: translateY(-1px);
 }
 
 .taguara-pos-product-header {
@@ -1517,18 +1649,43 @@ body {
     margin-bottom: 0.75rem;
 }
 
-.taguara-pos-presentations {
+.taguara-pos-product-title {
     display: flex;
-    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--taguara-text);
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.taguara-pos-stock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    min-height: 30px;
+    padding: 0.25rem 0.55rem;
+    border-radius: 7px;
+    border: 1px solid rgba(20, 108, 67, 0.18);
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary-dark);
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+.taguara-pos-presentations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
     gap: 0.5rem;
 }
 
 .taguara-pos-pres-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.375rem;
-    min-height: 38px;
-    padding: 0.375rem 0.625rem;
+    min-height: 48px;
+    padding: 0.5rem 0.65rem;
     border: 1px solid var(--taguara-border);
     border-radius: 8px;
     background: var(--taguara-surface);
@@ -1557,7 +1714,10 @@ body {
     display: flex;
     flex-direction: column;
     background: #fff;
-    border-left: 1px solid var(--taguara-border);
+    border: 1px solid var(--taguara-border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: var(--taguara-shadow-sm);
 }
 
 .taguara-pos-cart-header {
@@ -1565,8 +1725,34 @@ body {
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    padding: 0.875rem 1rem;
+    padding: 1rem;
     border-bottom: 1px solid var(--taguara-border);
+    background: linear-gradient(180deg, #fff, #f8fbfa);
+}
+
+.taguara-pos-customer-search {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 34px;
+    padding: 0.25rem 0.65rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: #fff;
+}
+
+.taguara-pos-customer-search:focus-within {
+    border-color: rgba(20, 108, 67, 0.42);
+    box-shadow: 0 0 0 3px rgba(20, 108, 67, 0.08);
+}
+
+.taguara-pos-customer-search svg {
+    flex: 0 0 auto;
+}
+
+.taguara-pos-customer-search input {
+    min-width: 0;
+    font-size: 0.8rem;
 }
 
 .taguara-pos-cart-items {
@@ -1577,7 +1763,7 @@ body {
 
 .taguara-pos-cart-empty {
     display: grid;
-    place-items: center;
+    place-content: center;
     min-height: 160px;
     text-align: center;
     padding: 1.5rem;
@@ -1585,10 +1771,10 @@ body {
 
 .taguara-pos-cart-item {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.5rem 0.75rem;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem;
     border-bottom: 1px solid var(--taguara-border);
 }
 
@@ -1604,6 +1790,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    grid-column: 1 / 2;
 }
 
 .taguara-pos-qty-btn {
@@ -1640,12 +1827,16 @@ body {
 .taguara-pos-cart-item-total {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.375rem;
+    grid-column: 2 / 3;
+    grid-row: 1 / span 2;
 }
 
 .taguara-pos-cart-footer {
-    padding: 0.875rem 1rem;
+    padding: 1rem;
     border-top: 1px solid var(--taguara-border);
+    background: #fff;
 }
 
 /* ── POS session bar ─────────────────────────────────── */
@@ -1654,17 +1845,102 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 0.5rem 1.25rem;
-    background: var(--taguara-primary);
-    color: white;
+    gap: 0.875rem;
+    padding: 0.875rem 1.25rem;
+    margin: 0 1.25rem;
+    border: 1px solid rgba(20, 108, 67, 0.2);
+    border-radius: 10px;
+    background:
+        linear-gradient(135deg, #10613b, #168453 55%, #0e5b65);
+    color: #fff;
+    box-shadow: 0 8px 24px rgba(20, 108, 67, 0.14);
 }
 
-.taguara-pos-session-tag {
+.taguara-pos-session-main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.taguara-pos-session-icon {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.16);
+}
+
+.taguara-pos-session-code,
+.taguara-pos-session-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.1rem 0.45rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.12);
     font-size: 0.875rem;
+}
+
+.taguara-pos-session-sub {
+    margin-top: 0.1rem;
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.78rem;
+}
+
+.taguara-pos-session-metrics {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.taguara-pos-session-metrics div {
+    min-width: 94px;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.taguara-pos-session-metrics span,
+.taguara-pos-session-metrics small {
+    display: block;
+}
+
+.taguara-pos-session-metrics span {
+    font-weight: 800;
+    line-height: 1.1;
+}
+
+.taguara-pos-session-metrics small {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.taguara-pos-close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 36px;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.taguara-pos-close-btn:hover {
+    background: rgba(220, 53, 69, 0.92);
+    border-color: rgba(255, 255, 255, 0.26);
 }
 
 /* ── POS modal (centered) ────────────────────────────── */
@@ -1722,6 +1998,11 @@ body {
     transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
+.taguara-pos-method-btn kbd {
+    margin-top: 0.1rem;
+    color: var(--taguara-muted);
+}
+
 .taguara-pos-method-btn:hover {
     border-color: rgba(20, 108, 67, 0.4);
     background: var(--taguara-soft-green);
@@ -1744,6 +2025,94 @@ body {
     border: 1px solid rgba(20, 108, 67, 0.2);
 }
 
+.taguara-pos-cash-suggestions {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.taguara-pos-cash-suggestions button {
+    min-height: 36px;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: var(--taguara-surface);
+    color: var(--taguara-text);
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.taguara-pos-cash-suggestions button:hover {
+    border-color: rgba(20, 108, 67, 0.35);
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary-dark);
+}
+
+.taguara-fe-connection {
+    padding: 0.875rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: var(--taguara-surface);
+}
+
+.taguara-fe-connection-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--taguara-border);
+    background: #fff;
+    color: var(--taguara-muted);
+}
+
+.taguara-fe-connection-icon.is-ok {
+    border-color: rgba(20, 108, 67, 0.22);
+    background: var(--taguara-soft-green);
+    color: var(--taguara-primary);
+}
+
+.taguara-fe-connection-icon.is-down {
+    border-color: rgba(220, 53, 69, 0.22);
+    background: rgba(220, 53, 69, 0.08);
+    color: #b02a37;
+}
+
+.taguara-fe-connection-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.taguara-fe-connection-grid span {
+    display: grid;
+    gap: 0.1rem;
+    min-height: 48px;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 7px;
+    background: #fff;
+}
+
+.taguara-fe-connection-grid strong {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--taguara-text);
+    font-size: 0.85rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.taguara-fe-connection-grid small {
+    color: var(--taguara-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
 @media (max-width: 991.98px) {
     .taguara-sidebar {
         display: none;
@@ -1757,12 +2126,41 @@ body {
         grid-template-columns: 1fr;
         grid-template-rows: 1fr auto;
         height: auto;
+        padding: 0.75rem;
     }
 
     .taguara-pos-cart {
         border-left: 0;
         border-top: 2px solid var(--taguara-border);
         max-height: 50vh;
+    }
+
+    .taguara-pos-session-bar {
+        margin: 0 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .taguara-pos-session-metrics {
+        width: 100%;
+        order: 3;
+        margin-left: 0;
+    }
+
+    .taguara-pos-session-metrics div {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .taguara-pos-searchbar {
+        grid-template-columns: 1fr;
+    }
+
+    .taguara-pos-search-tools {
+        justify-content: flex-start;
+    }
+
+    .taguara-fe-connection-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .taguara-topbar {

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Pos;
 
+use App\Actions\Payments\EnsureDefaultPaymentMethods;
 use App\Actions\Pos\GetPosProducts;
 use App\Actions\Pos\ProcessSale;
 use App\Enums\CashSessionStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\ProcessSaleRequest;
+use App\Models\BankAccount;
 use App\Models\CashSession;
 use App\Models\Customer;
 use App\Models\DianIdentificationType;
@@ -20,7 +22,7 @@ use Inertia\Response;
 
 class PosController extends Controller
 {
-    public function index(Request $request): Response|RedirectResponse
+    public function index(Request $request, EnsureDefaultPaymentMethods $ensureDefaultPaymentMethods): Response|RedirectResponse
     {
         $session = CashSession::where('user_id', $request->user()->id)
             ->where('status', CashSessionStatus::Open)
@@ -30,6 +32,8 @@ class PosController extends Controller
         if (! $session) {
             return to_route('pos.session.open');
         }
+
+        $paymentMethods = $ensureDefaultPaymentMethods->execute($request->user()->tenant_id);
 
         return Inertia::render('Pos/Index', [
             'activeSession' => [
@@ -44,6 +48,23 @@ class PosController extends Controller
                 'identification_types' => DianIdentificationType::where('is_active', true)
                     ->orderBy('name')->get(['code', 'name']),
                 'regime_types' => DianRegimeType::orderBy('name')->get(['code', 'name']),
+            ],
+            'paymentOptions' => [
+                'methods' => $paymentMethods->map(fn ($method) => [
+                    'id' => $method->id,
+                    'name' => $method->name,
+                    'code' => $method->code,
+                    'type' => $method->type,
+                    'requires_reference' => $method->requires_reference,
+                    'requires_bank_account' => $method->requires_bank_account,
+                    'allows_attachment' => $method->allows_attachment,
+                    'affects_cash' => $method->affects_cash,
+                ])->values(),
+                'bank_accounts' => BankAccount::query()
+                    ->where('is_active', true)
+                    ->orderByDesc('is_default')
+                    ->orderBy('bank_name')
+                    ->get(['id', 'bank_name', 'account_name', 'account_number', 'type', 'is_default']),
             ],
         ]);
     }
@@ -154,6 +175,14 @@ class PosController extends Controller
             'total' => $sale->total,
             'payment_method' => $sale->payment_method->label(),
             'change_amount' => $sale->change_amount,
+            'payments' => $sale->payments()
+                ->with('paymentMethod:id,name')
+                ->get()
+                ->map(fn ($payment) => [
+                    'method' => $payment->paymentMethod?->name ?? $sale->payment_method->label(),
+                    'amount' => $payment->amount,
+                    'reference' => $payment->reference,
+                ]),
             'items_count' => $sale->items()->count(),
         ]);
     }

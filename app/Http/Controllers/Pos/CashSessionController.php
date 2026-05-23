@@ -9,6 +9,7 @@ use App\Http\Requests\Pos\CloseCashSessionRequest;
 use App\Http\Requests\Pos\OpenCashSessionRequest;
 use App\Models\CashRegister;
 use App\Models\CashSession;
+use App\Models\SalePayment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -53,9 +54,22 @@ class CashSessionController extends Controller
 
         $money = fn (int $v) => number_format($v, 0, ',', '.');
 
-        $cashSales = $session->sales()->where('payment_method', 'cash')->sum('total');
-        $cardSales = $session->sales()->where('payment_method', 'card')->sum('total');
-        $transferSales = $session->sales()->where('payment_method', 'transfer')->sum('total');
+        $paymentTotals = SalePayment::query()
+            ->where('cash_session_id', $session->id)
+            ->join('payment_methods', 'sale_payments.payment_method_id', '=', 'payment_methods.id')
+            ->selectRaw('payment_methods.type, payment_methods.affects_cash, SUM(sale_payments.amount) as total')
+            ->groupBy('payment_methods.type', 'payment_methods.affects_cash')
+            ->get();
+
+        $cashSales = (int) $paymentTotals->where('affects_cash', true)->sum('total');
+        $cardSales = (int) $paymentTotals->where('type', 'card')->sum('total');
+        $transferSales = (int) $paymentTotals->whereIn('type', ['transfer', 'wallet'])->sum('total');
+
+        if ($paymentTotals->isEmpty()) {
+            $cashSales = $session->sales()->where('payment_method', 'cash')->sum('total');
+            $cardSales = $session->sales()->where('payment_method', 'card')->sum('total');
+            $transferSales = $session->sales()->where('payment_method', 'transfer')->sum('total');
+        }
         $totalSales = $session->sales()->count();
 
         return Inertia::render('Pos/CloseSession', [

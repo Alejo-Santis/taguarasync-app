@@ -13,6 +13,8 @@
         Shield,
         ToggleLeft,
         ToggleRight,
+        Wifi,
+        WifiOff,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
@@ -65,6 +67,36 @@
 
     const saveFiscal = () => {
         fiscalForm.put('/settings/fe', { preserveScroll: true });
+    };
+
+    let connectionCheck = $state(null);
+    let connectionChecking = $state(false);
+
+    const testConnection = async () => {
+        connectionChecking = true;
+        connectionCheck = null;
+
+        try {
+            const response = await fetch('/settings/fe/test-connection', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                },
+                body: JSON.stringify({ api_token: fiscalForm.api_token || null }),
+            });
+
+            connectionCheck = await response.json();
+        } catch (error) {
+            connectionCheck = {
+                ok: false,
+                message: 'No se pudo ejecutar la prueba de conexión.',
+                checked_at: new Date().toLocaleString(),
+            };
+        } finally {
+            connectionChecking = false;
+        }
     };
 
     const onMunicipalityChange = (code) => {
@@ -431,6 +463,68 @@
                                 Se guarda cifrado. Si dejas este campo vacío, se usa el token global del servidor (FE_API_TOKEN en .env).
                             </div>
                         {/if}
+                    </div>
+
+                    <div class="col-12">
+                        <div class="taguara-fe-connection">
+                            <div class="d-flex align-items-start gap-3">
+                                <span class={`taguara-fe-connection-icon ${connectionCheck?.ok ? 'is-ok' : connectionCheck ? 'is-down' : ''}`}>
+                                    {#if connectionCheck?.ok}
+                                        <Wifi size={18} />
+                                    {:else}
+                                        <WifiOff size={18} />
+                                    {/if}
+                                </span>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+                                        <div>
+                                            <p class="fw-semibold mb-1">Estado API Nextpyme</p>
+                                            <p class="text-secondary small mb-0">
+                                                {connectionCheck?.message ?? 'Prueba la conexión con el token guardado o con el token temporal escrito arriba.'}
+                                            </p>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-2" type="button" onclick={testConnection} disabled={connectionChecking}>
+                                            {#if connectionChecking}
+                                                <span class="spinner-border spinner-border-sm"></span>
+                                                Probando...
+                                            {:else}
+                                                <Wifi size={15} />
+                                                Probar conexión
+                                            {/if}
+                                        </button>
+                                    </div>
+
+                                    {#if connectionCheck}
+                                        <div class="taguara-fe-connection-grid">
+                                            <span>
+                                                <strong>{connectionCheck.ok ? 'Online' : 'Con error'}</strong>
+                                                <small>Resultado</small>
+                                            </span>
+                                            <span>
+                                                <strong>{connectionCheck.status_code ?? 'N/D'}</strong>
+                                                <small>HTTP</small>
+                                            </span>
+                                            <span>
+                                                <strong>{connectionCheck.duration_ms ?? 0} ms</strong>
+                                                <small>Tiempo</small>
+                                            </span>
+                                            <span>
+                                                <strong>{connectionCheck.token_source ?? 'N/D'}</strong>
+                                                <small>Token</small>
+                                            </span>
+                                        </div>
+                                        {#if connectionCheck.company?.name || connectionCheck.company?.identification_number}
+                                            <div class="small text-secondary mt-2">
+                                                Empresa: <strong>{connectionCheck.company.name ?? 'Sin nombre'}</strong>
+                                                {#if connectionCheck.company.identification_number}
+                                                    · NIT {connectionCheck.company.identification_number}
+                                                {/if}
+                                            </div>
+                                        {/if}
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-12">

@@ -73,6 +73,22 @@ class CashSession extends Model
         return $this->hasMany(Sale::class);
     }
 
+    /**
+     * @return HasMany<SalePayment, $this>
+     */
+    public function salePayments(): HasMany
+    {
+        return $this->hasMany(SalePayment::class);
+    }
+
+    /**
+     * @return HasMany<CashSessionPaymentCount, $this>
+     */
+    public function paymentCounts(): HasMany
+    {
+        return $this->hasMany(CashSessionPaymentCount::class);
+    }
+
     public function isOpen(): bool
     {
         return $this->status === CashSessionStatus::Open;
@@ -81,6 +97,20 @@ class CashSession extends Model
     /** Total cash collected (only cash payment method sales). */
     public function cashSalesTotal(): int
     {
+        if ($this->relationLoaded('salePayments')) {
+            return (int) $this->salePayments
+                ->filter(fn (SalePayment $payment): bool => $payment->paymentMethod?->affects_cash === true)
+                ->sum('amount');
+        }
+
+        $detailedCash = (int) $this->salePayments()
+            ->whereHas('paymentMethod', fn ($query) => $query->where('affects_cash', true))
+            ->sum('amount');
+
+        if ($detailedCash > 0) {
+            return $detailedCash;
+        }
+
         return (int) $this->sales()->where('payment_method', 'cash')->sum('total');
     }
 
