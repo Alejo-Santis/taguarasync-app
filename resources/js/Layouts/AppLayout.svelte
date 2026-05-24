@@ -2,11 +2,13 @@
     import { Link, router } from '@inertiajs/svelte';
     import {
         BarChart3,
+        Bell,
         Boxes,
         Building2,
         ChevronDown,
         ChevronLeft,
         ChevronRight,
+        CheckCheck,
         FileText,
         LayoutDashboard,
         LogOut,
@@ -116,6 +118,25 @@
 
     const logout = () => {
         router.post('/logout');
+    };
+
+    const notifications = $derived(auth?.notifications ?? { unread_count: 0, items: [] });
+
+    const notificationClass = (severity) => {
+        if (severity === 'critical') return 'taguara-notification-dot--critical';
+        if (severity === 'warning') return 'taguara-notification-dot--warning';
+        return 'taguara-notification-dot--info';
+    };
+
+    const openNotification = (item) => {
+        router.patch(`/notifications/${item.id}/read`, {}, {
+            preserveScroll: true,
+            onSuccess: () => router.visit(item.href ?? '/dashboard'),
+        });
+    };
+
+    const markNotificationsRead = () => {
+        router.patch('/notifications/read-all', {}, { preserveScroll: true });
     };
 
     const userInitials = (name) =>
@@ -235,6 +256,51 @@
                     </span>
                     <span class="taguara-online-label">En línea</span>
                 </span>
+
+                <div class="dropdown">
+                    <button
+                        class="taguara-bell-btn"
+                        type="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                        aria-label="Notificaciones"
+                    >
+                        <Bell size={18} />
+                        {#if notifications.unread_count > 0}
+                            <span class="taguara-bell-badge">{notifications.unread_count > 9 ? '9+' : notifications.unread_count}</span>
+                        {/if}
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end taguara-notification-menu">
+                        <div class="taguara-notification-header">
+                            <div>
+                                <p class="mb-0 fw-semibold">Notificaciones</p>
+                                <span>{notifications.unread_count} pendiente{notifications.unread_count === 1 ? '' : 's'}</span>
+                            </div>
+                            {#if notifications.unread_count > 0}
+                                <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={markNotificationsRead} title="Marcar todas como leídas">
+                                    <CheckCheck size={15} />
+                                </button>
+                            {/if}
+                        </div>
+                        <div class="taguara-notification-list">
+                            {#each notifications.items as item}
+                                <button class="taguara-notification-item" type="button" onclick={() => openNotification(item)}>
+                                    <span class={`taguara-notification-dot ${notificationClass(item.severity)}`}></span>
+                                    <span class="taguara-notification-body">
+                                        <span class="taguara-notification-title">{item.title}</span>
+                                        <span class="taguara-notification-text">{item.body}</span>
+                                        <span class="taguara-notification-time">{item.created_at}</span>
+                                    </span>
+                                </button>
+                            {:else}
+                                <div class="taguara-notification-empty">
+                                    <Bell size={20} />
+                                    <span>Sin alertas pendientes</span>
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+                </div>
 
                 <!-- User menu -->
                 <div class="dropdown">

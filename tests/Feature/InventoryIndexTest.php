@@ -7,6 +7,7 @@ use App\Models\ProductPresentation;
 use App\Models\ProductUnit;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -46,7 +47,9 @@ test('authenticated users only see inventory lots from their tenant', function (
         ->for($otherTenant)
         ->create(['lot_number' => 'LOT-HIDDEN', 'current_quantity' => 99]);
 
+    app(RoleAndPermissionSeeder::class)->run();
     $user = User::factory()->for($tenant)->create();
+    $user->assignRole('warehouse');
 
     $this
         ->actingAs($user)

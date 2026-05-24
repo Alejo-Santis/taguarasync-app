@@ -583,6 +583,143 @@ body {
     white-space: nowrap;
 }
 
+/* ── Notifications ─── */
+.taguara-bell-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--taguara-border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--taguara-text);
+    cursor: pointer;
+    transition: border-color var(--taguara-transition), background var(--taguara-transition), box-shadow var(--taguara-transition);
+}
+
+.taguara-bell-btn:hover,
+.taguara-bell-btn[aria-expanded="true"] {
+    border-color: rgba(20, 108, 67, 0.3);
+    background: var(--taguara-soft-green);
+    box-shadow: var(--taguara-shadow-sm);
+}
+
+.taguara-bell-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #dc3545;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.taguara-notification-menu {
+    width: min(360px, calc(100vw - 1.5rem));
+    padding: 0;
+    border: 1px solid var(--taguara-border) !important;
+    border-radius: 12px !important;
+    box-shadow: var(--taguara-shadow-md) !important;
+    overflow: hidden;
+}
+
+.taguara-notification-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--taguara-border);
+    background: var(--taguara-surface);
+}
+
+.taguara-notification-header span {
+    color: var(--taguara-muted);
+    font-size: 0.78rem;
+}
+
+.taguara-notification-list {
+    max-height: 360px;
+    overflow-y: auto;
+}
+
+.taguara-notification-item {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.875rem 1rem;
+    border: 0;
+    border-bottom: 1px solid var(--taguara-border);
+    background: #fff;
+    text-align: left;
+    cursor: pointer;
+}
+
+.taguara-notification-item:hover {
+    background: var(--taguara-soft-green);
+}
+
+.taguara-notification-item:last-child {
+    border-bottom: 0;
+}
+
+.taguara-notification-dot {
+    width: 10px;
+    height: 10px;
+    margin-top: 0.35rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.taguara-notification-dot--critical { background: #dc3545; }
+.taguara-notification-dot--warning { background: #f0ad4e; }
+.taguara-notification-dot--info { background: var(--taguara-primary); }
+
+.taguara-notification-body {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.taguara-notification-title {
+    color: var(--taguara-text);
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.taguara-notification-text {
+    color: var(--taguara-muted);
+    font-size: 0.8rem;
+    line-height: 1.35;
+}
+
+.taguara-notification-time {
+    color: #9aa4b2;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.taguara-notification-empty {
+    display: grid;
+    place-items: center;
+    gap: 0.5rem;
+    padding: 2rem 1rem;
+    color: var(--taguara-muted);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
 /* ── User button ─── */
 .taguara-user-btn {
     display: inline-flex;
@@ -2008,6 +2145,28 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.875rem;
     margin-top: 1rem;
+}
+
+.taguara-pos-upload {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: 42px;
+    padding: 0.5rem 0.75rem;
+    border: 1px dashed rgba(20, 108, 67, 0.45);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--taguara-primary-dark);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.taguara-pos-upload span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .taguara-pos-method-btn:hover {

@@ -16,7 +16,10 @@ use App\Models\ProductUnit;
 use App\Models\SalePayment;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -155,4 +158,53 @@ test('cash session close stores payment counts by method', function () {
         ->expected_amount->toBe(20000)
         ->counted_amount->toBe(20000)
         ->difference->toBe(0);
+});
+
+test('transfer payments can store and download receipt attachments', function () {
+    Storage::fake('local');
+
+    [
+        'bankAccount' => $bankAccount,
+        'presentation' => $presentation,
+        'product' => $product,
+        'session' => $session,
+        'tenant' => $tenant,
+        'transferMethod' => $transferMethod,
+        'user' => $user,
+    ] = paymentDistributionSetup();
+
+    app(RoleAndPermissionSeeder::class)->run();
+    $user->assignRole('cashier');
+
+    $sale = app(ProcessSale::class)->execute([
+        'payment_method' => 'transfer',
+        'payments' => [
+            [
+                'payment_method_id' => $transferMethod->id,
+                'bank_account_id' => $bankAccount->id,
+                'amount' => 20000,
+                'reference' => 'TRX-ATTACH',
+                'attachment' => UploadedFile::fake()->image('comprobante.jpg'),
+            ],
+        ],
+        'items' => [[
+            'product_id' => $product->id,
+            'product_presentation_id' => $presentation->id,
+            'description' => $product->commercial_name,
+            'quantity' => 2,
+            'unit_price' => 10000,
+            'tax_rate' => 0,
+        ]],
+    ], $user, $session->id);
+
+    $payment = $sale->payments()->firstOrFail();
+
+    expect($payment->attachment_path)->not->toBeNull()
+        ->and($payment->attachment_path)->toStartWith("tenants/{$tenant->id}/payment-receipts/");
+
+    Storage::disk('local')->assertExists($payment->attachment_path);
+
+    $this->actingAs($user)
+        ->get(route('sales.payments.attachment', $payment))
+        ->assertOk();
 });

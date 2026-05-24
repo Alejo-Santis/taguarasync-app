@@ -182,6 +182,7 @@ class PosController extends Controller
                     'method' => $payment->paymentMethod?->name ?? $sale->payment_method->label(),
                     'amount' => $payment->amount,
                     'reference' => $payment->reference,
+                    'has_attachment' => $payment->attachment_path !== null,
                 ]),
             'items_count' => $sale->items()->count(),
         ]);

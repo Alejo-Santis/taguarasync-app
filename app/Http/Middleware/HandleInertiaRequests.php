@@ -41,6 +41,24 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'auth' => [
                 'user' => $request->user()?->only('id', 'name', 'email', 'is_super_admin'),
+                'notifications' => fn () => $request->user() ? [
+                    'unread_count' => $request->user()->unreadNotifications()->count(),
+                    'items' => $request->user()
+                        ->unreadNotifications()
+                        ->latest()
+                        ->limit(8)
+                        ->get(['id', 'type', 'data', 'created_at'])
+                        ->map(fn ($notification) => [
+                            'id' => $notification->id,
+                            'type' => $notification->type,
+                            'title' => $notification->data['title'] ?? 'Notificación',
+                            'body' => $notification->data['body'] ?? '',
+                            'severity' => $notification->data['severity'] ?? 'info',
+                            'href' => $notification->data['href'] ?? '/dashboard',
+                            'created_at' => $notification->created_at?->diffForHumans(),
+                        ])
+                        ->all(),
+                ] : ['unread_count' => 0, 'items' => []],
                 'tenant' => $tenant ? [
                     'uuid' => $tenant->uuid,
                     'name' => $tenant->name,

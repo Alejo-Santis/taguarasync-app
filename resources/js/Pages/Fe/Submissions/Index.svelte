@@ -43,6 +43,7 @@
             'accepted': 'text-bg-success',
             'accepted_rule90': 'text-bg-success',
             'rejected': 'text-bg-danger',
+            'contingency': 'text-bg-warning text-dark',
             'pending': 'text-bg-warning text-dark',
         };
         return map[status] ?? 'text-bg-secondary';
@@ -54,6 +55,7 @@
             'accepted': 'Aceptada',
             'accepted_rule90': 'Aceptada (Regla 90)',
             'rejected': 'Rechazada',
+            'contingency': 'Contingencia',
             'pending': 'Pendiente',
         };
         return map[status] ?? status ?? '—';
@@ -115,6 +117,15 @@
             </div>
             <div class="col-6 col-md-2">
                 <div class="taguara-kpi-card">
+                    <span class="taguara-kpi-icon text-bg-warning"><AlertTriangle size={18} /></span>
+                    <div>
+                        <div class="fw-bold text-warning" style="font-size:1.4rem">{stats.contingency.toLocaleString()}</div>
+                        <div class="text-secondary small">Contingencia</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="taguara-kpi-card">
                     <span class="taguara-kpi-icon text-bg-danger"><XCircle size={18} /></span>
                     <div>
                         <div class="fw-bold text-danger" style="font-size:1.4rem">{stats.rejected.toLocaleString()}</div>
@@ -152,6 +163,7 @@
                         <option value="accepted">Aceptada</option>
                         <option value="accepted_rule90">Aceptada (Regla 90)</option>
                         <option value="rejected">Rechazada</option>
+                        <option value="contingency">Contingencia</option>
                     </select>
                 </label>
                 <label class="form-label mb-0">
@@ -228,7 +240,7 @@
                                 <td class="text-secondary" style="font-size:.8rem">{item.submitted_at ?? '—'}</td>
                                 <td class="text-secondary" style="font-size:.8rem">{item.responded_at ?? '—'}</td>
                                 <td>
-                                    {#if !item.is_non_recoverable && (item.response_status === 'rejected' || item.fe_status === 'pending')}
+                                    {#if !item.is_non_recoverable && (item.response_status === 'rejected' || item.response_status === 'contingency' || item.fe_status === 'pending' || item.fe_status === 'contingency')}
                                         <button
                                             class="btn btn-sm btn-light border d-inline-flex align-items-center gap-1"
                                             type="button"

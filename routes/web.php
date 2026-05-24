@@ -8,6 +8,7 @@ use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Inventory\InventoryStockPrintController;
 use App\Http\Controllers\Inventory\KardexController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Pos\CashSessionController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ProfileController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Reports\PurchasesReportController;
 use App\Http\Controllers\Reports\SalesReportController;
 use App\Http\Controllers\Sales\CreditNoteController;
 use App\Http\Controllers\Sales\SaleController;
+use App\Http\Controllers\Sales\SalePaymentAttachmentController;
 use App\Http\Controllers\Settings\ActiveIngredientController;
 use App\Http\Controllers\Settings\BankAccountController;
 use App\Http\Controllers\Settings\CashRegisterController;
@@ -40,6 +42,8 @@ Route::get('/', function () {
 // ── Acceso general (cualquier usuario autenticado) ─────────────────────────
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
+    Route::patch('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
 });
 
 // ── Dashboard y búsqueda ───────────────────────────────────────────────────
@@ -120,6 +124,7 @@ Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
 // ── Ventas — consulta y recibo ────────────────────────────────────────────
 Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sales.')->group(function () {
     Route::get('/', [SaleController::class, 'index'])->name('index');
+    Route::get('payments/{salePayment}/attachment', [SalePaymentAttachmentController::class, 'show'])->name('payments.attachment');
     Route::get('{sale}', [SaleController::class, 'show'])->name('show');
     Route::get('{sale}/receipt', [SaleController::class, 'receipt'])->name('receipt');
 });

@@ -8,6 +8,7 @@
         CircleDollarSign,
         Eye,
         Filter,
+        Paperclip,
         PrinterCheck,
         ReceiptText,
         RotateCcw,
@@ -342,6 +343,21 @@
                         <span class="taguara-drawer-label">Cajero</span>
                         <span>{selectedSale.cashier}</span>
                     </div>
+                    {#if selectedSale.payments?.some((payment) => payment.has_attachment)}
+                        <div class="mt-3 d-grid gap-2">
+                            {#each selectedSale.payments.filter((payment) => payment.has_attachment) as payment}
+                                <a
+                                    class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2"
+                                    href={payment.attachment_url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
+                                    <Paperclip size={14} />
+                                    Comprobante {payment.method} · {fmt(payment.amount)}
+                                </a>
+                            {/each}
+                        </div>
+                    {/if}
                 </div>
 
                 <!-- Facturación electrónica -->
@@ -355,6 +371,9 @@
                             {:else if selectedSale.fe.status === 'rejected'}
                                 <ShieldOff size={16} class="text-danger" />
                                 <span class="badge text-bg-danger">{selectedSale.fe.status_label}</span>
+                            {:else if selectedSale.fe.status === 'contingency'}
+                                <AlertCircle size={16} class="text-warning" />
+                                <span class="badge text-bg-warning text-dark">{selectedSale.fe.status_label}</span>
                             {:else}
                                 <span class="badge text-bg-warning text-dark">{selectedSale.fe.status_label}</span>
                             {/if}
@@ -387,7 +406,7 @@
                     <PrinterCheck size={17} />
                     Imprimir recibo
                 </a>
-                {#if selectedSale.fe?.status === 'pending' || selectedSale.fe?.status === 'rejected'}
+                {#if selectedSale.fe?.status === 'pending' || selectedSale.fe?.status === 'rejected' || selectedSale.fe?.status === 'contingency'}
                     <button
                         class="btn btn-outline-warning w-100 d-inline-flex align-items-center justify-content-center gap-2"
                         type="button"

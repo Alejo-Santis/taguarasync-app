@@ -10,6 +10,7 @@ use App\Models\Sale;
 use App\Models\Tenant;
 use App\Services\Fe\InvoicePayloadBuilder;
 use App\Services\Fe\NextpymeClient;
+use Illuminate\Http\Client\ConnectionException;
 use Throwable;
 
 class EmitElectronicInvoice
@@ -183,13 +184,15 @@ class EmitElectronicInvoice
                 return;
             }
 
+            $isTransmissionFailure = $e instanceof ConnectionException || ! $isNonRecoverable;
+
             $sale->update([
-                'fe_status' => FeStatus::Rejected,
+                'fe_status' => $isTransmissionFailure ? FeStatus::Contingency : FeStatus::Rejected,
                 'fe_error_message' => $e->getMessage(),
             ]);
 
             $submission->update([
-                'response_status' => 'rejected',
+                'response_status' => $isTransmissionFailure ? 'contingency' : 'rejected',
                 'is_non_recoverable' => $isNonRecoverable,
                 'response_payload' => ['error' => $e->getMessage()],
                 'responded_at' => now(),

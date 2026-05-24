@@ -18,7 +18,7 @@
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, lots, filters, stats, statuses, laboratories } = $props();
+    let { auth, lots, filters, stats, statuses, laboratories, laboratory_lot_counts } = $props();
 
     let form = $state({
         q: '',
@@ -81,6 +81,12 @@
         const query = params.toString();
 
         return `/inventory/print/stock-by-laboratory${query ? `?${query}` : ''}`;
+    });
+
+    // Lotes con stock para el laboratorio seleccionado (0 = sin existencias)
+    const selectedLabLotCount = $derived.by(() => {
+        if (!printForm.laboratory_id) return null; // "Todos" — no advertir
+        return laboratory_lot_counts[printForm.laboratory_id] ?? 0;
     });
 
     $effect(() => {
@@ -278,7 +284,10 @@
                     <select class="form-select" bind:value={printForm.laboratory_id}>
                         <option value="">Todos los laboratorios</option>
                         {#each laboratories as laboratory}
-                            <option value={laboratory.id}>{laboratory.name}</option>
+                            {@const count = laboratory_lot_counts[laboratory.id] ?? 0}
+                            <option value={laboratory.id}>
+                                {laboratory.name}{count === 0 ? ' — sin stock' : ` (${count} lotes)`}
+                            </option>
                         {/each}
                     </select>
                 </label>
@@ -289,12 +298,33 @@
                 </label>
 
                 <div class="d-flex align-items-end">
-                    <a class="btn btn-taguara d-inline-flex align-items-center gap-2" href={stockPrintUrl} target="_blank" rel="noreferrer">
+                    <a
+                        class="btn btn-taguara d-inline-flex align-items-center gap-2"
+                        href={stockPrintUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        class:disabled={selectedLabLotCount === 0 && !printForm.include_zero}
+                        aria-disabled={selectedLabLotCount === 0 && !printForm.include_zero}
+                    >
                         <Printer size={17} />
                         Imprimir planilla
                     </a>
                 </div>
             </div>
+
+            {#if selectedLabLotCount === 0 && !printForm.include_zero}
+                <div class="alert alert-warning d-flex align-items-center gap-2 mb-0 mt-2 py-2">
+                    <AlertTriangle size={16} class="flex-shrink-0" />
+                    <span class="small">
+                        Este laboratorio no tiene lotes con existencias.
+                        Activa <strong>"Incluir lotes en cero"</strong> para imprimir de todas formas.
+                    </span>
+                </div>
+            {:else if selectedLabLotCount !== null && selectedLabLotCount > 0}
+                <p class="small text-secondary mb-0 mt-2">
+                    {selectedLabLotCount} lote{selectedLabLotCount !== 1 ? 's' : ''} con existencias para este laboratorio.
+                </p>
+            {/if}
         </section>
 
         <section class="taguara-panel">
@@ -330,6 +360,9 @@
                                         <div class="taguara-table-name">{lot.product.name}</div>
                                         <div class="taguara-table-sub">
                                             {lot.product.internal_code ?? 'Sin codigo'} · {lot.presentation?.name ?? 'Sin presentacion'}
+                                            {#if lot.product.laboratory}
+                                                · {lot.product.laboratory}
+                                            {/if}
                                         </div>
                                     </td>
                                     <td>
@@ -438,6 +471,8 @@
                     <div class="taguara-drawer-grid">
                         <span class="taguara-drawer-label">Producto</span>
                         <span>{selectedLot.product.name ?? '—'}</span>
+                        <span class="taguara-drawer-label">Laboratorio</span>
+                        <span>{selectedLot.product.laboratory ?? '—'}</span>
                         <span class="taguara-drawer-label">Codigo interno</span>
                         <span>{selectedLot.product.internal_code ?? '—'}</span>
                         <span class="taguara-drawer-label">Generico</span>

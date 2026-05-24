@@ -19,6 +19,7 @@
         ShieldAlert,
         ShoppingCart,
         Trash2,
+        Upload,
         User,
         UserPlus,
         X,
@@ -51,6 +52,7 @@
     let amountTendered = $state('');
     let paymentReference = $state('');
     let paymentBankAccountId = $state('');
+    let paymentAttachment = $state(null);
     let isProcessing = $state(false);
     let amountTenderedInput = $state(null);
 
@@ -321,6 +323,7 @@
         paymentMethod = legacyPaymentMethod(method);
         amountTendered = '';
         paymentReference = '';
+        paymentAttachment = null;
         paymentBankAccountId = method.requires_bank_account && bankAccounts.length === 1 ? String(bankAccounts[0].id) : '';
         if (method.affects_cash || method.type === 'cash') {
             await focusAmountTendered();
@@ -352,6 +355,7 @@
                 amount: cartTotal,
                 amount_tendered: isCashPayment ? Number(amountTendered) : null,
                 reference: paymentReference || null,
+                attachment: selectedPaymentMethod.allows_attachment ? paymentAttachment : null,
             }] : undefined,
             items: cart.map(i => ({
                 product_id: i.product_id,
@@ -364,6 +368,7 @@
         };
 
         router.post('/pos/sales', payload, {
+            forceFormData: paymentAttachment !== null,
             onSuccess: () => {
                 paymentOpen = false;
                 isProcessing = false;
@@ -809,6 +814,24 @@
                                     bind:value={paymentReference}
                                     placeholder="Número de aprobación o comprobante"
                                 />
+                            </div>
+                        {/if}
+
+                        {#if selectedPaymentMethod?.allows_attachment}
+                            <div>
+                                <label class="form-label fw-semibold" for="payment-attachment">Comprobante</label>
+                                <label class="taguara-pos-upload" for="payment-attachment">
+                                    <Upload size={17} />
+                                    <span>{paymentAttachment ? paymentAttachment.name : 'Adjuntar foto o PDF'}</span>
+                                </label>
+                                <input
+                                    id="payment-attachment"
+                                    class="visually-hidden"
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                                    onchange={(e) => paymentAttachment = e.currentTarget.files?.[0] ?? null}
+                                />
+                                <div class="form-text">Opcional. Máximo 4 MB.</div>
                             </div>
                         {/if}
                     </div>

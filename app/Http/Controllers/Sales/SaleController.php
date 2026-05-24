@@ -27,7 +27,7 @@ class SaleController extends Controller
             'to' => $request->string('to')->toString(),
         ];
 
-        $sales = Sale::with(['cashSession.register', 'user', 'customer'])
+        $sales = Sale::with(['cashSession.register', 'user', 'customer', 'payments.paymentMethod'])
             ->withCount('items')
             ->when($filters['q'] !== '', fn ($q) => $q->where('document_number', 'like', "%{$filters['q']}%"))
             ->when($filters['method'] !== '', fn ($q) => $q->where('payment_method', $filters['method']))
@@ -59,6 +59,16 @@ class SaleController extends Controller
                     'cufe' => $s->fe_cufe,
                     'error_message' => $s->fe_error_message,
                 ],
+                'payments' => $s->payments->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'method' => $payment->paymentMethod?->name ?? $s->payment_method->label(),
+                    'amount' => $payment->amount,
+                    'reference' => $payment->reference,
+                    'has_attachment' => $payment->attachment_path !== null,
+                    'attachment_url' => $payment->attachment_path
+                        ? route('sales.payments.attachment', $payment, false)
+                        : null,
+                ])->values(),
             ]);
 
         return Inertia::render('Sales/Index', [
@@ -76,7 +86,7 @@ class SaleController extends Controller
 
     public function show(Sale $sale): Response
     {
-        $sale->load(['items.presentation', 'items.lot', 'user', 'cashSession.register', 'customer']);
+        $sale->load(['items.presentation', 'items.lot', 'user', 'cashSession.register', 'customer', 'payments.paymentMethod']);
 
         return Inertia::render('Sales/Show', [
             'sale' => [
@@ -116,6 +126,16 @@ class SaleController extends Controller
                     'line_tax' => $i->line_tax,
                     'line_total' => $i->line_total,
                 ])->values(),
+                'payments' => $sale->payments->map(fn ($payment) => [
+                    'id' => $payment->id,
+                    'method' => $payment->paymentMethod?->name ?? $sale->payment_method->label(),
+                    'amount' => $payment->amount,
+                    'reference' => $payment->reference,
+                    'has_attachment' => $payment->attachment_path !== null,
+                    'attachment_url' => $payment->attachment_path
+                        ? route('sales.payments.attachment', $payment, false)
+                        : null,
+                ])->values(),
             ],
         ]);
     }
@@ -131,8 +151,8 @@ class SaleController extends Controller
 
     public function retryFe(Sale $sale, Request $request): RedirectResponse
     {
-        if (! in_array($sale->fe_status?->value, [FeStatus::Pending->value, FeStatus::Rejected->value])) {
-            return back()->withErrors(['fe' => 'Solo se pueden reintentar facturas pendientes o rechazadas.']);
+        if (! in_array($sale->fe_status?->value, [FeStatus::Pending->value, FeStatus::Rejected->value, FeStatus::Contingency->value])) {
+            return back()->withErrors(['fe' => 'Solo se pueden reintentar facturas pendientes, en contingencia o rechazadas.']);
         }
 
         $sale->update(['fe_status' => FeStatus::Pending, 'fe_error_message' => null]);

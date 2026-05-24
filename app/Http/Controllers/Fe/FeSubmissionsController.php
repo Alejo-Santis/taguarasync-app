@@ -31,6 +31,7 @@ class FeSubmissionsController extends Controller
             'accepted' => Sale::where('fe_status', FeStatus::Accepted)->count(),
             'rejected' => Sale::where('fe_status', FeStatus::Rejected)->count(),
             'pending' => Sale::where('fe_status', FeStatus::Pending)->count(),
+            'contingency' => Sale::where('fe_status', FeStatus::Contingency)->count(),
             'non_recoverable' => FeSubmission::withoutGlobalScopes()
                 ->where('tenant_id', $tenantId)
                 ->where('is_non_recoverable', true)

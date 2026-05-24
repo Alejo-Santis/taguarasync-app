@@ -8,6 +8,7 @@ use App\Models\Laboratory;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ListInventoryLots
 {
@@ -17,7 +18,8 @@ class ListInventoryLots
      *     filters: array{q: string, status: string, expiry: string},
      *     stats: array{lots: int, units: int, expiring: int, depleted: int},
      *     statuses: array<int, array{value: string, label: string}>,
-     *     laboratories: array<int, array{id: int, name: string}>
+     *     laboratories: array<int, array{id: int, name: string}>,
+     *     laboratory_lot_counts: array<int, int>
      * }
      */
     public function execute(Request $request): array
@@ -43,7 +45,8 @@ class ListInventoryLots
                 'received_at',
             ])
             ->with([
-                'product:id,commercial_name,generic_name,pharmaceutical_form,concentration,internal_code',
+                'product:id,laboratory_id,commercial_name,generic_name,pharmaceutical_form,concentration,internal_code',
+                'product.laboratory:id,name',
                 'presentation:id,name,minimum_unit_quantity',
             ])
             ->when($filters['q'] !== '', fn (Builder $query) => $this->applySearch($query, $filters['q']))
@@ -72,6 +75,7 @@ class ListInventoryLots
                     'name' => $laboratory->name,
                 ])
                 ->all(),
+            'laboratory_lot_counts' => $this->laboratoryLotCounts(),
         ];
     }
 
@@ -120,6 +124,7 @@ class ListInventoryLots
                 'form' => $lot->product?->pharmaceutical_form,
                 'concentration' => $lot->product?->concentration,
                 'internal_code' => $lot->product?->internal_code,
+                'laboratory' => $lot->product?->laboratory?->name,
             ],
             'presentation' => $lot->presentation ? [
                 'name' => $lot->presentation->name,
@@ -157,5 +162,21 @@ class ListInventoryLots
     private function isValidStatus(string $status): bool
     {
         return InventoryLotStatus::tryFrom($status) !== null;
+    }
+
+    /**
+     * @return array<int, int> laboratory_id => count of lots with stock > 0
+     */
+    private function laboratoryLotCounts(): array
+    {
+        return DB::table('inventory_lots')
+            ->join('products', 'inventory_lots.product_id', '=', 'products.id')
+            ->whereNotNull('products.laboratory_id')
+            ->where('inventory_lots.current_quantity', '>', 0)
+            ->groupBy('products.laboratory_id')
+            ->select('products.laboratory_id', DB::raw('COUNT(*) as lot_count'))
+            ->pluck('lot_count', 'laboratory_id')
+            ->map(fn ($v) => (int) $v)
+            ->toArray();
     }
 }

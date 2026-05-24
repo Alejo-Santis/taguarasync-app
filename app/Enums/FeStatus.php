@@ -8,6 +8,7 @@ enum FeStatus: string
     case Sent = 'sent';
     case Accepted = 'accepted';
     case Rejected = 'rejected';
+    case Contingency = 'contingency';
     case NotApplicable = 'not_applicable';
 
     public function label(): string
@@ -17,6 +18,7 @@ enum FeStatus: string
             self::Sent => 'Enviada',
             self::Accepted => 'Aceptada',
             self::Rejected => 'Rechazada',
+            self::Contingency => 'Contingencia',
             self::NotApplicable => 'No aplica',
         };
     }

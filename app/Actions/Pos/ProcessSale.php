@@ -13,6 +13,7 @@ use App\Models\ProductPresentation;
 use App\Models\Sale;
 use App\Models\SalePayment;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
@@ -32,6 +33,7 @@ class ProcessSale
      *         amount: int,
      *         amount_tendered?: int|null,
      *         reference?: string|null,
+     *         attachment?: mixed,
      *         notes?: string|null
      *     }>,
      *     items: array<int, array{
@@ -122,6 +124,7 @@ class ProcessSale
                     'amount_tendered' => $paymentData['amount_tendered'] ?? null,
                     'change_amount' => $paymentData['change_amount'] ?? null,
                     'reference' => $paymentData['reference'] ?? null,
+                    'attachment_path' => $paymentData['attachment_path'] ?? null,
                     'status' => 'confirmed',
                     'paid_at' => now(),
                     'notes' => $paymentData['notes'] ?? null,
@@ -155,6 +158,7 @@ class ProcessSale
                 'amount_tendered' => isset($payment['amount_tendered']) ? (int) $payment['amount_tendered'] : null,
                 'change_amount' => null,
                 'reference' => $payment['reference'] ?? null,
+                'attachment_path' => $this->storeAttachment($payment['attachment'] ?? null, $user),
                 'notes' => $payment['notes'] ?? null,
             ])->all();
         }
@@ -168,8 +172,18 @@ class ProcessSale
             'amount_tendered' => $amountTendered,
             'change_amount' => $change,
             'reference' => null,
+            'attachment_path' => null,
             'notes' => null,
         ]];
+    }
+
+    private function storeAttachment(mixed $attachment, User $user): ?string
+    {
+        if (! $attachment instanceof UploadedFile) {
+            return null;
+        }
+
+        return $attachment->store("tenants/{$user->tenant_id}/payment-receipts");
     }
 
     private function paymentMethodForLegacyValue(string $legacyValue, User $user): PaymentMethodConfig

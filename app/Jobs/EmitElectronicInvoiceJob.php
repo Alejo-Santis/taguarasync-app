@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Actions\Fe\EmitElectronicInvoice;
+use App\Enums\FeStatus;
 use App\Models\Sale;
 use App\Models\Tenant;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,6 +35,9 @@ class EmitElectronicInvoiceJob implements ShouldQueue
     {
         Sale::withoutGlobalScopes()
             ->find($this->saleId)
-            ?->update(['fe_error_message' => $exception->getMessage()]);
+            ?->update([
+                'fe_status' => FeStatus::Contingency,
+                'fe_error_message' => $exception->getMessage(),
+            ]);
     }
 }

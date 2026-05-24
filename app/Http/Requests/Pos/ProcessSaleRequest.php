@@ -5,6 +5,7 @@ namespace App\Http\Requests\Pos;
 use App\Enums\PaymentMethod;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 
 class ProcessSaleRequest extends FormRequest
 {
@@ -35,6 +36,7 @@ class ProcessSaleRequest extends FormRequest
             'payments.*.amount' => ['required_with:payments', 'integer', 'min:1'],
             'payments.*.amount_tendered' => ['nullable', 'integer', 'min:0'],
             'payments.*.reference' => ['nullable', 'string', 'max:120'],
+            'payments.*.attachment' => ['nullable', File::types(['jpg', 'jpeg', 'png', 'webp', 'pdf'])->max(4 * 1024)],
             'payments.*.notes' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1', 'max:50'],
             'items.*.product_id' => [
