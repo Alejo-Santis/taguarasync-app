@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'tenant_id',
     'credit_note_id',
+    'sale_item_id',
     'product_id',
     'product_presentation_id',
     'description',

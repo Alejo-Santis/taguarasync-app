@@ -5,6 +5,8 @@
         AlertCircle,
         Building2,
         CalendarClock,
+        Eye,
+        EyeOff,
         FileText,
         Hash,
         Pencil,
@@ -21,7 +23,6 @@
     import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
 
     let { auth, tenant, fe_config, resolutions, options } = $props();
-
     // ── Algoritmo DV colombiano (DIAN) ─────────────────────────────────────────
     const calculateDv = (nit) => {
         const primes = [71, 67, 59, 53, 47, 43, 41, 37, 29, 23, 19, 17, 13, 7, 3];
@@ -71,23 +72,42 @@
 
     let connectionCheck = $state(null);
     let connectionChecking = $state(false);
+    let showStoredToken = $state(false);
+    let showEditableToken = $state(false);
+
+    const getCsrfToken = () => {
+        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    };
 
     const testConnection = async () => {
         connectionChecking = true;
         connectionCheck = null;
 
         try {
-            const response = await fetch('/settings/fe/test-connection', {
+            const response = await fetch(options.routes?.test_connection ?? '/settings/fe/test-connection', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                    'X-XSRF-TOKEN': getCsrfToken(),
                 },
                 body: JSON.stringify({ api_token: fiscalForm.api_token || null }),
             });
 
-            connectionCheck = await response.json();
+            const contentType = response.headers.get('content-type') ?? '';
+            if (contentType.includes('application/json')) {
+                connectionCheck = await response.json();
+            } else {
+                connectionCheck = {
+                    ok: false,
+                    message: response.status === 419
+                        ? 'La sesión expiró. Recarga la página e intenta de nuevo.'
+                        : `No se pudo leer la respuesta del servidor (HTTP ${response.status}).`,
+                    status_code: response.status,
+                    checked_at: new Date().toLocaleString(),
+                };
+            }
         } catch (error) {
             connectionCheck = {
                 ok: false,
@@ -133,6 +153,7 @@
         valid_from: '',
         valid_until: '',
         environment: fe_config.environment ?? 'test',
+        next_document_number: '',
     });
 
     $effect(() => {
@@ -159,6 +180,7 @@
         resolutionForm.technical_key = item.technical_key;
         resolutionForm.from_number = item.from_number;
         resolutionForm.to_number = item.to_number;
+        resolutionForm.next_document_number = item.next_document_number;
         resolutionForm.valid_from = item.valid_from;
         resolutionForm.valid_until = item.valid_until;
         resolutionForm.environment = item.environment;
@@ -439,6 +461,33 @@
                     </div>
 
                     <div class="col-12">
+                        {#if fe_config.api_token_value}
+                            <div class="taguara-token-preview mb-3">
+                                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                                    <div>
+                                        <p class="small fw-semibold mb-1">Token actual en uso</p>
+                                        <p class="text-secondary small mb-0">
+                                            Origen: {fe_config.api_token_source === 'tenant' ? 'configuración de la farmacia' : 'token global del servidor'}
+                                        </p>
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                        type="button"
+                                        aria-label={showStoredToken ? 'Ocultar token actual' : 'Ver token actual'}
+                                        onclick={() => showStoredToken = !showStoredToken}
+                                    >
+                                        {#if showStoredToken}<EyeOff size={15} />{:else}<Eye size={15} />{/if}
+                                    </button>
+                                </div>
+                                <input
+                                    class="form-control font-monospace"
+                                    type={showStoredToken ? 'text' : 'password'}
+                                    value={fe_config.api_token_value}
+                                    readonly
+                                />
+                            </div>
+                        {/if}
+
                         <label class="form-label" for="fe-api-token">
                             Token API Nextpyme
                             {#if fe_config.api_token_set}
@@ -447,15 +496,25 @@
                                 <span class="badge text-bg-warning text-dark ms-1" style="font-size:.7rem">No configurado</span>
                             {/if}
                         </label>
-                        <input
-                            id="fe-api-token"
-                            class="form-control font-monospace"
-                            class:is-invalid={fiscalForm.errors.api_token}
-                            type="password"
-                            placeholder={fe_config.api_token_set ? 'Dejar vacío para mantener el token actual' : 'Pegar el Bearer token de tu cuenta Nextpyme'}
-                            autocomplete="off"
-                            bind:value={fiscalForm.api_token}
-                        />
+                        <div class="taguara-token-input">
+                            <input
+                                id="fe-api-token"
+                                class="form-control font-monospace"
+                                class:is-invalid={fiscalForm.errors.api_token}
+                                type={showEditableToken ? 'text' : 'password'}
+                                placeholder={fe_config.api_token_set ? 'Dejar vacío para mantener el token actual' : 'Pegar el Bearer token de tu cuenta Nextpyme'}
+                                autocomplete="off"
+                                bind:value={fiscalForm.api_token}
+                            />
+                            <button
+                                class="btn btn-light border taguara-token-eye"
+                                type="button"
+                                aria-label={showEditableToken ? 'Ocultar token nuevo' : 'Ver token nuevo'}
+                                onclick={() => showEditableToken = !showEditableToken}
+                            >
+                                {#if showEditableToken}<EyeOff size={16} />{:else}<Eye size={16} />{/if}
+                            </button>
+                        </div>
                         {#if fiscalForm.errors.api_token}
                             <div class="invalid-feedback">{fiscalForm.errors.api_token}</div>
                         {:else}
@@ -608,6 +667,7 @@
                                         <Hash size={12} class="text-secondary me-1" />{item.from_number.toLocaleString()} – {item.to_number.toLocaleString()}
                                     </div>
                                     <div class="taguara-table-sub">Actual: {item.current_number.toLocaleString()}</div>
+                                    <div class="taguara-table-sub">Siguiente: {item.next_document_number.toLocaleString()}</div>
                                 </td>
                                 <td>
                                     <div style="font-size:.875rem">{item.valid_from} → {item.valid_until}</div>
@@ -816,6 +876,25 @@
                                     <div class="invalid-feedback">{resolutionForm.errors.to_number}</div>
                                 {/if}
                             </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="res-next">Siguiente consecutivo a emitir</label>
+                            <input
+                                id="res-next"
+                                class="form-control"
+                                class:is-invalid={resolutionForm.errors.next_document_number}
+                                type="number"
+                                min={resolutionForm.from_number || 1}
+                                max={resolutionForm.to_number || undefined}
+                                placeholder={resolutionForm.from_number || '1'}
+                                bind:value={resolutionForm.next_document_number}
+                            />
+                            {#if resolutionForm.errors.next_document_number}
+                                <div class="invalid-feedback">{resolutionForm.errors.next_document_number}</div>
+                            {:else}
+                                <div class="form-text">Úsalo cuando la resolución ya viene avanzada. Si escribes 1520, la próxima factura será el prefijo + 1520.</div>
+                            {/if}
                         </div>
 
                         <div class="row g-3">

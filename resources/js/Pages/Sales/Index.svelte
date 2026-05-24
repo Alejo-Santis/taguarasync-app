@@ -397,7 +397,7 @@
                         Reintentar emisión FE
                     </button>
                 {/if}
-                {#if selectedSale.status.value === 'completed' && selectedSale.fe?.cufe}
+                {#if selectedSale.status.value === 'completed'}
                     <a
                         class="btn btn-outline-secondary w-100 d-inline-flex align-items-center justify-content-center gap-2"
                         href={`/sales/${selectedSale.uuid}/credit-notes/create`}

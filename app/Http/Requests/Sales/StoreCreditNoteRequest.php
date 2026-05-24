@@ -21,7 +21,7 @@ class StoreCreditNoteRequest extends FormRequest
             'discrepancy_reason_code' => ['required', 'string', Rule::exists('dian_discrepancy_reasons', 'code')->where('applies_to', 'credit_note')],
             'notes' => ['nullable', 'string', 'max:500'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.sale_item_id' => ['required', 'integer'],
+            'items.*.sale_item_id' => ['required', 'integer', Rule::exists('sale_items', 'id')->where('sale_id', $this->route('sale')?->id)],
             'items.*.description' => ['required', 'string', 'max:260'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
             'items.*.unit_price' => ['required', 'integer', 'min:0'],

@@ -13,15 +13,16 @@ class NextpymeClient
      * Status and utility endpoints do NOT use the /ubl2.1/ prefix.
      * Source: https://developers.nextpyme.plus/docs/home
      */
-    private const UBL_PREFIX = '/ubl2.1';
-
     private string $baseUrl;
+
+    private string $ublPrefix;
 
     private string $globalToken;
 
     public function __construct()
     {
         $this->baseUrl = rtrim((string) config('fe.api_url'), '/');
+        $this->ublPrefix = '/'.trim((string) config('fe.ubl_prefix', '/ubl2.1'), '/');
         $this->globalToken = (string) config('fe.api_token');
     }
 
@@ -39,17 +40,17 @@ class NextpymeClient
 
     public function createInvoice(array $payload): array
     {
-        return $this->post(self::UBL_PREFIX.'/invoice', $payload);
+        return $this->post($this->ublPath('/invoice'), $payload);
     }
 
     public function createCreditNote(array $payload): array
     {
-        return $this->post(self::UBL_PREFIX.'/credit-note', $payload);
+        return $this->post($this->ublPath('/credit-note'), $payload);
     }
 
     public function createDebitNote(array $payload): array
     {
-        return $this->post(self::UBL_PREFIX.'/debit-note', $payload);
+        return $this->post($this->ublPath('/debit-note'), $payload);
     }
 
     public function getDocumentStatus(string $xmlDocumentKey): array
@@ -76,6 +77,11 @@ class NextpymeClient
         $this->assertSuccessful($response, $path);
 
         return $response->json() ?? [];
+    }
+
+    private function ublPath(string $path): string
+    {
+        return $this->ublPrefix.'/'.ltrim($path, '/');
     }
 
     private function assertSuccessful(Response $response, string $path): void

@@ -19,6 +19,7 @@ use App\Http\Controllers\Reports\SalesReportController;
 use App\Http\Controllers\Sales\CreditNoteController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Settings\ActiveIngredientController;
+use App\Http\Controllers\Settings\BankAccountController;
 use App\Http\Controllers\Settings\CashRegisterController;
 use App\Http\Controllers\Settings\FeResolutionController;
 use App\Http\Controllers\Settings\FeSettingsController;
@@ -191,6 +192,11 @@ Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->n
     Route::post('registers', [CashRegisterController::class, 'store'])->name('registers.store');
     Route::put('registers/{register}', [CashRegisterController::class, 'update'])->name('registers.update');
     Route::patch('registers/{register}/toggle', [CashRegisterController::class, 'toggle'])->name('registers.toggle');
+
+    Route::get('banks', [BankAccountController::class, 'index'])->name('banks.index');
+    Route::post('banks', [BankAccountController::class, 'store'])->name('banks.store');
+    Route::put('banks/{bankAccount}', [BankAccountController::class, 'update'])->name('banks.update');
+    Route::patch('banks/{bankAccount}/toggle', [BankAccountController::class, 'toggle'])->name('banks.toggle');
 });
 
 // ── Configuración — facturación electrónica ───────────────────────────────

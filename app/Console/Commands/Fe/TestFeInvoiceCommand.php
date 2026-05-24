@@ -83,7 +83,7 @@ class TestFeInvoiceCommand extends Command
 
         // ── Mostrar payload ────────────────────────────────────────────────
         $this->line('  <fg=cyan>📋 Payload que se enviará a Nextpyme:</>');
-        $this->line('  URL: <fg=yellow>'.rtrim(config('fe.api_url'), '/').'/ubl2.1/invoice</>');
+        $this->line('  URL: <fg=yellow>'.rtrim((string) config('fe.api_url'), '/').'/'.trim((string) config('fe.ubl_prefix', '/ubl2.1'), '/').'/invoice</>');
         $this->newLine();
 
         if ($this->option('json')) {

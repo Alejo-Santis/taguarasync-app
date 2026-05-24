@@ -33,26 +33,31 @@ class FeSettingsController extends Controller
             ->orderByDesc('is_active')
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn (FeResolution $r) => [
-                'id' => $r->id,
-                'code' => $r->code,
-                'type' => $r->type->value,
-                'type_label' => $r->type->label(),
-                'prefix' => $r->prefix,
-                'resolution_number' => $r->resolution_number,
-                'resolution_date' => $r->resolution_date->format('Y-m-d'),
-                'technical_key' => $r->technical_key,
-                'from_number' => $r->from_number,
-                'to_number' => $r->to_number,
-                'current_number' => $r->send?->next_consecutive ?? 0,
-                'valid_from' => $r->valid_from->format('Y-m-d'),
-                'valid_until' => $r->valid_until->format('Y-m-d'),
-                'environment' => $r->environment->value,
-                'environment_label' => $r->environment->label(),
-                'is_active' => $r->is_active,
-                'is_expired' => $r->isExpired(),
-                'has_remaining' => $r->hasRemainingNumbers(),
-            ]);
+            ->map(function (FeResolution $r): array {
+                $lastConsecutive = $r->send?->next_consecutive ?? max(0, $r->from_number - 1);
+
+                return [
+                    'id' => $r->id,
+                    'code' => $r->code,
+                    'type' => $r->type->value,
+                    'type_label' => $r->type->label(),
+                    'prefix' => $r->prefix,
+                    'resolution_number' => $r->resolution_number,
+                    'resolution_date' => $r->resolution_date->format('Y-m-d'),
+                    'technical_key' => $r->technical_key,
+                    'from_number' => $r->from_number,
+                    'to_number' => $r->to_number,
+                    'current_number' => $lastConsecutive,
+                    'next_document_number' => $lastConsecutive + 1,
+                    'valid_from' => $r->valid_from->format('Y-m-d'),
+                    'valid_until' => $r->valid_until->format('Y-m-d'),
+                    'environment' => $r->environment->value,
+                    'environment_label' => $r->environment->label(),
+                    'is_active' => $r->is_active,
+                    'is_expired' => $r->isExpired(),
+                    'has_remaining' => $r->hasRemainingNumbers(),
+                ];
+            });
 
         return Inertia::render('Settings/Fe/Index', [
             'tenant' => [
@@ -77,10 +82,15 @@ class FeSettingsController extends Controller
                 'economic_activity_code' => $feConfig?->economic_activity_code ?? '',
                 'environment' => $feConfig?->environment?->value ?? 'test',
                 'api_token_set' => ! empty($feConfig?->api_token),
+                'api_token_value' => $feConfig?->api_token ?: (string) config('fe.api_token'),
+                'api_token_source' => $feConfig?->api_token ? 'tenant' : ((string) config('fe.api_token') !== '' ? 'global' : 'missing'),
                 'software_id' => $feConfig?->software_id ?? '',
             ],
             'resolutions' => $resolutions,
             'options' => [
+                'routes' => [
+                    'test_connection' => route('settings.fe.test-connection', [], false),
+                ],
                 'identification_types' => DianIdentificationType::where('is_active', true)
                     ->orderBy('name')->get(['code', 'name']),
                 'organization_types' => DianOrganizationType::orderBy('name')->get(['code', 'name']),

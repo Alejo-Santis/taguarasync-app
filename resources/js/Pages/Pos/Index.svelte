@@ -25,7 +25,7 @@
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, activeSession, customerFormOptions } = $props();
+    let { auth, activeSession, customerFormOptions, paymentOptions = { methods: [], bank_accounts: [] } } = $props();
 
     const page = usePage();
     let completedSale = $derived(page.props.completedSale ?? null);
@@ -47,7 +47,10 @@
     // Payment modal
     let paymentOpen = $state(false);
     let paymentMethod = $state('cash');
+    let paymentMethodId = $state(paymentOptions.methods?.[0]?.id ?? null);
     let amountTendered = $state('');
+    let paymentReference = $state('');
+    let paymentBankAccountId = $state('');
     let isProcessing = $state(false);
     let amountTenderedInput = $state(null);
 
@@ -70,6 +73,16 @@
     const cartTotal = $derived(cartSubtotal + cartTax);
     const cartCount = $derived(cart.reduce((s, i) => s + i.quantity, 0));
     const hasCart = $derived(cart.length > 0);
+    const paymentMethods = $derived(paymentOptions.methods ?? []);
+    const bankAccounts = $derived(paymentOptions.bank_accounts ?? []);
+    const selectedPaymentMethod = $derived(
+        paymentMethods.find((method) => method.id === paymentMethodId) ?? paymentMethods[0] ?? null
+    );
+    const isCashPayment = $derived(
+        selectedPaymentMethod?.affects_cash === true ||
+        selectedPaymentMethod?.type === 'cash' ||
+        paymentMethod === 'cash'
+    );
     const cashSuggestions = $derived([
         cartTotal,
         Math.ceil(cartTotal / 1000) * 1000,
@@ -78,14 +91,17 @@
     ].filter((value, index, values) => value > 0 && values.indexOf(value) === index));
 
     const change = $derived(
-        paymentMethod === 'cash' && amountTendered !== ''
+        isCashPayment && amountTendered !== ''
             ? Math.max(0, Number(amountTendered) - cartTotal)
             : null
     );
     const canConfirm = $derived(
         hasCart && (
-            paymentMethod !== 'cash' ||
+            !isCashPayment ||
             (amountTendered !== '' && Number(amountTendered) >= cartTotal)
+        ) && (
+            !selectedPaymentMethod?.requires_bank_account ||
+            !!paymentBankAccountId
         )
     );
 
@@ -272,20 +288,50 @@
     };
 
     // Payment
-    const setPaymentMethod = async (method) => {
-        paymentMethod = method;
+    const legacyPaymentMethod = (method) => {
+        if (!method) return 'cash';
+        if (method.type === 'card') return 'card';
+        if (['transfer', 'wallet'].includes(method.type)) return 'transfer';
+
+        return 'cash';
+    };
+
+    const findPaymentMethod = (shortcut) => {
+        if (typeof shortcut === 'number') {
+            return paymentMethods.find((method) => method.id === shortcut) ?? null;
+        }
+
+        if (shortcut === 'card') {
+            return paymentMethods.find((method) => method.type === 'card') ?? null;
+        }
+
+        if (shortcut === 'transfer') {
+            return paymentMethods.find((method) => ['transfer', 'wallet'].includes(method.type)) ?? null;
+        }
+
+        return paymentMethods.find((method) => method.code === shortcut || method.type === shortcut) ?? null;
+    };
+
+    const setPaymentMethod = async (shortcut) => {
+        const method = findPaymentMethod(shortcut);
+
+        if (!method) return;
+
+        paymentMethodId = method.id;
+        paymentMethod = legacyPaymentMethod(method);
         amountTendered = '';
-        if (method === 'cash') {
+        paymentReference = '';
+        paymentBankAccountId = method.requires_bank_account && bankAccounts.length === 1 ? String(bankAccounts[0].id) : '';
+        if (method.affects_cash || method.type === 'cash') {
             await focusAmountTendered();
         }
     };
 
     const openPayment = async (method = 'cash') => {
         if (!hasCart) return;
-        paymentMethod = method;
-        amountTendered = '';
+        await setPaymentMethod(method);
         paymentOpen = true;
-        if (method === 'cash') {
+        if (isCashPayment) {
             await focusAmountTendered();
         }
     };
@@ -299,7 +345,14 @@
             customer_id: selectedCustomer?.id ?? null,
             payment_method: paymentMethod,
             payment_form: '1',
-            amount_tendered: paymentMethod === 'cash' ? Number(amountTendered) : undefined,
+            amount_tendered: isCashPayment ? Number(amountTendered) : undefined,
+            payments: selectedPaymentMethod ? [{
+                payment_method_id: selectedPaymentMethod.id,
+                bank_account_id: paymentBankAccountId ? Number(paymentBankAccountId) : null,
+                amount: cartTotal,
+                amount_tendered: isCashPayment ? Number(amountTendered) : null,
+                reference: paymentReference || null,
+            }] : undefined,
             items: cart.map(i => ({
                 product_id: i.product_id,
                 product_presentation_id: i.product_presentation_id,
@@ -706,36 +759,62 @@
             <div class="taguara-pos-modal-body">
                 <p class="small fw-semibold text-secondary mb-2">Metodo de pago</p>
                 <div class="taguara-pos-payment-methods">
-                    <button
-                        type="button"
-                        class={`taguara-pos-method-btn${paymentMethod === 'cash' ? ' active' : ''}`}
-                        onclick={() => setPaymentMethod('cash')}
-                    >
-                        <DollarSign size={20} />
-                        <span>Efectivo</span>
-                        <kbd>F6</kbd>
-                    </button>
-                    <button
-                        type="button"
-                        class={`taguara-pos-method-btn${paymentMethod === 'card' ? ' active' : ''}`}
-                        onclick={() => setPaymentMethod('card')}
-                    >
-                        <CreditCard size={20} />
-                        <span>Tarjeta</span>
-                        <kbd>F7</kbd>
-                    </button>
-                    <button
-                        type="button"
-                        class={`taguara-pos-method-btn${paymentMethod === 'transfer' ? ' active' : ''}`}
-                        onclick={() => setPaymentMethod('transfer')}
-                    >
-                        <ChevronRight size={20} />
-                        <span>Transferencia</span>
-                        <kbd>F8</kbd>
-                    </button>
+                    {#each paymentMethods as method}
+                        <button
+                            type="button"
+                            class={`taguara-pos-method-btn${selectedPaymentMethod?.id === method.id ? ' active' : ''}`}
+                            onclick={() => setPaymentMethod(method.id)}
+                        >
+                            {#if method.type === 'cash'}
+                                <DollarSign size={20} />
+                            {:else if method.type === 'card'}
+                                <CreditCard size={20} />
+                            {:else}
+                                <ChevronRight size={20} />
+                            {/if}
+                            <span>{method.name}</span>
+                            {#if method.type === 'cash'}<kbd>F6</kbd>{/if}
+                            {#if method.type === 'card'}<kbd>F7</kbd>{/if}
+                            {#if ['transfer', 'wallet'].includes(method.type)}<kbd>F8</kbd>{/if}
+                        </button>
+                    {/each}
                 </div>
 
-                {#if paymentMethod === 'cash'}
+                {#if selectedPaymentMethod?.requires_reference || selectedPaymentMethod?.requires_bank_account}
+                    <div class="taguara-pos-payment-extra">
+                        {#if selectedPaymentMethod?.requires_bank_account}
+                            <div>
+                                <label class="form-label fw-semibold" for="payment-bank-account">Cuenta destino</label>
+                                <select id="payment-bank-account" class="form-select" bind:value={paymentBankAccountId}>
+                                    <option value="">Seleccionar cuenta...</option>
+                                    {#each bankAccounts as account}
+                                        <option value={String(account.id)}>
+                                            {account.bank_name} · {account.account_name}{account.account_number ? ` · ${account.account_number}` : ''}
+                                        </option>
+                                    {/each}
+                                </select>
+                                {#if bankAccounts.length === 0}
+                                    <div class="form-text text-danger">Registra una cuenta en Configuracion → Bancos para usar este método.</div>
+                                {/if}
+                            </div>
+                        {/if}
+
+                        {#if selectedPaymentMethod?.requires_reference}
+                            <div>
+                                <label class="form-label fw-semibold" for="payment-reference">Referencia</label>
+                                <input
+                                    id="payment-reference"
+                                    class="form-control"
+                                    type="text"
+                                    bind:value={paymentReference}
+                                    placeholder="Número de aprobación o comprobante"
+                                />
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
+
+                {#if isCashPayment}
                     <div class="mt-4">
                         <label class="form-label fw-semibold" for="tendered">Monto recibido</label>
                         <input

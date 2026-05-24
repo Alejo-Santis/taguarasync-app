@@ -28,6 +28,8 @@ use Illuminate\Support\Str;
     'fe_accepted_at',
     'fe_error_message',
     'notes',
+    'inventory_returned_at',
+    'payments_reversed_at',
 ])]
 class CreditNote extends Model
 {
@@ -75,6 +77,8 @@ class CreditNote extends Model
             'fe_status' => FeStatus::class,
             'fe_sent_at' => 'datetime',
             'fe_accepted_at' => 'datetime',
+            'inventory_returned_at' => 'datetime',
+            'payments_reversed_at' => 'datetime',
         ];
     }
 }

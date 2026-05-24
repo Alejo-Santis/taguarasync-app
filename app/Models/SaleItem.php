@@ -52,6 +52,14 @@ class SaleItem extends Model
     }
 
     /**
+     * @return BelongsTo<ProductPresentation, $this>
+     */
+    public function presentation(): BelongsTo
+    {
+        return $this->belongsTo(ProductPresentation::class, 'product_presentation_id');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

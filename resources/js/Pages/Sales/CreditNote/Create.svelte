@@ -1,6 +1,6 @@
 <script>
     import { Link, useForm } from '@inertiajs/svelte';
-    import { ArrowLeft, FileX, Minus, Plus, ReceiptText } from '@lucide/svelte';
+    import { AlertTriangle, ArrowLeft, Ban, CheckCircle2, FileX, Minus, Plus, ReceiptText } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
 
     let { auth, sale, discrepancy_reasons } = $props();
@@ -8,7 +8,6 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    // Inicia con todos los ítems de la venta original
     const form = useForm({
         discrepancy_reason_code: '',
         notes: '',
@@ -22,15 +21,32 @@
         })),
     });
 
+    const includedItems = $derived(form.items.filter((i) => i.included));
+
     const subtotal = $derived(
-        form.items.filter((i) => i.included)
-            .reduce((s, i) => s + i.quantity * i.unit_price, 0)
+        includedItems.reduce((s, i) => s + i.quantity * i.unit_price, 0)
     );
     const taxTotal = $derived(
-        form.items.filter((i) => i.included)
-            .reduce((s, i) => s + Math.round(i.quantity * i.unit_price * (i.tax_rate / 100)), 0)
+        includedItems.reduce((s, i) => s + Math.round(i.quantity * i.unit_price * (i.tax_rate / 100)), 0)
     );
     const total = $derived(subtotal + taxTotal);
+
+    const isFullReturn = $derived(
+        includedItems.length === sale.items.length &&
+        includedItems.every((item, idx) => item.quantity === sale.items[idx].quantity)
+    );
+
+    // Proportional refund breakdown per payment method
+    const refundBreakdown = $derived(
+        sale.total > 0
+            ? sale.payments.map((p) => ({
+                  method_name: p.method_name,
+                  affects_cash: p.affects_cash,
+                  has_bank_account: p.has_bank_account,
+                  refund: Math.round(total * (p.amount / sale.total)),
+              }))
+            : []
+    );
 
     const setQty = (index, delta) => {
         const max = sale.items[index].quantity;
@@ -44,13 +60,23 @@
         form.items = [...form.items];
     };
 
+    const selectAll = () => {
+        form.items = sale.items.map((i, idx) => ({ ...form.items[idx], quantity: i.quantity, included: true }));
+    };
+
     const submit = () => {
         const payload = {
             discrepancy_reason_code: form.discrepancy_reason_code,
             notes: form.notes,
-            items: form.items.filter((i) => i.included).map(({ sale_item_id, description, quantity, unit_price, tax_rate }) => ({
-                sale_item_id, description, quantity, unit_price, tax_rate,
-            })),
+            items: form.items
+                .filter((i) => i.included)
+                .map(({ sale_item_id, description, quantity, unit_price, tax_rate }) => ({
+                    sale_item_id,
+                    description,
+                    quantity,
+                    unit_price,
+                    tax_rate,
+                })),
         };
         form.transform(() => payload).post(`/sales/${sale.uuid}/credit-notes`);
     };
@@ -69,7 +95,7 @@
                 <p class="text-uppercase small fw-semibold text-success mb-2">Nota crédito</p>
                 <h2 class="h3 mb-1">Devolución / ajuste</h2>
                 <p class="text-secondary mb-0">
-                    Venta original: <strong>{sale.invoice_prefix ?? ''}{sale.document_number}</strong>
+                    Venta: <strong>{sale.invoice_prefix ?? ''}{sale.document_number}</strong>
                     · {sale.customer_name} · {sale.created_at}
                 </p>
             </div>
@@ -77,10 +103,11 @@
         </section>
 
         {#if !sale.fe_cufe}
-            <div class="alert alert-warning d-flex gap-2 align-items-center">
-                <ReceiptText size={18} />
+            <div class="alert alert-warning d-flex gap-2 align-items-start mb-0">
+                <AlertTriangle size={18} class="flex-shrink-0 mt-1" />
                 <div>
-                    La venta original no tiene CUFE. Emite primero la factura electrónica desde el listado de ventas antes de crear una nota crédito.
+                    <strong>Sin CUFE:</strong> esta venta no tiene factura electrónica aceptada.
+                    Se procesará la devolución de inventario y pagos, pero <strong>no se emitirá nota crédito electrónica</strong> a la DIAN.
                 </div>
             </div>
         {/if}
@@ -89,10 +116,20 @@
             <!-- Ítems -->
             <div class="col-lg-8">
                 <section class="taguara-panel">
-                    <div class="taguara-panel-header">
+                    <div class="taguara-panel-header align-items-start">
                         <div>
                             <p class="text-uppercase small fw-semibold text-success mb-1">Ítems a devolver</p>
-                            <h3 class="h5 mb-0">Selecciona y ajusta las cantidades</h3>
+                            <h3 class="h5 mb-0">Selecciona y ajusta cantidades</h3>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge {isFullReturn ? 'text-bg-success' : 'text-bg-warning text-dark'}">
+                                {isFullReturn ? 'Devolución total' : 'Devolución parcial'}
+                            </span>
+                            {#if !isFullReturn}
+                                <button class="btn btn-sm btn-light border" type="button" onclick={selectAll}>
+                                    Seleccionar todo
+                                </button>
+                            {/if}
                         </div>
                     </div>
 
@@ -103,8 +140,8 @@
                                     <th></th>
                                     <th>Descripción</th>
                                     <th class="text-center">Cant.</th>
-                                    <th class="text-end">Precio</th>
-                                    <th class="text-end">Total</th>
+                                    <th class="text-end">Precio unit.</th>
+                                    <th class="text-end">Total línea</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -134,7 +171,8 @@
                                                 >
                                                     <Minus size={12} />
                                                 </button>
-                                                <span class="fw-semibold" style="min-width:24px; text-align:center">{item.quantity}</span>
+                                                <span class="fw-semibold" style="min-width:28px; text-align:center">{item.quantity}</span>
+                                                <span class="text-secondary small">/ {sale.items[index].quantity}</span>
                                                 <button
                                                     class="btn btn-sm btn-light border px-1"
                                                     type="button"
@@ -158,11 +196,13 @@
             </div>
 
             <!-- Panel derecho -->
-            <div class="col-lg-4">
+            <div class="col-lg-4 vstack gap-3">
+
+                <!-- Resumen nota -->
                 <section class="taguara-panel">
                     <div class="taguara-panel-header">
                         <div>
-                            <p class="text-uppercase small fw-semibold text-success mb-1">Datos de la nota</p>
+                            <p class="text-uppercase small fw-semibold text-success mb-1">Resumen</p>
                         </div>
                     </div>
 
@@ -190,8 +230,8 @@
                             <textarea
                                 id="notes"
                                 class="form-control"
-                                rows="3"
-                                placeholder="Descripción adicional de la devolución..."
+                                rows="2"
+                                placeholder="Descripción adicional..."
                                 bind:value={form.notes}
                             ></textarea>
                         </div>
@@ -204,18 +244,9 @@
                                 <span>IVA</span><span>{fmt(taxTotal)}</span>
                             </div>
                             <div class="d-flex justify-content-between fw-bold">
-                                <span>Total nota crédito</span><span class="text-success">{fmt(total)}</span>
+                                <span>Total a devolver</span><span class="text-success">{fmt(total)}</span>
                             </div>
                         </div>
-
-                        <button
-                            class="btn btn-taguara w-100"
-                            type="button"
-                            onclick={submit}
-                            disabled={form.processing || !form.discrepancy_reason_code || total === 0 || !sale.fe_cufe}
-                        >
-                            {form.processing ? 'Creando...' : 'Crear nota crédito'}
-                        </button>
 
                         {#if form.errors.fe}
                             <div class="alert alert-danger small py-2 mb-0">{form.errors.fe}</div>
@@ -225,6 +256,88 @@
                         {/if}
                     </div>
                 </section>
+
+                <!-- Impacto en pagos -->
+                {#if sale.payments.length > 0 && total > 0}
+                    <section class="taguara-panel">
+                        <div class="taguara-panel-header">
+                            <div>
+                                <p class="text-uppercase small fw-semibold text-success mb-1">Impacto en pagos</p>
+                                <h3 class="h6 mb-0">Reversión proporcional</h3>
+                            </div>
+                        </div>
+                        <div class="vstack gap-2">
+                            {#each refundBreakdown as rb}
+                                {#if rb.refund > 0}
+                                    <div class="d-flex align-items-center justify-content-between gap-2 small">
+                                        <div class="d-flex align-items-center gap-2">
+                                            {#if rb.affects_cash}
+                                                <span class="badge text-bg-success">Efectivo</span>
+                                            {:else if rb.has_bank_account}
+                                                <span class="badge text-bg-primary">Banco</span>
+                                            {:else}
+                                                <span class="badge text-bg-secondary">Otro</span>
+                                            {/if}
+                                            <span class="text-secondary">{rb.method_name}</span>
+                                        </div>
+                                        <span class="fw-semibold">{fmt(rb.refund)}</span>
+                                    </div>
+                                    {#if rb.affects_cash}
+                                        <p class="small text-secondary mb-0" style="padding-left:1rem">
+                                            Se entregará efectivo al cliente.
+                                        </p>
+                                    {:else if rb.has_bank_account}
+                                        <p class="small text-secondary mb-0" style="padding-left:1rem">
+                                            Se registrará egreso en la cuenta bancaria.
+                                        </p>
+                                    {/if}
+                                {/if}
+                            {/each}
+                        </div>
+                    </section>
+                {/if}
+
+                <!-- Qué ocurrirá -->
+                <section class="taguara-panel">
+                    <div class="taguara-panel-header">
+                        <div>
+                            <p class="text-uppercase small fw-semibold text-success mb-1">Al confirmar</p>
+                        </div>
+                    </div>
+                    <ul class="vstack gap-2 list-unstyled small mb-0">
+                        <li class="d-flex align-items-start gap-2">
+                            <CheckCircle2 size={15} class="text-success flex-shrink-0 mt-1" />
+                            <span>El inventario de los productos seleccionados se restituye al lote original.</span>
+                        </li>
+                        {#if refundBreakdown.some((r) => r.has_bank_account && r.refund > 0)}
+                            <li class="d-flex align-items-start gap-2">
+                                <CheckCircle2 size={15} class="text-success flex-shrink-0 mt-1" />
+                                <span>Se registra el egreso en la cuenta bancaria correspondiente.</span>
+                            </li>
+                        {/if}
+                        {#if sale.fe_cufe}
+                            <li class="d-flex align-items-start gap-2">
+                                <CheckCircle2 size={15} class="text-success flex-shrink-0 mt-1" />
+                                <span>Se emite nota crédito electrónica a la DIAN via Nextpyme.</span>
+                            </li>
+                        {:else}
+                            <li class="d-flex align-items-start gap-2">
+                                <Ban size={15} class="text-warning flex-shrink-0 mt-1" />
+                                <span class="text-secondary">Sin CUFE: no se emite nota crédito electrónica.</span>
+                            </li>
+                        {/if}
+                    </ul>
+                </section>
+
+                <button
+                    class="btn btn-taguara w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                    type="button"
+                    onclick={submit}
+                    disabled={form.processing || !form.discrepancy_reason_code || total === 0}
+                >
+                    <FileX size={17} />
+                    {form.processing ? 'Procesando...' : 'Confirmar devolución'}
+                </button>
             </div>
         </div>
     </div>

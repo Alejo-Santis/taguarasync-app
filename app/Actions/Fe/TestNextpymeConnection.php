@@ -48,6 +48,7 @@ class TestNextpymeConnection
 
                 return $this->result(true, 'Conexión exitosa con Nextpyme.', $startedAt, [
                     'base_url' => $baseUrl,
+                    'checked_endpoint' => "{$baseUrl}/config/company",
                     'status_code' => $response->status(),
                     'token_source' => $tokenSource,
                     'company' => [
@@ -58,8 +59,9 @@ class TestNextpymeConnection
             }
 
             if ($response->status() === 404) {
-                return $this->result(true, 'API online; el endpoint de empresa no está expuesto para este token.', $startedAt, [
+                return $this->result(true, 'API online; el endpoint de prueba /config/company no está expuesto en esta instalación de Nextpyme.', $startedAt, [
                     'base_url' => $baseUrl,
+                    'checked_endpoint' => "{$baseUrl}/config/company",
                     'status_code' => $response->status(),
                     'token_source' => $tokenSource,
                 ]);
@@ -70,6 +72,7 @@ class TestNextpymeConnection
 
             return $this->result(false, $message, $startedAt, [
                 'base_url' => $baseUrl,
+                'checked_endpoint' => "{$baseUrl}/config/company",
                 'status_code' => $response->status(),
                 'token_source' => $tokenSource,
             ]);

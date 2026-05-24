@@ -3,6 +3,7 @@
 return [
     'enabled' => env('FE_ENABLED', false),
     'api_url' => env('FE_API_URL', 'https://api.nextpyme.plus/api'),
+    'ubl_prefix' => env('FE_UBL_PREFIX', '/ubl2.1'),
     'api_token' => env('FE_API_TOKEN'),
 
     /*

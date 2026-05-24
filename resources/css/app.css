@@ -1978,7 +1978,7 @@ body {
 
 .taguara-pos-payment-methods {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
     gap: 0.75rem;
 }
 
@@ -2001,6 +2001,13 @@ body {
 .taguara-pos-method-btn kbd {
     margin-top: 0.1rem;
     color: var(--taguara-muted);
+}
+
+.taguara-pos-payment-extra {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem;
+    margin-top: 1rem;
 }
 
 .taguara-pos-method-btn:hover {
@@ -2113,6 +2120,26 @@ body {
     text-transform: uppercase;
 }
 
+.taguara-token-preview {
+    padding: 0.875rem;
+    border: 1px solid var(--taguara-border);
+    border-radius: 8px;
+    background: var(--taguara-surface);
+}
+
+.taguara-token-input {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+}
+
+.taguara-token-eye {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+}
+
 @media (max-width: 991.98px) {
     .taguara-sidebar {
         display: none;
@@ -2161,6 +2188,10 @@ body {
 
     .taguara-fe-connection-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .taguara-pos-payment-extra {
+        grid-template-columns: 1fr;
     }
 
     .taguara-topbar {
