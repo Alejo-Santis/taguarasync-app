@@ -65,6 +65,7 @@
         phone: '',
         address: '',
         municipality_code: '',
+        price_list_id: '',
     });
 
     const isNit = $derived(form.identification_type_code === '31');
@@ -97,6 +98,7 @@
         form.phone = item.phone ?? '';
         form.address = item.address ?? '';
         form.municipality_code = item.municipality_code ?? '';
+        form.price_list_id = item.price_list_id ? String(item.price_list_id) : '';
         drawerOpen = true;
     };
 
@@ -234,6 +236,10 @@
                                     <span class="badge {item.is_active ? 'text-bg-success' : 'text-bg-secondary'}">
                                         {item.is_active ? 'Activo' : 'Inactivo'}
                                     </span>
+                                    {#if item.price_list_id}
+                                        {@const pl = options.price_lists.find((p) => p.id === item.price_list_id)}
+                                        {#if pl}<span class="badge text-bg-info ms-1">{pl.name}</span>{/if}
+                                    {/if}
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-end">
@@ -464,6 +470,19 @@
                                 {/each}
                             </select>
                         </div>
+
+                        {#if options.price_lists.length > 0}
+                            <div>
+                                <label class="form-label" for="cust-price-list">Lista de precio</label>
+                                <select id="cust-price-list" class="form-select" bind:value={form.price_list_id}>
+                                    <option value="">Precio público (base)</option>
+                                    {#each options.price_lists as pl}
+                                        <option value={pl.id}>{pl.name}</option>
+                                    {/each}
+                                </select>
+                                <div class="form-text">Define qué precios ve este cliente en el POS.</div>
+                            </div>
+                        {/if}
 
                     </div>
                 </form>

@@ -575,7 +575,14 @@
 
                     <div>
                         <label class="form-label" for="adj-reason">Motivo del ajuste <span class="text-danger">*</span></label>
-                        <input id="adj-reason" class="form-control" class:is-invalid={adjustForm.errors.reason} type="text" bind:value={adjustForm.reason} placeholder="Merma, producto dañado, inventario fisico...">
+                        {#if adjustForm.type === 'out'}
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                {#each ['Producto vencido', 'Producto dañado', 'Merma/rotura', 'Robo/pérdida', 'Inventario físico'] as quick}
+                                    <button type="button" class="btn btn-sm btn-light border" onclick={() => adjustForm.reason = quick}>{quick}</button>
+                                {/each}
+                            </div>
+                        {/if}
+                        <input id="adj-reason" class="form-control" class:is-invalid={adjustForm.errors.reason} type="text" bind:value={adjustForm.reason} placeholder="Merma, producto dañado, inventario físico...">
                         {#if adjustForm.errors.reason}<div class="invalid-feedback">{adjustForm.errors.reason}</div>{/if}
                     </div>
 

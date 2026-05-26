@@ -9,6 +9,7 @@ use App\Actions\Purchases\ValidatePurchaseReceiptRadian;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Purchase\StorePurchaseReceiptRequest;
 use App\Models\PurchaseReceipt;
+use App\Models\PurchaseReceiptItem;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -44,6 +45,50 @@ class PurchaseReceiptController extends Controller
 
         return to_route('purchases.index')
             ->with('success', "Compra {$receipt->document_number} recibida correctamente.");
+    }
+
+    public function show(PurchaseReceipt $purchase): Response
+    {
+        $purchase->load(['supplier', 'user', 'purchaseOrder', 'items.product']);
+
+        return Inertia::render('Purchases/Show', [
+            'receipt' => [
+                'id' => $purchase->id,
+                'uuid' => $purchase->uuid,
+                'document_number' => $purchase->document_number,
+                'document_date' => $purchase->document_date->toDateString(),
+                'received_at' => $purchase->received_at?->format('Y-m-d H:i'),
+                'status' => $purchase->status,
+                'subtotal' => $purchase->subtotal,
+                'tax_total' => $purchase->tax_total,
+                'total' => $purchase->total,
+                'notes' => $purchase->notes,
+                'radian_status' => $purchase->radian_status,
+                'radian_checked_at' => $purchase->radian_checked_at?->toDateTimeString(),
+                'has_attachment' => (bool) $purchase->source_file_path,
+                'supplier' => [
+                    'name' => $purchase->supplier->name,
+                    'nit' => $purchase->supplier->nit,
+                    'uuid' => $purchase->supplier->uuid,
+                ],
+                'user' => $purchase->user?->name,
+                'purchase_order_number' => $purchase->purchaseOrder?->order_number,
+                'purchase_order_uuid' => $purchase->purchaseOrder?->uuid,
+                'items' => $purchase->items->map(fn (PurchaseReceiptItem $item) => [
+                    'id' => $item->id,
+                    'description' => $item->description,
+                    'lot_number' => $item->lot_number,
+                    'expires_on' => $item->expires_on?->toDateString(),
+                    'quantity' => $item->quantity,
+                    'unit_cost' => $item->unit_cost,
+                    'tax_rate' => $item->tax_rate,
+                    'line_subtotal' => $item->line_subtotal,
+                    'line_tax' => $item->line_tax,
+                    'line_total' => $item->line_total,
+                    'product_name' => $item->product?->commercial_name,
+                ])->values()->all(),
+            ],
+        ]);
     }
 
     public function validateRadian(PurchaseReceipt $purchase, ValidatePurchaseReceiptRadian $validatePurchaseReceiptRadian): RedirectResponse

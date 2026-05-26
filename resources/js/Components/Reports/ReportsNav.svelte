@@ -9,6 +9,7 @@
         { label: 'Cajas', href: '/reports/cash-sessions', key: 'cash-sessions' },
         { label: 'Inventario', href: '/reports/inventory', key: 'inventory' },
         { label: 'Compras', href: '/reports/purchases', key: 'purchases' },
+        { label: 'Rentabilidad', href: '/reports/profitability', key: 'profitability' },
     ];
 </script>
 

@@ -9,6 +9,7 @@
         PackageCheck,
         Pencil,
         Plus,
+        Printer,
         RotateCcw,
         Search,
         ShieldAlert,
@@ -24,6 +25,7 @@
         q: '',
         status: '',
         controlled: '',
+        low_stock: '',
     });
 
     let selectedProduct = $state(null);
@@ -40,6 +42,7 @@
         form.q = filters.q ?? '';
         form.status = filters.status ?? '';
         form.controlled = filters.controlled ?? '';
+        form.low_stock = filters.low_stock ?? '';
     });
 
     $effect(() => {
@@ -53,7 +56,7 @@
     };
 
     const resetFilters = () => {
-        form = { q: '', status: '', controlled: '' };
+        form = { q: '', status: '', controlled: '', low_stock: '' };
         router.get('/products', {}, { preserveState: true, replace: true });
     };
 
@@ -76,6 +79,84 @@
         if (value === null || value === undefined) return '—';
         return money.format(value);
     };
+
+    // Code 39 barcode: [barW, spaceW, barW, spaceW, barW, spaceW, barW, spaceW, barW], 1=narrow, 3=wide
+    const C39 = {
+        '0':[1,1,1,3,3,1,1,1,3],'1':[3,1,1,1,1,3,1,1,3],'2':[1,1,3,1,1,3,1,1,3],
+        '3':[3,1,3,1,1,1,1,1,3],'4':[1,1,1,1,3,3,1,1,3],'5':[3,1,1,1,3,1,1,1,3],
+        '6':[1,1,3,1,3,1,1,1,3],'7':[1,1,1,1,1,3,3,1,3],'8':[3,1,1,1,1,1,3,1,3],
+        '9':[1,1,3,1,1,1,3,1,3],'A':[3,1,1,3,1,1,1,1,3],'B':[1,1,3,3,1,1,1,1,3],
+        'C':[3,1,3,3,1,1,1,1,1],'D':[1,1,1,3,1,1,3,1,3],'E':[3,1,1,3,1,1,3,1,1],
+        'F':[1,1,3,3,1,1,3,1,1],'G':[1,1,1,3,1,1,1,3,3],'H':[3,1,1,3,1,1,1,3,1],
+        'I':[1,1,3,3,1,1,1,3,1],'J':[1,1,1,3,1,1,3,3,1],'K':[3,3,1,1,1,1,1,1,3],
+        'L':[1,3,3,1,1,1,1,1,3],'M':[3,3,1,1,1,1,3,1,1],'N':[1,3,1,1,1,1,3,1,3],
+        'O':[3,3,1,1,1,1,1,3,1],'P':[1,3,3,1,1,1,3,1,1],'Q':[1,3,1,1,3,1,1,1,3],
+        'R':[3,3,1,1,3,1,1,1,1],'S':[1,3,3,1,3,1,1,1,1],'T':[1,3,1,1,1,1,1,3,3],
+        'U':[3,1,1,1,1,1,3,3,1],'V':[1,1,3,1,1,1,3,3,1],'W':[3,1,3,1,1,1,3,1,1],
+        'X':[1,1,1,1,3,1,3,3,1],'Y':[3,1,1,1,3,1,3,1,1],'Z':[1,1,3,1,3,1,3,1,1],
+        '-':[1,1,1,1,3,1,1,3,3],'.':[3,1,1,1,3,1,1,3,1],' ':[3,1,1,3,3,1,1,1,1],
+        '$':[1,3,1,3,1,3,1,1,1],'/':[1,3,1,3,1,1,1,3,1],'+':[1,3,1,1,1,3,1,3,1],
+        '%':[1,1,1,3,1,3,1,3,1],'*':[1,3,1,1,3,1,1,1,3],
+    };
+
+    function buildCode39Svg(text, narrow = 2, barHeight = 60) {
+        const src = ('*' + text.toUpperCase() + '*').split('');
+        const gap = narrow;
+        let rects = [], x = 0;
+        for (let ci = 0; ci < src.length; ci++) {
+            const pat = C39[src[ci]];
+            if (!pat) continue;
+            if (ci > 0) x += gap;
+            for (let i = 0; i < pat.length; i++) {
+                const w = pat[i] === 1 ? narrow : narrow * 3;
+                if (i % 2 === 0) rects.push([x, w]);
+                x += w;
+            }
+        }
+        const svgRects = rects.map(([rx, rw]) => `<rect x="${rx}" y="0" width="${rw}" height="${barHeight}" fill="black"/>`).join('');
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${x}" height="${barHeight}" viewBox="0 0 ${x} ${barHeight}">${svgRects}</svg>`;
+    }
+
+    function isCode39Compatible(text) {
+        return text && text.toUpperCase().split('').every((c) => C39[c] !== undefined);
+    }
+
+    function printLabel(product) {
+        const tenantName = auth?.tenant?.name ?? '';
+        const barcode = product.barcode ?? product.internal_code ?? '';
+        const hasBars = isCode39Compatible(barcode);
+        const barcodeSvg = hasBars ? buildCode39Svg(barcode) : '';
+        const price = product.sale_price != null ? money.format(product.sale_price) : '';
+        const subtitle = [product.pharmaceutical_form, product.concentration].filter(Boolean).join(' · ');
+
+        const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+<title>Etiqueta</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; background: white; }
+  .label { width: 230px; padding: 8px 10px; border: 1px solid #ccc; display: inline-block; }
+  .tenant { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
+  .name { font-size: 12px; font-weight: bold; line-height: 1.3; margin-bottom: 2px; }
+  .sub { font-size: 9px; color: #555; margin-bottom: 6px; }
+  .barcode-wrap { text-align: center; margin-bottom: 4px; }
+  .barcode-num { font-size: 10px; font-family: monospace; text-align: center; letter-spacing: 1px; margin-bottom: 4px; }
+  .price { font-size: 14px; font-weight: bold; text-align: right; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head><body>
+<div class="label">
+  ${tenantName ? `<div class="tenant">${tenantName}</div>` : ''}
+  <div class="name">${product.commercial_name}</div>
+  ${subtitle ? `<div class="sub">${subtitle}</div>` : ''}
+  ${barcodeSvg ? `<div class="barcode-wrap">${barcodeSvg}</div>` : ''}
+  ${barcode ? `<div class="barcode-num">${barcode}</div>` : ''}
+  ${price ? `<div class="price">${price}</div>` : ''}
+</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+
+        const win = window.open('', '_blank', 'width=400,height=320');
+        if (win) { win.document.write(html); win.document.close(); }
+    }
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -180,6 +261,11 @@
                     </select>
                 </label>
 
+                <label class="form-check d-flex align-items-end pb-1 mb-0 gap-2">
+                    <input class="form-check-input mt-0" type="checkbox" bind:checked={form.low_stock} true-value="1" false-value="">
+                    <span class="form-check-label small text-secondary">Solo bajo stock mínimo</span>
+                </label>
+
                 <div class="d-flex align-items-end gap-2">
                     <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="submit">
                         <Search size={17} />
@@ -249,6 +335,14 @@
                                                 onclick={(e) => { e.stopPropagation(); openDetail(product); }}
                                             >
                                                 <Eye size={15} />
+                                            </button>
+                                            <button
+                                                class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                                type="button"
+                                                aria-label="Imprimir etiqueta"
+                                                onclick={(e) => { e.stopPropagation(); printLabel(product); }}
+                                            >
+                                                <Printer size={15} />
                                             </button>
                                             <Link
                                                 class="btn btn-sm btn-light border taguara-icon-button-sm"
@@ -423,13 +517,23 @@
             </div>
 
             <div class="taguara-drawer-footer">
-                <Link
-                    class="btn btn-taguara w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                    href={`/products/${selectedProduct.uuid}/edit`}
-                >
-                    <Pencil size={17} />
-                    Editar producto
-                </Link>
+                <div class="d-flex gap-2">
+                    <button
+                        class="btn btn-light border d-inline-flex align-items-center gap-2"
+                        type="button"
+                        onclick={() => printLabel(selectedProduct)}
+                    >
+                        <Printer size={17} />
+                        Etiqueta
+                    </button>
+                    <Link
+                        class="btn btn-taguara flex-grow-1 d-inline-flex align-items-center justify-content-center gap-2"
+                        href={`/products/${selectedProduct.uuid}/edit`}
+                    >
+                        <Pencil size={17} />
+                        Editar producto
+                    </Link>
+                </div>
             </div>
         </aside>
     {/if}

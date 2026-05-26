@@ -5,6 +5,10 @@ namespace App\Http\Controllers\Reports;
 use App\Actions\Reports\BuildFiscalReport;
 use App\Http\Controllers\Controller;
 use App\Models\BankAccountMovement;
+use App\Models\PurchaseReceipt;
+use App\Models\Supplier;
+use App\Models\SupplierPayment;
+use App\Models\SupplierReturn;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -71,6 +75,55 @@ class ExportReportController extends Controller
 
             fclose($handle);
         }, "movimientos-bancarios-{$from->toDateString()}-{$to->toDateString()}.csv", [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
+    }
+
+    public function supplierStatement(Supplier $supplier): StreamedResponse
+    {
+        $receipts = PurchaseReceipt::query()
+            ->where('supplier_id', $supplier->id)
+            ->where('status', '!=', 'voided')
+            ->orderBy('document_date')
+            ->get(['document_number', 'document_date', 'total']);
+
+        $payments = SupplierPayment::query()
+            ->where('supplier_id', $supplier->id)
+            ->orderBy('payment_date')
+            ->get(['payment_date', 'amount', 'reference']);
+
+        $returns = SupplierReturn::query()
+            ->where('supplier_id', $supplier->id)
+            ->where('status', 'confirmed')
+            ->orderBy('return_date')
+            ->get(['document_number', 'return_date', 'total']);
+
+        $rows = collect();
+
+        foreach ($receipts as $r) {
+            $rows->push(['Compra', $r->document_date->toDateString(), $r->document_number, $r->total, 0]);
+        }
+        foreach ($payments as $p) {
+            $rows->push(['Pago', $p->payment_date->toDateString(), $p->reference ?? '—', 0, $p->amount]);
+        }
+        foreach ($returns as $r) {
+            $rows->push(['Devolución', $r->return_date->toDateString(), $r->document_number, 0, $r->total]);
+        }
+
+        $rows = $rows->sortBy(fn ($r) => $r[1])->values();
+
+        $slug = str($supplier->name)->slug()->limit(30)->toString();
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Tipo', 'Fecha', 'Referencia', 'Cargo', 'Abono']);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, $row);
+            }
+
+            fclose($handle);
+        }, "estado-cuenta-{$slug}.csv", [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
     }

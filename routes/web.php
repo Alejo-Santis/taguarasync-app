@@ -20,9 +20,11 @@ use App\Http\Controllers\Reports\CashSessionReportController;
 use App\Http\Controllers\Reports\ExportReportController;
 use App\Http\Controllers\Reports\FiscalReportController;
 use App\Http\Controllers\Reports\InventoryReportController;
+use App\Http\Controllers\Reports\ProfitabilityReportController;
 use App\Http\Controllers\Reports\PurchasesReportController;
 use App\Http\Controllers\Reports\SalesReportController;
 use App\Http\Controllers\Sales\CreditNoteController;
+use App\Http\Controllers\Sales\CustomerReceivableController;
 use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Sales\SalePaymentAttachmentController;
 use App\Http\Controllers\Settings\ActiveIngredientController;
@@ -121,6 +123,7 @@ Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
     Route::get('purchases', [PurchaseReceiptController::class, 'index'])->name('purchases.index');
     Route::get('purchases/{purchase}/attachment', [PurchaseReceiptController::class, 'attachment'])->name('purchases.attachment');
 });
+// Note: purchases/{purchase} show must come after all specific sub-routes (create, orders, returns, payables)
 
 // ── Compras — crear ───────────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
@@ -163,6 +166,9 @@ Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
 Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
     Route::post('purchases/payables/{supplier}/payments', [SupplierPayableController::class, 'storePayment'])->name('purchases.payables.payment');
 });
+Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
+    Route::get('purchases/{purchase}', [PurchaseReceiptController::class, 'show'])->name('purchases.show');
+});
 
 // ── Ventas — consulta y recibo ────────────────────────────────────────────
 Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sales.')->group(function () {
@@ -175,6 +181,15 @@ Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sal
 // ── Ventas — anulación ────────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:sales.cancel'])->prefix('sales')->name('sales.')->group(function () {
     Route::post('{sale}/void', [SaleController::class, 'void'])->name('void');
+});
+
+// ── Cartera de clientes (cuentas por cobrar) ──────────────────────────────
+Route::middleware(['auth', 'permission:sales.view'])->group(function () {
+    Route::get('sales/receivables', [CustomerReceivableController::class, 'index'])->name('sales.receivables.index');
+    Route::get('sales/receivables/{customer}', [CustomerReceivableController::class, 'show'])->name('sales.receivables.show');
+});
+Route::middleware(['auth', 'permission:sales.cancel'])->group(function () {
+    Route::post('sales/receivables/{customer}/collections', [CustomerReceivableController::class, 'storeCollection'])->name('sales.receivables.collection');
 });
 
 // ── FE — panel de transmisiones ───────────────────────────────────────────
@@ -196,10 +211,12 @@ Route::middleware(['auth', 'permission:reports.view'])->prefix('reports')->name(
     Route::get('fiscal', [FiscalReportController::class, 'index'])->name('fiscal');
     Route::get('fiscal/export', [ExportReportController::class, 'fiscal'])->name('fiscal.export');
     Route::get('banks/export', [ExportReportController::class, 'bankMovements'])->name('banks.export');
+    Route::get('suppliers/{supplier}/statement', [ExportReportController::class, 'supplierStatement'])->name('suppliers.statement');
     Route::get('inventory', [InventoryReportController::class, 'index'])->name('inventory');
     Route::get('purchases', [PurchasesReportController::class, 'index'])->name('purchases');
     Route::get('cash-sessions', [CashSessionReportController::class, 'index'])->name('cash-sessions');
     Route::get('cash-sessions/{session}', [CashSessionReportController::class, 'show'])->name('cash-sessions.show');
+    Route::get('profitability', [ProfitabilityReportController::class, 'index'])->name('profitability');
 });
 
 // ── Equipo ────────────────────────────────────────────────────────────────

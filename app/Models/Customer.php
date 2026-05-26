@@ -96,6 +96,14 @@ class Customer extends Model
         return $this->hasMany(Sale::class);
     }
 
+    /**
+     * @return HasMany<CustomerCollection, $this>
+     */
+    public function collections(): HasMany
+    {
+        return $this->hasMany(CustomerCollection::class);
+    }
+
     protected function casts(): array
     {
         return [

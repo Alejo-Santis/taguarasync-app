@@ -190,7 +190,7 @@
                                 {alerts.expired_lots}
                             </span>
                         </button>
-                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/products')}>
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/products?low_stock=1')}>
                             <div>
                                 <p class="fw-semibold mb-1">Productos bajo stock minimo</p>
                                 <p class="small text-secondary mb-0">{alerts.low_stock > 0 ? 'Pedir a proveedor' : 'Stock suficiente en todos'}</p>

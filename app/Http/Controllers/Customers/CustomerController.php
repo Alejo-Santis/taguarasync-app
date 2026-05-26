@@ -10,6 +10,7 @@ use App\Models\DianIdentificationType;
 use App\Models\DianMunicipality;
 use App\Models\DianOrganizationType;
 use App\Models\DianRegimeType;
+use App\Models\PriceList;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -58,6 +59,7 @@ class CustomerController extends Controller
                 'municipality_code' => $c->municipality_code,
                 'is_active' => $c->is_active,
                 'deleted_at' => $c->deleted_at,
+                'price_list_id' => $c->price_list_id,
             ]);
 
         return Inertia::render('Customers/Index', [
@@ -102,6 +104,8 @@ class CustomerController extends Controller
             'regime_types' => DianRegimeType::orderBy('name')->get(['code', 'name']),
             'municipalities' => DianMunicipality::orderBy('department_name')->orderBy('name')
                 ->get(['code', 'name', 'department_name']),
+            'price_lists' => PriceList::where('is_active', true)
+                ->orderBy('name')->get(['id', 'name']),
         ];
     }
 }

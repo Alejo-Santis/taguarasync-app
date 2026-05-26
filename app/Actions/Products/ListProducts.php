@@ -2,6 +2,7 @@
 
 namespace App\Actions\Products;
 
+use App\Enums\InventoryLotStatus;
 use App\Enums\ProductStatus;
 use App\Models\Product;
 use App\Models\ProductPresentation;
@@ -14,7 +15,7 @@ class ListProducts
     /**
      * @return array{
      *     products: LengthAwarePaginator<int, array<string, mixed>>,
-     *     filters: array{q: string, status: string, controlled: string},
+     *     filters: array{q: string, status: string, controlled: string, low_stock: string},
      *     stats: array{total: int, active: int, controlled: int, presentations: int},
      *     statuses: array<int, array{value: string, label: string}>
      * }
@@ -25,6 +26,7 @@ class ListProducts
             'q' => $request->string('q')->trim()->toString(),
             'status' => $request->string('status')->toString(),
             'controlled' => $request->string('controlled')->toString(),
+            'low_stock' => $request->string('low_stock')->toString(),
         ];
 
         $products = Product::query()
@@ -70,6 +72,13 @@ class ListProducts
             ->when($this->isValidStatus($filters['status']), fn (Builder $query) => $query->where('status', $filters['status']))
             ->when($filters['controlled'] === 'yes', fn (Builder $query) => $query->where('is_controlled', true))
             ->when($filters['controlled'] === 'no', fn (Builder $query) => $query->where('is_controlled', false))
+            ->when($filters['low_stock'] === '1', fn (Builder $query) => $query
+                ->where('minimum_stock', '>', 0)
+                ->whereRaw(
+                    'minimum_stock > (SELECT COALESCE(SUM(il.current_quantity), 0) FROM inventory_lots il WHERE il.product_id = products.id AND il.status = ?)',
+                    [InventoryLotStatus::Available->value]
+                )
+            )
             ->latest('created_at')
             ->paginate(15)
             ->withQueryString()

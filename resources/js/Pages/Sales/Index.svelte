@@ -93,10 +93,16 @@
                 <h2 class="h3 mb-2">Historial de ventas</h2>
                 <p class="text-secondary mb-0">Consulta, imprime y anula comprobantes de venta.</p>
             </div>
-            <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/pos">
-                <ReceiptText size={18} />
-                Ir al POS
-            </Link>
+            <div class="d-flex gap-2 flex-wrap">
+                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/sales/receivables">
+                    <CircleDollarSign size={17} />
+                    Cartera
+                </Link>
+                <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/pos">
+                    <ReceiptText size={18} />
+                    Ir al POS
+                </Link>
+            </div>
         </section>
 
         <!-- KPIs del día -->
