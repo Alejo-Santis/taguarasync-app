@@ -7,7 +7,6 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductUnit;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -67,7 +66,7 @@ test('guests cannot post to import endpoint', function () {
 
 test('authenticated users can open the import page', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $this->actingAs($user)
         ->get('/products/import')
@@ -77,7 +76,7 @@ test('authenticated users can open the import page', function () {
 
 test('authenticated users can download the import template', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $response = $this->actingAs($user)->get('/products/import/template');
 
@@ -91,7 +90,7 @@ test('valid csv imports products and redirects to index', function () {
     $unit = ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
     Laboratory::factory()->for($tenant)->create(['name' => 'Genfar', 'is_active' => true]);
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $file = makeCsv([defaultRow()]);
 
@@ -110,7 +109,7 @@ test('valid csv imports products and redirects to index', function () {
 
 test('csv with wrong headers returns file error', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $file = makeCsv([['col_a', 'col_b']], ['col_a', 'col_b']);
 
@@ -127,7 +126,7 @@ test('csv with non-existent laboratory returns row error', function () {
     $tenant = Tenant::factory()->create();
     ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $file = makeCsv([defaultRow(['laboratorio' => 'Laboratorio Inexistente'])]);
 
@@ -147,7 +146,7 @@ test('csv with duplicate internal code vs existing product returns error', funct
     $unit = ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
     $lab = Laboratory::factory()->for($tenant)->create(['name' => 'Genfar', 'is_active' => true]);
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     Product::factory()->for($tenant)->for($unit, 'minimumUnit')->for($lab)->create(['internal_code' => 'ACET-500']);
 
@@ -167,7 +166,7 @@ test('csv with duplicate internal code within batch returns error for second occ
     ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
     Laboratory::factory()->for($tenant)->create(['name' => 'Genfar', 'is_active' => true]);
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $file = makeCsv([
         defaultRow(),
@@ -191,7 +190,7 @@ test('csv with invalid status returns row error', function () {
     ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
     Laboratory::factory()->for($tenant)->create(['name' => 'Genfar', 'is_active' => true]);
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $file = makeCsv([defaultRow(['estado' => 'vigente'])]);
 
@@ -210,7 +209,7 @@ test('importing resolves active ingredient by dci name when it exists', function
     Laboratory::factory()->for($tenant)->create(['name' => 'Genfar', 'is_active' => true]);
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
     $ingredient = ActiveIngredient::factory()->create(['dci_name' => 'Acetaminofen']);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $file = makeCsv([defaultRow(['principio_activo' => 'Acetaminofen'])]);
 

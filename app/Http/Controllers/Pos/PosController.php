@@ -72,8 +72,9 @@ class PosController extends Controller
     public function search(Request $request, GetPosProducts $getPosProducts): JsonResponse
     {
         $query = $request->string('q')->trim()->toString();
+        $priceListId = $request->integer('price_list_id') ?: null;
 
-        return response()->json($getPosProducts->execute($query));
+        return response()->json($getPosProducts->execute($query, $priceListId));
     }
 
     public function searchCustomers(Request $request): JsonResponse
@@ -84,7 +85,7 @@ class PosController extends Controller
         if (mb_strlen($query) < 2) {
             $consumidorFinal = Customer::consumidorFinal()
                 ->where('is_active', true)
-                ->first(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code']);
+                ->first(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code', 'price_list_id']);
 
             if ($consumidorFinal) {
                 return response()->json([$this->formatCustomer($consumidorFinal)]);
@@ -103,7 +104,7 @@ class PosController extends Controller
             // Consumidor Final siempre primero si coincide con la búsqueda
             ->orderByRaw("CASE WHEN identification_number = '222222222222' THEN 0 ELSE 1 END")
             ->limit(8)
-            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code']);
+            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code', 'price_list_id']);
 
         return response()->json($customers->map(fn (Customer $c) => $this->formatCustomer($c)));
     }
@@ -118,6 +119,7 @@ class PosController extends Controller
             'regime' => $c->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
             'regime_code' => $c->regime_type_code,
             'is_consumidor_final' => $c->isConsumidorFinal(),
+            'price_list_id' => $c->price_list_id,
         ];
     }
 

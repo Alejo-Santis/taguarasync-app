@@ -7,7 +7,6 @@ use App\Models\ProductCategory;
 use App\Models\ProductPresentation;
 use App\Models\ProductUnit;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -19,7 +18,7 @@ test('authenticated users can open the product creation form', function () {
     ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos']);
     ProductUnit::factory()->create(['name' => 'Unidad', 'code' => 'unit']);
 
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $this
         ->actingAs($user)
@@ -41,7 +40,7 @@ test('authenticated users can create products with presentations', function () {
     $ingredient = ActiveIngredient::factory()->create(['dci_name' => 'Acetaminofen']);
     $unit = ProductUnit::factory()->create(['name' => 'Unidad', 'code' => 'unit']);
     $box = ProductUnit::factory()->create(['name' => 'Caja', 'code' => 'box']);
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $this
         ->actingAs($user)

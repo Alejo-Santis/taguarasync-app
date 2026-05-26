@@ -89,6 +89,18 @@
                 <p class="text-secondary mb-0">Control de remisiones, facturas de compra y entradas automáticas a inventario.</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
+                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/purchases/orders">
+                    <Boxes size={17} />
+                    Órdenes
+                </Link>
+                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/purchases/returns">
+                    <RotateCcw size={17} />
+                    Devoluciones
+                </Link>
+                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/purchases/payables">
+                    <CircleDollarSign size={17} />
+                    Cuentas por pagar
+                </Link>
                 <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/purchases/create">
                     <Plus size={18} />
                     Nueva compra

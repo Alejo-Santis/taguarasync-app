@@ -101,10 +101,22 @@ class InvoicePayloadBuilder
     {
         return $sale->items->map(function ($item): array {
             $taxRate = (float) $item->tax_rate;
+            $gross = ($item->quantity * $item->unit_price) / 100;
+            $discountAmount = $item->discount_amount / 100;
             $subtotal = $item->line_subtotal / 100;
             $taxAmount = $item->line_tax / 100;
             $unitPrice = $item->unit_price / 100;
             $qty = (string) $item->quantity;
+
+            $allowanceCharges = [];
+            if ($item->discount_amount > 0) {
+                $allowanceCharges[] = [
+                    'charge_indicator' => false,
+                    'allowance_charge_reason' => 'Descuento',
+                    'amount' => number_format($discountAmount, 2, '.', ''),
+                    'base_amount' => number_format($gross, 2, '.', ''),
+                ];
+            }
 
             return [
                 'code' => (string) $item->product_id,
@@ -118,6 +130,7 @@ class InvoicePayloadBuilder
                 'price_amount' => number_format($unitPrice, 2, '.', ''),
                 'line_extension_amount' => number_format($subtotal, 2, '.', ''),
                 'free_of_charge_indicator' => false,
+                'allowance_charges' => $allowanceCharges,
                 'type_item_identification_id' => config('fe.map.item_identification_default'),
                 'tax_totals' => $taxRate > 0 ? [
                     [
@@ -186,14 +199,16 @@ class InvoicePayloadBuilder
     /** @return array<string, mixed> */
     private function buildMonetaryTotals(Sale $sale): array
     {
+        $gross = $sale->items->sum(fn ($i) => $i->quantity * $i->unit_price) / 100;
+        $discountTotal = ($sale->discount_total ?? 0) / 100;
         $subtotal = $sale->subtotal / 100;
         $total = $sale->total / 100;
 
         return [
-            'line_extension_amount' => number_format($subtotal, 2, '.', ''),
+            'line_extension_amount' => number_format($gross, 2, '.', ''),
             'tax_exclusive_amount' => number_format($subtotal, 2, '.', ''),
             'tax_inclusive_amount' => number_format($total, 2, '.', ''),
-            'allowance_total_amount' => '0.00',
+            'allowance_total_amount' => number_format($discountTotal, 2, '.', ''),
             'charge_total_amount' => '0.000',
             'payable_amount' => number_format($total, 2, '.', ''),
         ];

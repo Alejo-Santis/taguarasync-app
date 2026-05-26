@@ -59,6 +59,83 @@
     // Receipt
     let receipt = $state(null);
 
+    // Expiration alert
+    let expirationAlert = $state(null); // { product, presentation, expires_on, daysLeft }
+
+    const daysUntilExpiry = (dateStr) => {
+        if (!dateStr) { return null; }
+        const diff = new Date(dateStr) - new Date();
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    };
+
+    const dismissExpirationAlert = () => { expirationAlert = null; };
+
+    const addToCartAfterExpirationCheck = (product, presentation) => {
+        expirationAlert = null;
+        const existing = cart.find(i => i.product_presentation_id === presentation.id);
+        if (existing) {
+            if (existing.quantity < presentation.available) {
+                existing.quantity += 1;
+                cart = [...cart];
+            }
+            return;
+        }
+        cart = [...cart, {
+            product_id: product.id,
+            product_presentation_id: presentation.id,
+            description: product.commercial_name,
+            presentation_name: presentation.name,
+            concentration: product.concentration,
+            quantity: 1,
+            unit_price: presentation.unit_price,
+            discount_rate: 0,
+            tax_rate: Number(product.tax_rate),
+            available: presentation.available,
+            is_controlled: false,
+            prescription_number: null,
+            patient_id_number: null,
+            patient_name: null,
+        }];
+    };
+
+    // Controlled medication modal
+    let prescriptionModal = $state(null); // { product, presentation }
+    let prescriptionForm = $state({ prescription_number: '', patient_id_number: '', patient_name: '' });
+
+    const openPrescriptionModal = (product, presentation) => {
+        prescriptionForm = { prescription_number: '', patient_id_number: '', patient_name: '' };
+        prescriptionModal = { product, presentation };
+    };
+    const confirmPrescription = () => {
+        if (!prescriptionModal) { return; }
+        const { product, presentation } = prescriptionModal;
+        const existing = cart.find(i => i.product_presentation_id === presentation.id);
+        if (existing) {
+            if (existing.quantity < presentation.available) {
+                existing.quantity += 1;
+                cart = [...cart];
+            }
+        } else {
+            cart = [...cart, {
+                product_id: product.id,
+                product_presentation_id: presentation.id,
+                description: product.commercial_name,
+                presentation_name: presentation.name,
+                concentration: product.concentration,
+                quantity: 1,
+                unit_price: presentation.unit_price,
+                discount_rate: 0,
+                tax_rate: Number(product.tax_rate),
+                available: presentation.available,
+                is_controlled: true,
+                prescription_number: prescriptionForm.prescription_number || null,
+                patient_id_number: prescriptionForm.patient_id_number || null,
+                patient_name: prescriptionForm.patient_name || null,
+            }];
+        }
+        prescriptionModal = null;
+    };
+
     $effect(() => {
         if (completedSale) {
             receipt = completedSale;
@@ -66,10 +143,13 @@
     });
 
     // Derived cart totals
-    const lineSubtotal = (item) => item.quantity * item.unit_price;
+    const lineGross = (item) => item.quantity * item.unit_price;
+    const lineDiscount = (item) => Math.round(lineGross(item) * ((item.discount_rate || 0) / 100));
+    const lineSubtotal = (item) => lineGross(item) - lineDiscount(item);
     const lineTax = (item) => Math.round(lineSubtotal(item) * (item.tax_rate / 100));
     const lineTotal = (item) => lineSubtotal(item) + lineTax(item);
 
+    const cartDiscount = $derived(cart.reduce((s, i) => s + lineDiscount(i), 0));
     const cartSubtotal = $derived(cart.reduce((s, i) => s + lineSubtotal(i), 0));
     const cartTax = $derived(cart.reduce((s, i) => s + lineTax(i), 0));
     const cartTotal = $derived(cartSubtotal + cartTax);
@@ -122,7 +202,10 @@
     const doSearch = async (q) => {
         isSearching = true;
         try {
-            const res = await fetch(`/pos/products?q=${encodeURIComponent(q)}`);
+            const priceListId = selectedCustomer?.price_list_id ?? '';
+            const params = new URLSearchParams({ q });
+            if (priceListId) { params.set('price_list_id', priceListId); }
+            const res = await fetch(`/pos/products?${params}`);
             searchResults = await res.json();
         } catch { searchResults = []; }
         finally { isSearching = false; }
@@ -131,26 +214,16 @@
     // Cart management
     const addToCart = (product, presentation) => {
         cartError = '';
-        const existing = cart.find(i => i.product_presentation_id === presentation.id);
-        if (existing) {
-            if (existing.quantity < presentation.available) {
-                existing.quantity += 1;
-                cart = [...cart];
-            }
+        if (product.is_controlled) {
+            openPrescriptionModal(product, presentation);
             return;
         }
-        cart = [...cart, {
-            product_id: product.id,
-            product_presentation_id: presentation.id,
-            description: product.commercial_name,
-            presentation_name: presentation.name,
-            concentration: product.concentration,
-            quantity: 1,
-            unit_price: presentation.unit_price,
-            tax_rate: Number(product.tax_rate),
-            available: presentation.available,
-            is_controlled: product.is_controlled,
-        }];
+        const days = daysUntilExpiry(product.next_lot_expires_on);
+        if (days !== null && days <= 30) {
+            expirationAlert = { product, presentation, expires_on: product.next_lot_expires_on, daysLeft: days };
+            return;
+        }
+        addToCartAfterExpirationCheck(product, presentation);
     };
 
     const updateQty = (index, delta) => {
@@ -198,9 +271,16 @@
         customerQuery = '';
         customerResults = [];
         customerDropOpen = false;
+        // Refresh product prices for the new customer's price list
+        if (searchQuery.trim().length >= 2) { doSearch(searchQuery); }
     };
 
-    const clearCustomer = () => { selectedCustomer = null; customerQuery = ''; };
+    const clearCustomer = () => {
+        selectedCustomer = null;
+        customerQuery = '';
+        // Refresh product prices back to public list
+        if (searchQuery.trim().length >= 2) { doSearch(searchQuery); }
+    };
 
     // Create customer modal
     let createCustomerOpen = $state(false);
@@ -366,7 +446,11 @@
                 description: i.description,
                 quantity: i.quantity,
                 unit_price: i.unit_price,
+                discount_rate: i.discount_rate || 0,
                 tax_rate: i.tax_rate,
+                prescription_number: i.prescription_number || null,
+                patient_id_number: i.patient_id_number || null,
+                patient_name: i.patient_name || null,
             })),
         };
 
@@ -697,8 +781,38 @@
                     {#each cart as item, index}
                         <div class="taguara-pos-cart-item">
                             <div class="taguara-pos-cart-item-info">
-                                <div class="fw-semibold small">{item.description}</div>
+                                <div class="fw-semibold small d-flex align-items-center gap-1">
+                                    {item.description}
+                                    {#if item.is_controlled}
+                                        <ShieldAlert size={12} class="text-warning flex-shrink-0" title="Medicamento controlado" />
+                                    {/if}
+                                </div>
                                 <div class="taguara-table-sub">{item.presentation_name} · {fmt(item.unit_price)}</div>
+                                {#if item.is_controlled && item.patient_id_number}
+                                    <div class="taguara-table-sub" style="color:var(--bs-warning-text-emphasis)">
+                                        Paciente: {item.patient_name || item.patient_id_number}
+                                        {#if item.prescription_number} · Receta: {item.prescription_number}{/if}
+                                    </div>
+                                {/if}
+                                <div class="d-flex align-items-center gap-1 mt-1">
+                                    <label class="taguara-table-sub mb-0" style="white-space:nowrap">Dto %:</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        step="1"
+                                        class="form-control form-control-sm"
+                                        style="width:62px; font-size:.75rem; padding:1px 4px;"
+                                        value={item.discount_rate || 0}
+                                        oninput={(e) => {
+                                            const val = Math.min(100, Math.max(0, Number(e.target.value) || 0));
+                                            cart[index] = { ...item, discount_rate: val };
+                                        }}
+                                    />
+                                    {#if lineDiscount(item) > 0}
+                                        <span class="taguara-table-sub text-success">-{fmt(lineDiscount(item))}</span>
+                                    {/if}
+                                </div>
                             </div>
                             <div class="taguara-pos-cart-item-controls">
                                 <button class="taguara-pos-qty-btn" type="button" onclick={() => updateQty(index, -1)}>
@@ -732,6 +846,10 @@
                     <div class="taguara-drawer-grid mb-3">
                         <span class="taguara-drawer-label">Subtotal</span>
                         <span class="text-end">{fmt(cartSubtotal)}</span>
+                        {#if cartDiscount > 0}
+                            <span class="taguara-drawer-label text-success">Descuento</span>
+                            <span class="text-end text-success">-{fmt(cartDiscount)}</span>
+                        {/if}
                         <span class="taguara-drawer-label">IVA</span>
                         <span class="text-end">{fmt(cartTax)}</span>
                         <span class="taguara-drawer-label fw-bold">Total</span>
@@ -1048,6 +1166,107 @@
                     <button class="btn btn-taguara flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={startNewSale}>
                         <Plus size={17} />
                         Nueva venta
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Controlled medication prescription modal -->
+    {#if expirationAlert}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={dismissExpirationAlert} role="presentation"></div>
+        <div class="taguara-modal" transition:scale={{ duration: 180, start: 0.95 }} role="dialog" aria-modal="true">
+            <div class="taguara-modal-inner" style="max-width:440px">
+                <div class="taguara-modal-header">
+                    <div class="d-flex align-items-center gap-2">
+                        <AlertCircle size={20} class="text-warning" />
+                        <h2 class="h5 mb-0">Lote próximo a vencer</h2>
+                    </div>
+                    <button class="btn btn-light border taguara-icon-button" type="button" onclick={dismissExpirationAlert}><X size={17} /></button>
+                </div>
+                <div class="taguara-modal-body">
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-3">
+                        <AlertCircle size={18} class="flex-shrink-0 mt-1" />
+                        <div>
+                            <strong>{expirationAlert.product.commercial_name}</strong> —
+                            el lote disponible vence el <strong>{expirationAlert.expires_on}</strong>
+                            {#if expirationAlert.daysLeft <= 0}
+                                (ya venció).
+                            {:else}
+                                (en <strong>{expirationAlert.daysLeft}</strong> día{expirationAlert.daysLeft !== 1 ? 's' : ''}).
+                            {/if}
+                        </div>
+                    </div>
+                    <p class="text-secondary small mb-0">¿Deseas agregarlo al carrito de todas formas?</p>
+                </div>
+                <div class="taguara-modal-footer">
+                    <button class="btn btn-light border flex-fill" type="button" onclick={dismissExpirationAlert}>Cancelar</button>
+                    <button
+                        class="btn btn-warning flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                        type="button"
+                        onclick={() => addToCartAfterExpirationCheck(expirationAlert.product, expirationAlert.presentation)}
+                    >
+                        Agregar de todas formas
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
+
+    {#if prescriptionModal}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={() => prescriptionModal = null} role="presentation"></div>
+        <div class="taguara-pos-modal" style="max-width:440px" transition:scale={{ duration: 180, start: 0.96 }}>
+            <div class="taguara-pos-modal-header">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-warning mb-1" style="display:flex;align-items:center;gap:6px">
+                        <ShieldAlert size={14} /> Medicamento controlado
+                    </p>
+                    <h2 class="h5 mb-0">{prescriptionModal.product.commercial_name}</h2>
+                </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={() => prescriptionModal = null}><X size={17} /></button>
+            </div>
+            <div class="taguara-pos-modal-body">
+                <p class="small text-secondary mb-3">
+                    Este medicamento requiere registro del paciente y número de receta (Res. 1478/2006).
+                </p>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">No. de receta médica</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Ej. RM-2024-001234"
+                        bind:value={prescriptionForm.prescription_number}
+                    />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Cédula del paciente <span class="text-danger">*</span></label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Número de identificación"
+                        bind:value={prescriptionForm.patient_id_number}
+                    />
+                </div>
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold">Nombre del paciente</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Nombre completo"
+                        bind:value={prescriptionForm.patient_name}
+                    />
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light border flex-fill" type="button" onclick={() => prescriptionModal = null}>
+                        Cancelar
+                    </button>
+                    <button
+                        class="btn btn-warning flex-fill fw-semibold"
+                        type="button"
+                        onclick={confirmPrescription}
+                        disabled={!prescriptionForm.patient_id_number.trim()}
+                    >
+                        Agregar al carrito
                     </button>
                 </div>
             </div>

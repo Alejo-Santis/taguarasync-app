@@ -2,7 +2,6 @@
 
 use App\Models\Supplier;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -15,7 +14,7 @@ test('guests are redirected from proveedores to login', function () {
 test('authenticated users see their tenant proveedores only', function () {
     $tenant = Tenant::factory()->create();
     $otherTenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
 
     Supplier::factory()->for($tenant)->create(['name' => 'Distribuidora ABC']);
     Supplier::factory()->for($otherTenant)->create(['name' => 'Otro proveedor']);
@@ -33,7 +32,7 @@ test('authenticated users see their tenant proveedores only', function () {
 
 test('authenticated users can create a proveedor', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
 
     $this->actingAs($user)
         ->post('/settings/suppliers', [
@@ -50,7 +49,7 @@ test('authenticated users can create a proveedor', function () {
 
 test('proveedor name must be unique within tenant', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
     Supplier::factory()->for($tenant)->create(['name' => 'Distribuidora ABC']);
 
     $this->actingAs($user)
@@ -60,7 +59,7 @@ test('proveedor name must be unique within tenant', function () {
 
 test('toggle changes supplier active status', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
     $supplier = Supplier::factory()->for($tenant)->create(['is_active' => true]);
 
     $this->actingAs($user)

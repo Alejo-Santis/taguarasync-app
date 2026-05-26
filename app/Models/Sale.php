@@ -22,6 +22,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'document_number',
     'invoice_prefix',
     'subtotal',
+    'discount_total',
     'tax_total',
     'total',
     'payment_method',

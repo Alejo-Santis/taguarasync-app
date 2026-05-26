@@ -25,8 +25,9 @@ function feSettingsUser(Tenant $tenant): User
 test('nextpyme connection test reports online company data', function () {
     Config::set('fe.api_url', 'https://api.example.test/api');
     Config::set('fe.api_token', 'global-token');
+    Config::set('fe.ubl_prefix', '/ubl2.1');
     Http::fake([
-        'api.example.test/api/config/company' => Http::response([
+        'api.example.test/api/ubl2.1/config/company' => Http::response([
             'business_name' => 'Farmacia Demo SAS',
             'identification_number' => '900123456',
         ]),
@@ -60,8 +61,9 @@ test('nextpyme connection test reports missing token', function () {
 test('nextpyme connection test reports invalid token responses', function () {
     Config::set('fe.api_url', 'https://api.example.test/api');
     Config::set('fe.api_token', 'bad-token');
+    Config::set('fe.ubl_prefix', '/ubl2.1');
     Http::fake([
-        'api.example.test/api/config/company' => Http::response(['message' => 'Unauthenticated.'], 401),
+        'api.example.test/api/ubl2.1/config/company' => Http::response(['message' => 'Unauthenticated.'], 401),
     ]);
 
     $tenant = Tenant::factory()->create();
@@ -92,8 +94,9 @@ test('fe settings page exposes the effective token for authorized users', functi
 test('fe connection endpoint uses temporary token from the form', function () {
     Config::set('fe.api_url', 'https://api.example.test/api');
     Config::set('fe.api_token', 'global-token');
+    Config::set('fe.ubl_prefix', '/ubl2.1');
     Http::fake([
-        'api.example.test/api/config/company' => Http::response(['name' => 'Temporal Token Company']),
+        'api.example.test/api/ubl2.1/config/company' => Http::response(['name' => 'Temporal Token Company']),
     ]);
 
     $tenant = Tenant::factory()->create();

@@ -143,12 +143,28 @@
                 <td class="price">{{ number_format($item->unit_price, 0, ',', '.') }}</td>
                 <td class="total">{{ number_format($item->line_total, 0, ',', '.') }}</td>
             </tr>
+            @if($item->discount_amount > 0)
+            <tr>
+                <td class="small" style="padding-left:4px; color:#555">
+                    Dto {{ number_format($item->discount_rate, 0) }}%: -{{ number_format($item->discount_amount, 0, ',', '.') }}
+                </td>
+                <td colspan="3"></td>
+            </tr>
+            @endif
             @if($item->tax_rate > 0)
             <tr>
                 <td class="small" style="padding-left:4px; color:#555">
                     IVA {{ number_format($item->tax_rate, 0) }}%: {{ number_format($item->line_tax, 0, ',', '.') }}
                 </td>
                 <td colspan="3"></td>
+            </tr>
+            @endif
+            @if($item->prescription_number)
+            <tr>
+                <td class="small" style="padding-left:4px; color:#555" colspan="4">
+                    Rx: {{ $item->prescription_number }}
+                    @if($item->patient_id_number) · Doc: {{ $item->patient_id_number }} @endif
+                </td>
             </tr>
             @endif
             @endforeach
@@ -163,6 +179,12 @@
             <td>Subtotal</td>
             <td>$ {{ number_format($sale->subtotal, 0, ',', '.') }}</td>
         </tr>
+        @if(($sale->discount_total ?? 0) > 0)
+        <tr>
+            <td>Descuento</td>
+            <td>-$ {{ number_format($sale->discount_total, 0, ',', '.') }}</td>
+        </tr>
+        @endif
         @if($sale->tax_total > 0)
         <tr>
             <td>IVA</td>
@@ -180,21 +202,46 @@
     <!-- Pago -->
     <div class="payment">
         <table class="meta">
-            <tr>
-                <td>Metodo de pago</td>
-                <td class="bold">{{ $sale->payment_method->label() }}</td>
-            </tr>
-            @if($sale->amount_tendered)
-            <tr>
-                <td>Recibido</td>
-                <td>$ {{ number_format($sale->amount_tendered, 0, ',', '.') }}</td>
-            </tr>
-            @endif
-            @if($sale->change_amount > 0)
-            <tr>
-                <td>Cambio</td>
-                <td class="bold">$ {{ number_format($sale->change_amount, 0, ',', '.') }}</td>
-            </tr>
+            @if($sale->payments->count() > 1)
+                @foreach($sale->payments as $payment)
+                <tr>
+                    <td>{{ $payment->paymentMethod?->name ?? $sale->payment_method->label() }}</td>
+                    <td class="bold">$ {{ number_format($payment->amount, 0, ',', '.') }}</td>
+                </tr>
+                @if($payment->amount_tendered && $payment->amount_tendered > $payment->amount)
+                <tr>
+                    <td class="small" style="padding-left:4px">Recibido</td>
+                    <td class="small">$ {{ number_format($payment->amount_tendered, 0, ',', '.') }}</td>
+                </tr>
+                <tr>
+                    <td class="small" style="padding-left:4px">Cambio</td>
+                    <td class="small bold">$ {{ number_format($payment->amount_tendered - $payment->amount, 0, ',', '.') }}</td>
+                </tr>
+                @endif
+                @if($payment->reference)
+                <tr>
+                    <td class="small" style="padding-left:4px">Ref.</td>
+                    <td class="small">{{ $payment->reference }}</td>
+                </tr>
+                @endif
+                @endforeach
+            @else
+                <tr>
+                    <td>Metodo de pago</td>
+                    <td class="bold">{{ $sale->payment_method->label() }}</td>
+                </tr>
+                @if($sale->amount_tendered)
+                <tr>
+                    <td>Recibido</td>
+                    <td>$ {{ number_format($sale->amount_tendered, 0, ',', '.') }}</td>
+                </tr>
+                @endif
+                @if($sale->change_amount > 0)
+                <tr>
+                    <td>Cambio</td>
+                    <td class="bold">$ {{ number_format($sale->change_amount, 0, ',', '.') }}</td>
+                </tr>
+                @endif
             @endif
         </table>
     </div>

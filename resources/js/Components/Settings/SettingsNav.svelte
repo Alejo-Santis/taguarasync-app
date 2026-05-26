@@ -11,6 +11,7 @@
         { label: 'Proveedores', href: '/settings/suppliers', key: 'proveedores' },
         { label: 'Cajas', href: '/settings/registers', key: 'registers' },
         { label: 'Bancos', href: '/settings/banks', key: 'banks' },
+        { label: 'Listas de precio', href: '/settings/price-lists', key: 'price-lists' },
         { label: 'Facturación electrónica', href: '/settings/fe', key: 'fe' },
     ];
 </script>

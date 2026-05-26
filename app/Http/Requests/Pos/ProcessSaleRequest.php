@@ -48,7 +48,11 @@ class ProcessSaleRequest extends FormRequest
             'items.*.description' => ['required', 'string', 'max:260'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:9999'],
             'items.*.unit_price' => ['required', 'integer', 'min:0'],
+            'items.*.discount_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'items.*.tax_rate' => ['required', 'numeric', 'min:0', 'max:100'],
+            'items.*.prescription_number' => ['nullable', 'string', 'max:60'],
+            'items.*.patient_id_number' => ['nullable', 'string', 'max:30'],
+            'items.*.patient_name' => ['nullable', 'string', 'max:120'],
         ];
     }
 
@@ -57,7 +61,10 @@ class ProcessSaleRequest extends FormRequest
         return [
             function ($validator): void {
                 $total = collect($this->input('items', []))->reduce(function (int $carry, array $item): int {
-                    $subtotal = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
+                    $gross = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
+                    $discountRate = (float) ($item['discount_rate'] ?? 0);
+                    $discount = (int) round($gross * ($discountRate / 100));
+                    $subtotal = $gross - $discount;
                     $tax = (int) round($subtotal * (((float) ($item['tax_rate'] ?? 0)) / 100));
 
                     return $carry + $subtotal + $tax;

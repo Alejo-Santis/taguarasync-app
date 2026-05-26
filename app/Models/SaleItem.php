@@ -18,6 +18,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'description',
     'quantity',
     'unit_price',
+    'discount_amount',
+    'discount_rate',
+    'prescription_number',
+    'patient_id_number',
+    'patient_name',
     'tax_rate',
     'line_subtotal',
     'line_tax',
@@ -66,6 +71,7 @@ class SaleItem extends Model
     {
         return [
             'tax_rate' => 'decimal:2',
+            'discount_rate' => 'decimal:2',
         ];
     }
 }

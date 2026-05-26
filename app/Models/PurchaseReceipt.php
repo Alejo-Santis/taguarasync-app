@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
     'uuid',
     'tenant_id',
     'supplier_id',
+    'purchase_order_id',
     'user_id',
     'document_number',
     'document_date',
@@ -55,6 +56,14 @@ class PurchaseReceipt extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    /**
+     * @return BelongsTo<PurchaseOrder, $this>
+     */
+    public function purchaseOrder(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseOrder::class);
     }
 
     /**

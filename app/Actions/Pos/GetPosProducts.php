@@ -5,6 +5,7 @@ namespace App\Actions\Pos;
 use App\Enums\InventoryLotStatus;
 use App\Enums\ProductStatus;
 use App\Models\InventoryLot;
+use App\Models\PriceListItem;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -13,7 +14,7 @@ class GetPosProducts
     /**
      * @return list<array<string, mixed>>
      */
-    public function execute(string $query): array
+    public function execute(string $query, ?int $priceListId = null): array
     {
         $operator = (new Product)->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
 
@@ -44,35 +45,62 @@ class GetPosProducts
             ->limit(24)
             ->get();
 
+        $productIds = $products->pluck('id');
+
         $stockByProduct = InventoryLot::query()
             ->where('status', InventoryLotStatus::Available)
-            ->whereIn('product_id', $products->pluck('id'))
+            ->whereIn('product_id', $productIds)
             ->selectRaw('product_id, SUM(current_quantity) as total')
             ->groupBy('product_id')
             ->pluck('total', 'product_id');
 
-        return $products->map(fn (Product $product) => [
-            'id' => $product->id,
-            'commercial_name' => $product->commercial_name,
-            'generic_name' => $product->generic_name,
-            'pharmaceutical_form' => $product->pharmaceutical_form,
-            'concentration' => $product->concentration,
-            'internal_code' => $product->internal_code,
-            'sale_price' => $product->sale_price,
-            'tax_rate' => $product->tax_rate,
-            'is_controlled' => $product->is_controlled,
-            'minimum_unit_code' => $product->minimumUnit?->code ?? 'und',
-            'available_units' => (int) ($stockByProduct[$product->id] ?? 0),
-            'presentations' => $product->presentations->map(fn ($pres) => [
-                'id' => $pres->id,
-                'name' => $pres->name,
-                'unit_price' => $pres->sale_price ?? $product->sale_price,
-                'minimum_unit_quantity' => $pres->minimum_unit_quantity,
-                'is_default' => $pres->is_default,
-                'available' => (int) floor(
-                    ($stockByProduct[$product->id] ?? 0) / max(1, $pres->minimum_unit_quantity)
-                ),
-            ])->values()->all(),
-        ])->values()->all();
+        // FEFO lot expiration: the lot that will be dispensed next (earliest non-null expiry, then nulls)
+        $nextExpiryByProduct = InventoryLot::query()
+            ->where('status', InventoryLotStatus::Available)
+            ->where('current_quantity', '>', 0)
+            ->whereNotNull('expires_on')
+            ->whereIn('product_id', $productIds)
+            ->orderByRaw('expires_on ASC')
+            ->get(['product_id', 'expires_on'])
+            ->unique('product_id')
+            ->pluck('expires_on', 'product_id');
+
+        $priceOverrides = $priceListId
+            ? PriceListItem::query()
+                ->where('price_list_id', $priceListId)
+                ->whereIn('product_id', $productIds)
+                ->pluck('sale_price', 'product_id')
+            : collect();
+
+        return $products->map(function (Product $product) use ($stockByProduct, $nextExpiryByProduct, $priceOverrides): array {
+            $basePrice = $priceOverrides->get($product->id) ?? $product->sale_price;
+
+            return [
+                'id' => $product->id,
+                'commercial_name' => $product->commercial_name,
+                'generic_name' => $product->generic_name,
+                'pharmaceutical_form' => $product->pharmaceutical_form,
+                'concentration' => $product->concentration,
+                'internal_code' => $product->internal_code,
+                'sale_price' => $basePrice,
+                'tax_rate' => $product->tax_rate,
+                'is_controlled' => $product->is_controlled,
+                'minimum_unit_code' => $product->minimumUnit?->code ?? 'und',
+                'available_units' => (int) ($stockByProduct[$product->id] ?? 0),
+                'next_lot_expires_on' => isset($nextExpiryByProduct[$product->id])
+                    ? $nextExpiryByProduct[$product->id]->toDateString()
+                    : null,
+                'presentations' => $product->presentations->map(fn ($pres) => [
+                    'id' => $pres->id,
+                    'name' => $pres->name,
+                    'unit_price' => $pres->sale_price ?? $basePrice,
+                    'minimum_unit_quantity' => $pres->minimum_unit_quantity,
+                    'is_default' => $pres->is_default,
+                    'available' => (int) floor(
+                        ($stockByProduct[$product->id] ?? 0) / max(1, $pres->minimum_unit_quantity)
+                    ),
+                ])->values()->all(),
+            ];
+        })->values()->all();
     }
 }

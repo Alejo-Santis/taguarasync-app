@@ -298,3 +298,107 @@ test('configured payments cannot exceed sale total', function () {
 
     expect(Sale::count())->toBe(0);
 });
+
+test('sale with percentage discount reduces line total correctly', function () {
+    ['user' => $user, 'product' => $product, 'presentation' => $presentation, 'lot' => $lot] = posSetup();
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'cash',
+            'amount_tendered' => 10000,
+            'items' => [[
+                'product_id' => $product->id,
+                'product_presentation_id' => $presentation->id,
+                'description' => 'Dolex 500mg',
+                'quantity' => 2,
+                'unit_price' => 350,
+                'discount_rate' => 10,
+                'tax_rate' => 0,
+            ]],
+        ])
+        ->assertRedirect(route('pos.index'));
+
+    $sale = Sale::first();
+    // gross = 2 × 350 = 700, discount 10% = 70, subtotal = 630, tax = 0, total = 630
+    expect($sale->discount_total)->toBe(70)
+        ->and($sale->subtotal)->toBe(630)
+        ->and($sale->total)->toBe(630);
+
+    $item = $sale->items->first();
+    expect($item->discount_amount)->toBe(70)
+        ->and($item->line_subtotal)->toBe(630)
+        ->and($item->line_total)->toBe(630);
+});
+
+test('sale without discount has zero discount_total', function () {
+    ['user' => $user, 'product' => $product, 'presentation' => $presentation] = posSetup();
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'cash',
+            'amount_tendered' => 1000,
+            'items' => [[
+                'product_id' => $product->id,
+                'product_presentation_id' => $presentation->id,
+                'description' => 'Dolex 500mg',
+                'quantity' => 1,
+                'unit_price' => 350,
+                'tax_rate' => 0,
+            ]],
+        ])
+        ->assertRedirect(route('pos.index'));
+
+    expect(Sale::first()->discount_total)->toBe(0);
+});
+
+test('sale with controlled medication persists prescription fields', function () {
+    ['tenant' => $tenant, 'user' => $user, 'presentation' => $presentation] = posSetup();
+
+    $controlled = Product::factory()->for($tenant)->for(ProductUnit::factory()->create(['code' => 'cps', 'is_active' => true]), 'minimumUnit')->create([
+        'commercial_name' => 'Rivotril 2mg',
+        'sale_price' => 5000,
+        'tax_rate' => 0,
+        'status' => ProductStatus::Active,
+        'is_controlled' => true,
+    ]);
+
+    $controlledPresentation = ProductPresentation::factory()->for($controlled)->for(ProductUnit::factory()->create(['code' => 'cps2', 'is_active' => true]), 'unit')->create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Cápsula',
+        'sale_price' => 5000,
+        'minimum_unit_quantity' => 1,
+        'is_default' => true,
+        'is_active' => true,
+    ]);
+
+    InventoryLot::factory()->for($tenant)->for($controlled)->create([
+        'lot_number' => 'LOT-CTL-001',
+        'current_quantity' => 50,
+        'initial_quantity' => 50,
+        'unit_cost' => 3000,
+        'status' => 'available',
+    ]);
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'cash',
+            'amount_tendered' => 10000,
+            'items' => [[
+                'product_id' => $controlled->id,
+                'product_presentation_id' => $controlledPresentation->id,
+                'description' => 'Rivotril 2mg Cápsula',
+                'quantity' => 1,
+                'unit_price' => 5000,
+                'tax_rate' => 0,
+                'prescription_number' => 'RX-2026-001',
+                'patient_id_number' => '1234567890',
+                'patient_name' => 'Juan Pérez',
+            ]],
+        ])
+        ->assertRedirect(route('pos.index'));
+
+    $item = Sale::first()->items->first();
+    expect($item->prescription_number)->toBe('RX-2026-001')
+        ->and($item->patient_id_number)->toBe('1234567890')
+        ->and($item->patient_name)->toBe('Juan Pérez');
+});

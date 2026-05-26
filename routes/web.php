@@ -12,7 +12,10 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Pos\CashSessionController;
 use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\PurchaseReceiptController;
+use App\Http\Controllers\Purchases\SupplierPayableController;
+use App\Http\Controllers\Purchases\SupplierReturnController;
 use App\Http\Controllers\Reports\CashSessionReportController;
 use App\Http\Controllers\Reports\ExportReportController;
 use App\Http\Controllers\Reports\FiscalReportController;
@@ -28,6 +31,7 @@ use App\Http\Controllers\Settings\CashRegisterController;
 use App\Http\Controllers\Settings\FeResolutionController;
 use App\Http\Controllers\Settings\FeSettingsController;
 use App\Http\Controllers\Settings\LaboratoryController;
+use App\Http\Controllers\Settings\PriceListController;
 use App\Http\Controllers\Settings\ProductCategoryController;
 use App\Http\Controllers\Settings\ProductUnitController;
 use App\Http\Controllers\Settings\SupplierController;
@@ -125,6 +129,41 @@ Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
     Route::post('purchases/{purchase}/validate-radian', [PurchaseReceiptController::class, 'validateRadian'])->name('purchases.validate-radian');
 });
 
+// ── Órdenes de compra ─────────────────────────────────────────────────────
+Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
+    Route::get('purchases/orders', [PurchaseOrderController::class, 'index'])->name('purchases.orders.index');
+});
+Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
+    Route::get('purchases/orders/create', [PurchaseOrderController::class, 'create'])->name('purchases.orders.create');
+    Route::post('purchases/orders', [PurchaseOrderController::class, 'store'])->name('purchases.orders.store');
+    Route::post('purchases/orders/{order}/send', [PurchaseOrderController::class, 'send'])->name('purchases.orders.send');
+    Route::post('purchases/orders/{order}/cancel', [PurchaseOrderController::class, 'cancel'])->name('purchases.orders.cancel');
+});
+Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
+    Route::get('purchases/orders/{order}', [PurchaseOrderController::class, 'show'])->name('purchases.orders.show');
+});
+
+// ── Devoluciones a proveedor ──────────────────────────────────────────────
+Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
+    Route::get('purchases/returns', [SupplierReturnController::class, 'index'])->name('purchases.returns.index');
+});
+Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
+    Route::get('purchases/returns/create', [SupplierReturnController::class, 'create'])->name('purchases.returns.create');
+    Route::post('purchases/returns', [SupplierReturnController::class, 'store'])->name('purchases.returns.store');
+});
+Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
+    Route::get('purchases/returns/{return}', [SupplierReturnController::class, 'show'])->name('purchases.returns.show');
+});
+
+// ── Cuentas por pagar a proveedores ──────────────────────────────────────
+Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
+    Route::get('purchases/payables', [SupplierPayableController::class, 'index'])->name('purchases.payables.index');
+    Route::get('purchases/payables/{supplier}', [SupplierPayableController::class, 'show'])->name('purchases.payables.show');
+});
+Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
+    Route::post('purchases/payables/{supplier}/payments', [SupplierPayableController::class, 'storePayment'])->name('purchases.payables.payment');
+});
+
 // ── Ventas — consulta y recibo ────────────────────────────────────────────
 Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sales.')->group(function () {
     Route::get('/', [SaleController::class, 'index'])->name('index');
@@ -210,6 +249,14 @@ Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->n
     Route::put('banks/{bankAccount}', [BankAccountController::class, 'update'])->name('banks.update');
     Route::patch('banks/{bankAccount}/toggle', [BankAccountController::class, 'toggle'])->name('banks.toggle');
     Route::patch('banks/movements/{movement}/reconcile', [BankAccountController::class, 'reconcileMovement'])->name('banks.movements.reconcile');
+
+    Route::get('price-lists', [PriceListController::class, 'index'])->name('price-lists.index');
+    Route::post('price-lists', [PriceListController::class, 'store'])->name('price-lists.store');
+    Route::put('price-lists/{priceList}', [PriceListController::class, 'update'])->name('price-lists.update');
+    Route::patch('price-lists/{priceList}/toggle', [PriceListController::class, 'toggle'])->name('price-lists.toggle');
+    Route::get('price-lists/{priceList}', [PriceListController::class, 'show'])->name('price-lists.show');
+    Route::post('price-lists/{priceList}/items', [PriceListController::class, 'upsertItem'])->name('price-lists.items.upsert');
+    Route::delete('price-lists/{priceList}/items/{item}', [PriceListController::class, 'removeItem'])->name('price-lists.items.remove');
 });
 
 // ── Configuración — facturación electrónica ───────────────────────────────

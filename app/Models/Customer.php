@@ -7,6 +7,7 @@ use Database\Seeders\ConsumidorFinalSeeder;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -14,6 +15,7 @@ use Illuminate\Support\Str;
 #[Fillable([
     'uuid',
     'tenant_id',
+    'price_list_id',
     'identification_type_code',
     'identification_number',
     'merchant_registration',
@@ -76,6 +78,14 @@ class Customer extends Model
     public static function getConsumidorFinal(int $tenantId): self
     {
         return ConsumidorFinalSeeder::createForTenant($tenantId);
+    }
+
+    /**
+     * @return BelongsTo<PriceList, $this>
+     */
+    public function priceList(): BelongsTo
+    {
+        return $this->belongsTo(PriceList::class);
     }
 
     /**

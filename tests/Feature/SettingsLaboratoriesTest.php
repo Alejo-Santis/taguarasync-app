@@ -2,7 +2,6 @@
 
 use App\Models\Laboratory;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -15,7 +14,7 @@ test('guests are redirected from laboratorios to login', function () {
 test('authenticated users see their tenant laboratorios only', function () {
     $tenant = Tenant::factory()->create();
     $otherTenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
 
     Laboratory::factory()->for($tenant)->create(['name' => 'Genfar']);
     Laboratory::factory()->for($otherTenant)->create(['name' => 'Otro laboratorio']);
@@ -33,7 +32,7 @@ test('authenticated users see their tenant laboratorios only', function () {
 
 test('authenticated users can create a laboratory', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
 
     $this->actingAs($user)
         ->post('/settings/laboratories', [
@@ -51,7 +50,7 @@ test('authenticated users can create a laboratory', function () {
 
 test('laboratory name must be unique within tenant', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
     Laboratory::factory()->for($tenant)->create(['name' => 'Genfar']);
 
     $this->actingAs($user)
@@ -63,7 +62,7 @@ test('same name is allowed across different tenants', function () {
     $tenant1 = Tenant::factory()->create();
     $tenant2 = Tenant::factory()->create();
     Laboratory::factory()->for($tenant1)->create(['name' => 'Genfar']);
-    $user = User::factory()->for($tenant2)->create();
+    $user = createOwnerUser($tenant2);
 
     $this->actingAs($user)
         ->post('/settings/laboratories', ['name' => 'Genfar'])
@@ -74,7 +73,7 @@ test('same name is allowed across different tenants', function () {
 
 test('authenticated users can update a laboratory', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
     $lab = Laboratory::factory()->for($tenant)->create(['name' => 'Genfar']);
 
     $this->actingAs($user)
@@ -86,7 +85,7 @@ test('authenticated users can update a laboratory', function () {
 
 test('toggle changes laboratory active status', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
     $lab = Laboratory::factory()->for($tenant)->create(['is_active' => true]);
 
     $this->actingAs($user)
@@ -98,7 +97,7 @@ test('toggle changes laboratory active status', function () {
 
 test('configuracion redirect goes to laboratorios', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = createOwnerUser($tenant);
 
     $this->actingAs($user)
         ->get('/settings')

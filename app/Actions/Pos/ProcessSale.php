@@ -42,7 +42,12 @@ class ProcessSale
      *         description: string,
      *         quantity: int,
      *         unit_price: int,
-     *         tax_rate: int|float|string
+     *         discount_rate?: int|float|string,
+     *         discount_amount?: int,
+     *         tax_rate: int|float|string,
+     *         prescription_number?: string|null,
+     *         patient_id_number?: string|null,
+     *         patient_name?: string|null
      *     }>
      * }  $data
      */
@@ -53,6 +58,7 @@ class ProcessSale
 
             $amountTendered = isset($data['amount_tendered']) ? (int) $data['amount_tendered'] : null;
             $change = ($amountTendered !== null) ? max(0, $amountTendered - $totals['total']) : null;
+
             $payments = $this->normalizePayments($data, $user, $totals['total'], $amountTendered, $change);
 
             $feEnabled = config('fe.enabled') && $user->tenant?->feConfig?->electronic_invoicing_enabled;
@@ -65,6 +71,7 @@ class ProcessSale
                 'cash_session_id' => $cashSessionId,
                 'document_number' => 'VTA-TEMP',
                 'subtotal' => $totals['subtotal'],
+                'discount_total' => $totals['discount_total'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'payment_method' => $data['payment_method'],
@@ -96,6 +103,11 @@ class ProcessSale
                     'description' => $itemData['description'],
                     'quantity' => $itemData['quantity'],
                     'unit_price' => $itemData['unit_price'],
+                    'discount_rate' => (float) ($itemData['discount_rate'] ?? 0),
+                    'discount_amount' => $line['discount'],
+                    'prescription_number' => $itemData['prescription_number'] ?? null,
+                    'patient_id_number' => $itemData['patient_id_number'] ?? null,
+                    'patient_name' => $itemData['patient_name'] ?? null,
                     'tax_rate' => (float) $itemData['tax_rate'],
                     'line_subtotal' => $line['subtotal'],
                     'line_tax' => $line['tax'],
@@ -274,19 +286,24 @@ class ProcessSale
 
     /**
      * @param  array<string, mixed>  $item
-     * @return array{subtotal: int, tax: int, total: int}
+     * @return array{subtotal: int, discount: int, tax: int, total: int}
      */
     private function lineCalculation(array $item): array
     {
-        $subtotal = $item['quantity'] * $item['unit_price'];
+        $gross = $item['quantity'] * $item['unit_price'];
+        $discountRate = (float) ($item['discount_rate'] ?? 0);
+        $discount = $discountRate > 0
+            ? (int) round($gross * ($discountRate / 100))
+            : (int) ($item['discount_amount'] ?? 0);
+        $subtotal = $gross - $discount;
         $tax = (int) round($subtotal * ((float) $item['tax_rate'] / 100));
 
-        return ['subtotal' => $subtotal, 'tax' => $tax, 'total' => $subtotal + $tax];
+        return ['subtotal' => $subtotal, 'discount' => $discount, 'tax' => $tax, 'total' => $subtotal + $tax];
     }
 
     /**
      * @param  array<int, array<string, mixed>>  $items
-     * @return array{subtotal: int, tax_total: int, total: int}
+     * @return array{subtotal: int, discount_total: int, tax_total: int, total: int}
      */
     private function calculateTotals(array $items): array
     {
@@ -295,9 +312,10 @@ class ProcessSale
 
             return [
                 'subtotal' => $carry['subtotal'] + $line['subtotal'],
+                'discount_total' => $carry['discount_total'] + $line['discount'],
                 'tax_total' => $carry['tax_total'] + $line['tax'],
                 'total' => $carry['total'] + $line['total'],
             ];
-        }, ['subtotal' => 0, 'tax_total' => 0, 'total' => 0]);
+        }, ['subtotal' => 0, 'discount_total' => 0, 'tax_total' => 0, 'total' => 0]);
     }
 }

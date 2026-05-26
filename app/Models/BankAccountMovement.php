@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'bank_account_id',
     'sale_payment_id',
     'credit_note_id',
+    'supplier_payment_id',
     'user_id',
     'type',
     'amount',
@@ -52,6 +53,14 @@ class BankAccountMovement extends Model
     public function creditNote(): BelongsTo
     {
         return $this->belongsTo(CreditNote::class);
+    }
+
+    /**
+     * @return BelongsTo<SupplierPayment, $this>
+     */
+    public function supplierPayment(): BelongsTo
+    {
+        return $this->belongsTo(SupplierPayment::class);
     }
 
     /**

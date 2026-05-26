@@ -4,7 +4,6 @@ use App\Models\Product;
 use App\Models\ProductPresentation;
 use App\Models\ProductUnit;
 use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -35,7 +34,7 @@ test('authenticated users only see products from their tenant', function () {
         ->for($unit, 'minimumUnit')
         ->create(['commercial_name' => 'Producto oculto']);
 
-    $user = User::factory()->for($tenant)->create();
+    $user = createAdminUser($tenant);
 
     $this
         ->actingAs($user)

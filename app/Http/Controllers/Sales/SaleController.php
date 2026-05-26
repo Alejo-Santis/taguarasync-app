@@ -142,7 +142,7 @@ class SaleController extends Controller
 
     public function receipt(Sale $sale, Request $request): View
     {
-        $sale->load(['items.presentation', 'user', 'cashSession.register', 'customer']);
+        $sale->load(['items.presentation', 'user', 'cashSession.register', 'customer', 'payments.paymentMethod']);
 
         $tenantName = $request->user()?->tenant?->name ?? 'Farmacia';
 
