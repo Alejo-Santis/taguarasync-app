@@ -5,9 +5,20 @@ use App\Models\CashRegister;
 use App\Models\CashSession;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
+
+function cashierForTenant(Tenant $tenant): User
+{
+    app(RoleAndPermissionSeeder::class)->run();
+
+    $user = User::factory()->for($tenant)->create();
+    $user->assignRole('cashier');
+
+    return $user;
+}
 
 test('guests cannot open or close sessions', function () {
     $this->get('/pos/session/open')->assertRedirect('/login');
@@ -16,7 +27,7 @@ test('guests cannot open or close sessions', function () {
 
 test('authenticated user can open a cash session', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = cashierForTenant($tenant);
     $register = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-01', 'is_active' => true]);
 
     $this->actingAs($user)
@@ -36,7 +47,7 @@ test('authenticated user can open a cash session', function () {
 
 test('cannot open two sessions simultaneously for same user', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = cashierForTenant($tenant);
     $register1 = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-01', 'is_active' => true]);
     $register2 = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-02', 'is_active' => true]);
 
@@ -61,8 +72,8 @@ test('cannot open two sessions simultaneously for same user', function () {
 
 test('cannot open session on register that already has one open', function () {
     $tenant = Tenant::factory()->create();
-    $user1 = User::factory()->for($tenant)->create();
-    $user2 = User::factory()->for($tenant)->create();
+    $user1 = cashierForTenant($tenant);
+    $user2 = cashierForTenant($tenant);
     $register = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-01', 'is_active' => true]);
 
     CashSession::create([
@@ -84,7 +95,7 @@ test('cannot open session on register that already has one open', function () {
 
 test('user can close an open session with actual amount', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->for($tenant)->create();
+    $user = cashierForTenant($tenant);
     $register = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-01', 'is_active' => true]);
 
     $session = CashSession::create([

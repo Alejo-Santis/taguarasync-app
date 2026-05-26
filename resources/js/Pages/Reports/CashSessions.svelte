@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { untrack } from 'svelte';
     import { BarChart3, CircleDollarSign, Clock, Eye, Filter, RotateCcw, ShieldAlert } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
     import ReportsNav from '../../Components/Reports/ReportsNav.svelte';
@@ -9,14 +10,14 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    let form = $state({
+    let form = $state(untrack(() => ({
         from: filters.from,
         to: filters.to,
         status: filters.status ?? '',
         cash_register_id: filters.cash_register_id ?? '',
         user_id: filters.user_id ?? '',
         difference: filters.difference ?? '',
-    });
+    })));
 
     const submit = (event) => {
         event.preventDefault();

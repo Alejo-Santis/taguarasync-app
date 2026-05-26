@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PurchaseRadianStatus;
 use App\Enums\PurchaseReceiptStatus;
 use App\Models\Product;
 use App\Models\ProductPresentation;
@@ -11,6 +12,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
@@ -22,6 +24,8 @@ test('authenticated users can list purchase receipts for their tenant', function
     $tenant = Tenant::factory()->create();
     $otherTenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create(['name' => 'Admin Compras']);
+    Permission::findOrCreate('purchases.view');
+    $user->givePermissionTo('purchases.view');
     $supplier = Supplier::factory()->for($tenant)->create([
         'name' => 'Drogueria Mayorista Caribe',
         'nit' => '900123456-7',
@@ -51,6 +55,7 @@ test('authenticated users can list purchase receipts for their tenant', function
             'tax_total' => 0,
             'total' => 36000,
             'status' => PurchaseReceiptStatus::Received,
+            'radian_status' => PurchaseRadianStatus::Pending,
             'notes' => 'Documento fisico recibido',
         ]);
 
@@ -83,9 +88,12 @@ test('authenticated users can list purchase receipts for their tenant', function
             ->where('stats.receipts', 1)
             ->where('stats.total', 36000)
             ->where('stats.items', 1)
+            ->where('stats.radian_pending', 1)
             ->has('statuses', 3)
+            ->has('radianStatuses', 4)
             ->has('receipts.data', 1)
             ->where('receipts.data.0.document_number', 'REM-INDEX-1001')
+            ->where('receipts.data.0.radian_status.value', 'pending')
             ->where('receipts.data.0.supplier.name', 'Drogueria Mayorista Caribe')
             ->where('receipts.data.0.items.0.description', 'Acetaminofen caja')
             ->etc()

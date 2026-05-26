@@ -6,10 +6,10 @@
 
     let { auth, user } = $props();
 
-    const profileForm = useForm({
+    const profileForm = useForm(() => ({
         name: user.name,
         email: user.email,
-    });
+    }));
 
     const passwordForm = useForm({
         current_password: '',

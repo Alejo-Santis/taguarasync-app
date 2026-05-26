@@ -11,7 +11,7 @@
     let editingMember = $state(null);
     let resetConfirm = $state(null);
 
-    const inviteForm = useForm({ name: '', email: '', role: availableRoles[0]?.name ?? 'cashier' });
+    const inviteForm = useForm(() => ({ name: '', email: '', role: availableRoles[0]?.name ?? 'cashier' }));
     const editForm = useForm({ name: '', role: 'cashier' });
 
     $effect(() => {

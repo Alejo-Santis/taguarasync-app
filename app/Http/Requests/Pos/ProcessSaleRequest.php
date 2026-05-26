@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Pos;
 
 use App\Enums\PaymentMethod;
+use App\Models\PaymentMethod as PaymentMethodConfig;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
@@ -31,8 +32,8 @@ class ProcessSaleRequest extends FormRequest
             ],
             'notes' => ['nullable', 'string', 'max:500'],
             'payments' => ['nullable', 'array', 'min:1', 'max:5'],
-            'payments.*.payment_method_id' => ['required_with:payments', 'integer', Rule::exists('payment_methods', 'id')->where('tenant_id', $tenantId)],
-            'payments.*.bank_account_id' => ['nullable', 'integer', Rule::exists('bank_accounts', 'id')->where('tenant_id', $tenantId)],
+            'payments.*.payment_method_id' => ['required_with:payments', 'integer', Rule::exists('payment_methods', 'id')->where('tenant_id', $tenantId)->where('is_active', true)],
+            'payments.*.bank_account_id' => ['nullable', 'integer', Rule::exists('bank_accounts', 'id')->where('tenant_id', $tenantId)->where('is_active', true)],
             'payments.*.amount' => ['required_with:payments', 'integer', 'min:1'],
             'payments.*.amount_tendered' => ['nullable', 'integer', 'min:0'],
             'payments.*.reference' => ['nullable', 'string', 'max:120'],
@@ -63,11 +64,47 @@ class ProcessSaleRequest extends FormRequest
                 }, 0);
 
                 if ($this->filled('payments')) {
-                    $paid = collect($this->input('payments', []))->sum(fn (array $payment): int => (int) ($payment['amount'] ?? 0));
+                    $payments = collect($this->input('payments', []));
+                    $paid = $payments->sum(fn (array $payment): int => (int) ($payment['amount'] ?? 0));
 
                     if ($paid < $total) {
                         $validator->errors()->add('payments', 'Los pagos registrados no cubren el total de la venta.');
                     }
+
+                    if ($paid > $total) {
+                        $validator->errors()->add('payments', 'Los pagos registrados superan el total de la venta.');
+                    }
+
+                    $methods = PaymentMethodConfig::query()
+                        ->where('tenant_id', $this->user()?->tenant_id)
+                        ->whereIn('id', $payments->pluck('payment_method_id')->filter()->all())
+                        ->get()
+                        ->keyBy('id');
+
+                    $payments->each(function (array $payment, int $index) use ($methods, $validator): void {
+                        $method = $methods->get((int) ($payment['payment_method_id'] ?? 0));
+
+                        if (! $method) {
+                            return;
+                        }
+
+                        if ($method->requires_reference && blank($payment['reference'] ?? null)) {
+                            $validator->errors()->add("payments.{$index}.reference", "El medio de pago {$method->name} requiere referencia.");
+                        }
+
+                        if ($method->requires_bank_account && blank($payment['bank_account_id'] ?? null)) {
+                            $validator->errors()->add("payments.{$index}.bank_account_id", "El medio de pago {$method->name} requiere cuenta destino.");
+                        }
+
+                        if ($method->affects_cash) {
+                            $amount = (int) ($payment['amount'] ?? 0);
+                            $tendered = (int) ($payment['amount_tendered'] ?? 0);
+
+                            if ($tendered < $amount) {
+                                $validator->errors()->add("payments.{$index}.amount_tendered", 'El monto recibido en efectivo no cubre el pago.');
+                            }
+                        }
+                    });
 
                     return;
                 }

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InventoryLotStatus;
+use App\Enums\PurchaseRadianStatus;
 use App\Enums\PurchaseReceiptStatus;
+use App\Models\BankAccountMovement;
 use App\Models\InventoryLot;
 use App\Models\Product;
 use App\Models\PurchaseReceipt;
@@ -59,6 +61,8 @@ class DashboardController extends Controller
                         [InventoryLotStatus::Available->value]
                     )
                     ->count(),
+                'radian_pending' => PurchaseReceipt::where('radian_status', PurchaseRadianStatus::Pending)->count(),
+                'bank_differences' => BankAccountMovement::where('status', 'difference')->count(),
             ],
             'salesLast7' => $salesLast7,
             'recentSales' => Sale::with('cashSession.register')

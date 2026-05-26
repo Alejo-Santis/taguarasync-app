@@ -1,5 +1,5 @@
 <script>
-    import { tick } from 'svelte';
+    import { tick, untrack } from 'svelte';
     import { router, usePage, useForm } from '@inertiajs/svelte';
     import { fade, scale } from 'svelte/transition';
     import {
@@ -48,7 +48,7 @@
     // Payment modal
     let paymentOpen = $state(false);
     let paymentMethod = $state('cash');
-    let paymentMethodId = $state(paymentOptions.methods?.[0]?.id ?? null);
+    let paymentMethodId = $state(untrack(() => paymentOptions.methods?.[0]?.id ?? null));
     let amountTendered = $state('');
     let paymentReference = $state('');
     let paymentBankAccountId = $state('');
@@ -101,6 +101,9 @@
         hasCart && (
             !isCashPayment ||
             (amountTendered !== '' && Number(amountTendered) >= cartTotal)
+        ) && (
+            !selectedPaymentMethod?.requires_reference ||
+            paymentReference.trim().length > 0
         ) && (
             !selectedPaymentMethod?.requires_bank_account ||
             !!paymentBankAccountId
@@ -809,11 +812,14 @@
                                 <label class="form-label fw-semibold" for="payment-reference">Referencia</label>
                                 <input
                                     id="payment-reference"
-                                    class="form-control"
+                                    class={`form-control ${selectedPaymentMethod?.requires_reference && paymentReference.trim().length === 0 ? 'is-invalid' : ''}`}
                                     type="text"
                                     bind:value={paymentReference}
                                     placeholder="Número de aprobación o comprobante"
                                 />
+                                {#if selectedPaymentMethod?.requires_reference && paymentReference.trim().length === 0}
+                                    <div class="invalid-feedback">Este medio de pago requiere referencia.</div>
+                                {/if}
                             </div>
                         {/if}
 

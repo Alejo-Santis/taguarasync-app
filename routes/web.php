@@ -14,6 +14,8 @@ use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Purchases\PurchaseReceiptController;
 use App\Http\Controllers\Reports\CashSessionReportController;
+use App\Http\Controllers\Reports\ExportReportController;
+use App\Http\Controllers\Reports\FiscalReportController;
 use App\Http\Controllers\Reports\InventoryReportController;
 use App\Http\Controllers\Reports\PurchasesReportController;
 use App\Http\Controllers\Reports\SalesReportController;
@@ -113,12 +115,14 @@ Route::middleware(['auth', 'permission:inventory.adjust'])->group(function () {
 // ── Compras — consulta ────────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
     Route::get('purchases', [PurchaseReceiptController::class, 'index'])->name('purchases.index');
+    Route::get('purchases/{purchase}/attachment', [PurchaseReceiptController::class, 'attachment'])->name('purchases.attachment');
 });
 
 // ── Compras — crear ───────────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
     Route::get('purchases/create', [PurchaseReceiptController::class, 'create'])->name('purchases.create');
     Route::post('purchases', [PurchaseReceiptController::class, 'store'])->name('purchases.store');
+    Route::post('purchases/{purchase}/validate-radian', [PurchaseReceiptController::class, 'validateRadian'])->name('purchases.validate-radian');
 });
 
 // ── Ventas — consulta y recibo ────────────────────────────────────────────
@@ -150,6 +154,9 @@ Route::middleware(['auth', 'permission:billing.resend'])->prefix('sales')->name(
 // ── Reportes ──────────────────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:reports.view'])->prefix('reports')->name('reports.')->group(function () {
     Route::get('sales', [SalesReportController::class, 'index'])->name('sales');
+    Route::get('fiscal', [FiscalReportController::class, 'index'])->name('fiscal');
+    Route::get('fiscal/export', [ExportReportController::class, 'fiscal'])->name('fiscal.export');
+    Route::get('banks/export', [ExportReportController::class, 'bankMovements'])->name('banks.export');
     Route::get('inventory', [InventoryReportController::class, 'index'])->name('inventory');
     Route::get('purchases', [PurchasesReportController::class, 'index'])->name('purchases');
     Route::get('cash-sessions', [CashSessionReportController::class, 'index'])->name('cash-sessions');
@@ -202,6 +209,7 @@ Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->n
     Route::post('banks', [BankAccountController::class, 'store'])->name('banks.store');
     Route::put('banks/{bankAccount}', [BankAccountController::class, 'update'])->name('banks.update');
     Route::patch('banks/{bankAccount}/toggle', [BankAccountController::class, 'toggle'])->name('banks.toggle');
+    Route::patch('banks/movements/{movement}/reconcile', [BankAccountController::class, 'reconcileMovement'])->name('banks.movements.reconcile');
 });
 
 // ── Configuración — facturación electrónica ───────────────────────────────

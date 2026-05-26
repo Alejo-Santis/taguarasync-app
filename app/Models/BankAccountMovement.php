@@ -19,6 +19,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'amount',
     'reference',
     'status',
+    'reconciled_at',
+    'reconciled_by_user_id',
+    'reconciliation_notes',
     'occurred_at',
     'description',
 ])]
@@ -60,12 +63,21 @@ class BankAccountMovement extends Model
     }
 
     /**
+     * @return BelongsTo<User, $this>
+     */
+    public function reconciledBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reconciled_by_user_id');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'occurred_at' => 'datetime',
+            'reconciled_at' => 'datetime',
         ];
     }
 }

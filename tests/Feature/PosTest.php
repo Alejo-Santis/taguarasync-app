@@ -2,15 +2,20 @@
 
 use App\Enums\CashSessionStatus;
 use App\Enums\ProductStatus;
+use App\Models\BankAccount;
+use App\Models\BankAccountMovement;
 use App\Models\CashRegister;
 use App\Models\CashSession;
 use App\Models\InventoryLot;
+use App\Models\PaymentMethod as PaymentMethodConfig;
 use App\Models\Product;
 use App\Models\ProductPresentation;
 use App\Models\ProductUnit;
 use App\Models\Sale;
+use App\Models\SalePayment;
 use App\Models\Tenant;
 use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -18,8 +23,11 @@ uses(RefreshDatabase::class);
 
 function posSetup(): array
 {
+    app(RoleAndPermissionSeeder::class)->run();
+
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
+    $user->assignRole('cashier');
     $unit = ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
 
     $register = CashRegister::factory()->for($tenant)->create(['name' => 'Caja 1', 'code' => 'CJ-01', 'is_active' => true]);
@@ -66,8 +74,11 @@ test('guests cannot access the POS', function () {
 });
 
 test('POS redirects to open session when no active session', function () {
+    app(RoleAndPermissionSeeder::class)->run();
+
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
+    $user->assignRole('cashier');
 
     $this->actingAs($user)
         ->get('/pos')
@@ -192,4 +203,98 @@ test('card sale does not require amount tendered', function () {
 
     expect(Sale::count())->toBe(1);
     expect(Sale::first()->payment_method->value)->toBe('card');
+});
+
+test('configured transfer payments require reference and bank account', function () {
+    ['tenant' => $tenant, 'user' => $user, 'product' => $product, 'presentation' => $presentation] = posSetup();
+
+    $method = PaymentMethodConfig::factory()->for($tenant)->transfer()->create();
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'transfer',
+            'payments' => [[
+                'payment_method_id' => $method->id,
+                'amount' => 350,
+            ]],
+            'items' => [[
+                'product_id' => $product->id,
+                'product_presentation_id' => $presentation->id,
+                'description' => 'Dolex 500mg',
+                'quantity' => 1,
+                'unit_price' => 350,
+                'tax_rate' => 0,
+            ]],
+        ])
+        ->assertSessionHasErrors([
+            'payments.0.reference',
+            'payments.0.bank_account_id',
+        ]);
+
+    expect(Sale::count())->toBe(0);
+});
+
+test('bank transfer sale records payment and pending bank movement', function () {
+    ['tenant' => $tenant, 'user' => $user, 'product' => $product, 'presentation' => $presentation] = posSetup();
+
+    $method = PaymentMethodConfig::factory()->for($tenant)->transfer()->create();
+    $bankAccount = BankAccount::factory()->for($tenant)->create([
+        'bank_name' => 'Bancolombia',
+        'account_name' => 'Cuenta principal',
+        'is_active' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'transfer',
+            'payments' => [[
+                'payment_method_id' => $method->id,
+                'bank_account_id' => $bankAccount->id,
+                'amount' => 350,
+                'reference' => 'TRX-123',
+            ]],
+            'items' => [[
+                'product_id' => $product->id,
+                'product_presentation_id' => $presentation->id,
+                'description' => 'Dolex 500mg',
+                'quantity' => 1,
+                'unit_price' => 350,
+                'tax_rate' => 0,
+            ]],
+        ])
+        ->assertRedirect(route('pos.index'));
+
+    expect(Sale::count())->toBe(1)
+        ->and(SalePayment::count())->toBe(1)
+        ->and(BankAccountMovement::count())->toBe(1)
+        ->and(BankAccountMovement::first()->reference)->toBe('TRX-123')
+        ->and(BankAccountMovement::first()->status)->toBe('pending')
+        ->and(BankAccountMovement::first()->bank_account_id)->toBe($bankAccount->id);
+});
+
+test('configured payments cannot exceed sale total', function () {
+    ['tenant' => $tenant, 'user' => $user, 'product' => $product, 'presentation' => $presentation] = posSetup();
+
+    $method = PaymentMethodConfig::factory()->for($tenant)->cash()->create();
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'cash',
+            'payments' => [[
+                'payment_method_id' => $method->id,
+                'amount' => 500,
+                'amount_tendered' => 500,
+            ]],
+            'items' => [[
+                'product_id' => $product->id,
+                'product_presentation_id' => $presentation->id,
+                'description' => 'Dolex 500mg',
+                'quantity' => 1,
+                'unit_price' => 350,
+                'tax_rate' => 0,
+            ]],
+        ])
+        ->assertSessionHasErrors('payments');
+
+    expect(Sale::count())->toBe(0);
 });

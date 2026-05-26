@@ -11,13 +11,16 @@
         ReceiptText,
         RotateCcw,
         Search,
+        ShieldAlert,
+        ShieldCheck,
+        Upload,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, receipts, filters, stats, statuses } = $props();
+    let { auth, receipts, filters, stats, statuses, radianStatuses } = $props();
 
-    let form = $state({ q: '', status: '' });
+    let form = $state({ q: '', status: '', radian_status: '' });
     let selectedReceipt = $state(null);
 
     const money = new Intl.NumberFormat('es-CO', {
@@ -31,6 +34,7 @@
     $effect(() => {
         form.q = filters.q ?? '';
         form.status = filters.status ?? '';
+        form.radian_status = filters.radian_status ?? '';
     });
 
     $effect(() => {
@@ -44,7 +48,7 @@
     };
 
     const resetFilters = () => {
-        form = { q: '', status: '' };
+        form = { q: '', status: '', radian_status: '' };
         router.get('/purchases', {}, { preserveState: true, replace: true });
     };
 
@@ -61,6 +65,16 @@
         if (status === 'received') return 'text-bg-success';
         if (status === 'voided') return 'text-bg-danger';
         return 'text-bg-secondary';
+    };
+
+    const radianClass = (status) => {
+        if (status === 'validated') return 'text-bg-success';
+        if (status === 'rejected' || status === 'error') return 'text-bg-danger';
+        return 'text-bg-warning text-dark';
+    };
+
+    const validateRadian = (receipt) => {
+        router.post(`/purchases/${receipt.uuid}/validate-radian`, {}, { preserveScroll: true });
     };
 </script>
 
@@ -83,7 +97,7 @@
         </section>
 
         <section class="row g-3">
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-6 col-xl-3">
                 <article class="taguara-kpi-card">
                     <span class="taguara-kpi-icon text-bg-primary"><ReceiptText size={20} /></span>
                     <div>
@@ -93,7 +107,7 @@
                     </div>
                 </article>
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-6 col-xl-3">
                 <article class="taguara-kpi-card">
                     <span class="taguara-kpi-icon text-bg-success"><CircleDollarSign size={20} /></span>
                     <div>
@@ -103,13 +117,23 @@
                     </div>
                 </article>
             </div>
-            <div class="col-12 col-md-4">
+            <div class="col-12 col-md-6 col-xl-3">
                 <article class="taguara-kpi-card">
                     <span class="taguara-kpi-icon text-bg-info"><Boxes size={20} /></span>
                     <div>
                         <p class="text-secondary small mb-1">Lineas</p>
                         <p class="h3 mb-1">{stats.items}</p>
                         <p class="small text-secondary mb-0">Productos recibidos</p>
+                    </div>
+                </article>
+            </div>
+            <div class="col-12 col-md-6 col-xl-3">
+                <article class="taguara-kpi-card">
+                    <span class="taguara-kpi-icon text-bg-warning"><ShieldAlert size={20} /></span>
+                    <div>
+                        <p class="text-secondary small mb-1">Pendientes RADIAN</p>
+                        <p class="h3 mb-1">{stats.radian_pending}</p>
+                        <p class="small text-secondary mb-0">Por validar con DIAN/NextPyme</p>
                     </div>
                 </article>
             </div>
@@ -138,6 +162,16 @@
                     <select class="form-select" bind:value={form.status}>
                         <option value="">Todos</option>
                         {#each statuses as status}
+                            <option value={status.value}>{status.label}</option>
+                        {/each}
+                    </select>
+                </label>
+
+                <label class="form-label mb-0">
+                    <span class="small fw-semibold text-secondary">RADIAN</span>
+                    <select class="form-select" bind:value={form.radian_status}>
+                        <option value="">Todos</option>
+                        {#each radianStatuses as status}
                             <option value={status.value}>{status.label}</option>
                         {/each}
                     </select>
@@ -177,6 +211,7 @@
                                 <th class="text-center">Lineas</th>
                                 <th class="text-end">Total</th>
                                 <th>Estado</th>
+                                <th>RADIAN</th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -197,6 +232,7 @@
                                     </td>
                                     <td class="text-end fw-semibold">{money.format(receipt.total)}</td>
                                     <td><span class={`badge ${statusClass(receipt.status.value)}`}>{receipt.status.label}</span></td>
+                                    <td><span class={`badge ${radianClass(receipt.radian_status.value)}`}>{receipt.radian_status.label}</span></td>
                                     <td>
                                         <div class="d-flex justify-content-end">
                                             <button
@@ -247,6 +283,7 @@
                         <div class="d-flex align-items-center gap-2 mb-1">
                             <h2 class="h5 mb-0">{selectedReceipt.document_number}</h2>
                             <span class={`badge ${statusClass(selectedReceipt.status.value)}`}>{selectedReceipt.status.label}</span>
+                            <span class={`badge ${radianClass(selectedReceipt.radian_status.value)}`}>{selectedReceipt.radian_status.label}</span>
                         </div>
                         <p class="text-secondary small mb-0">{selectedReceipt.supplier.name ?? 'Proveedor no definido'}</p>
                     </div>
@@ -270,6 +307,49 @@
                         <span>{selectedReceipt.received_at ?? '—'}</span>
                         <span class="taguara-drawer-label">Usuario</span>
                         <span>{selectedReceipt.user ?? '—'}</span>
+                    </div>
+                    {#if selectedReceipt.has_source_file}
+                        <a
+                            class="btn btn-sm btn-light border d-inline-flex align-items-center justify-content-center gap-2 mt-3"
+                            href={selectedReceipt.source_file_url}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            <Upload size={14} />
+                            Ver soporte
+                        </a>
+                    {/if}
+                </div>
+
+                <div class="taguara-drawer-section">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <p class="text-uppercase small fw-semibold text-success mb-1">DIAN / RADIAN</p>
+                            <div class="d-flex align-items-center gap-2">
+                                {#if selectedReceipt.radian_status.value === 'validated'}
+                                    <ShieldCheck size={17} class="text-success" />
+                                {:else}
+                                    <ShieldAlert size={17} class="text-warning" />
+                                {/if}
+                                <span class={`badge ${radianClass(selectedReceipt.radian_status.value)}`}>
+                                    {selectedReceipt.radian_status.label}
+                                </span>
+                            </div>
+                            {#if selectedReceipt.radian_checked_at}
+                                <p class="text-secondary small mt-2 mb-0">Ultima validacion: {selectedReceipt.radian_checked_at}</p>
+                            {/if}
+                            {#if selectedReceipt.radian_error_message}
+                                <p class="text-danger small mt-2 mb-0">{selectedReceipt.radian_error_message}</p>
+                            {/if}
+                        </div>
+                        <button
+                            class="btn btn-sm btn-light border d-inline-flex align-items-center gap-2"
+                            type="button"
+                            onclick={() => validateRadian(selectedReceipt)}
+                        >
+                            <ShieldCheck size={15} />
+                            Validar
+                        </button>
                     </div>
                 </div>
 

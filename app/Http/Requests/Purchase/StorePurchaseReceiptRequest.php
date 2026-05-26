@@ -6,6 +6,7 @@ use App\Models\ProductPresentation;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\File;
 use Illuminate\Validation\Validator;
 
 class StorePurchaseReceiptRequest extends FormRequest
@@ -35,9 +36,17 @@ class StorePurchaseReceiptRequest extends FormRequest
                     ->where('tenant_id', $tenantId)
                     ->where('is_active', true),
             ],
-            'document_number' => ['required', 'string', 'max:120'],
+            'document_number' => [
+                'required',
+                'string',
+                'max:120',
+                Rule::unique('purchase_receipts', 'document_number')
+                    ->where('tenant_id', $tenantId)
+                    ->where('supplier_id', $this->input('supplier_id')),
+            ],
             'document_date' => ['nullable', 'date'],
             'received_at' => ['nullable', 'date'],
+            'source_file' => ['nullable', File::types(['pdf', 'xml', 'zip', 'jpg', 'jpeg', 'png', 'webp'])->max(8 * 1024)],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1', 'max:80'],
             'items.*.product_id' => [
@@ -69,6 +78,7 @@ class StorePurchaseReceiptRequest extends FormRequest
             'document_number' => 'numero de documento',
             'document_date' => 'fecha del documento',
             'received_at' => 'fecha de recepcion',
+            'source_file' => 'soporte de compra',
             'items' => 'lineas de compra',
             'items.*.product_id' => 'producto',
             'items.*.product_presentation_id' => 'presentacion',

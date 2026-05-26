@@ -19,3 +19,7 @@ Schedule::command('fe:retry-contingency')
 Schedule::command('fe:alerts')
     ->everyThirtyMinutes()
     ->withoutOverlapping();
+
+Schedule::command('operations:alerts')
+    ->hourly()
+    ->withoutOverlapping();

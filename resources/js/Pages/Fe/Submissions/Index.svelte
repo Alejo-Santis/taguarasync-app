@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { untrack } from 'svelte';
     import {
         AlertCircle,
         AlertTriangle,
@@ -20,8 +21,8 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    let filterStatus = $state(filters.status ?? '');
-    let filterDocType = $state(filters.doc_type ?? '');
+    let filterStatus = $state(untrack(() => filters.status ?? ''));
+    let filterDocType = $state(untrack(() => filters.doc_type ?? ''));
 
     const applyFilters = () => {
         router.get('/fe/submissions', { status: filterStatus, doc_type: filterDocType }, { preserveState: true, replace: true });

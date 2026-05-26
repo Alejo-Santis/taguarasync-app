@@ -2,6 +2,7 @@
 
 namespace App\Actions\Purchases;
 
+use App\Enums\PurchaseRadianStatus;
 use App\Enums\PurchaseReceiptStatus;
 use App\Models\PurchaseReceipt;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -13,9 +14,10 @@ class ListPurchaseReceipts
     /**
      * @return array{
      *     receipts: LengthAwarePaginator<int, array<string, mixed>>,
-     *     filters: array{q: string, status: string},
-     *     stats: array{receipts: int, total: int, items: int},
-     *     statuses: array<int, array{value: string, label: string}>
+     *     filters: array{q: string, status: string, radian_status: string},
+     *     stats: array{receipts: int, total: int, items: int, radian_pending: int},
+     *     statuses: array<int, array{value: string, label: string}>,
+     *     radianStatuses: array<int, array{value: string, label: string}>
      * }
      */
     public function execute(Request $request): array
@@ -23,6 +25,7 @@ class ListPurchaseReceipts
         $filters = [
             'q' => $request->string('q')->trim()->toString(),
             'status' => $request->string('status')->toString(),
+            'radian_status' => $request->string('radian_status')->toString(),
         ];
 
         $receipts = PurchaseReceipt::query()
@@ -38,6 +41,10 @@ class ListPurchaseReceipts
                 'tax_total',
                 'total',
                 'status',
+                'radian_status',
+                'radian_checked_at',
+                'radian_error_message',
+                'source_file_path',
                 'notes',
             ])
             ->with([
@@ -48,6 +55,7 @@ class ListPurchaseReceipts
             ->withCount('items')
             ->when($filters['q'] !== '', fn (Builder $query) => $this->applySearch($query, $filters['q']))
             ->when($this->isValidStatus($filters['status']), fn (Builder $query) => $query->where('status', $filters['status']))
+            ->when($this->isValidRadianStatus($filters['radian_status']), fn (Builder $query) => $query->where('radian_status', $filters['radian_status']))
             ->latest('received_at')
             ->latest('id')
             ->paginate(15)
@@ -59,6 +67,7 @@ class ListPurchaseReceipts
             'filters' => $filters,
             'stats' => $this->stats(),
             'statuses' => $this->statuses(),
+            'radianStatuses' => $this->radianStatuses(),
         ];
     }
 
@@ -71,7 +80,9 @@ class ListPurchaseReceipts
         return $query->where(function (Builder $query) use ($operator, $search): void {
             $query
                 ->where('document_number', $operator, "%{$search}%")
-                ->orWhereHas('supplier', fn (Builder $query) => $query->where('name', $operator, "%{$search}%"));
+                ->orWhereHas('supplier', fn (Builder $query) => $query
+                    ->where('name', $operator, "%{$search}%")
+                    ->orWhere('nit', $operator, "%{$search}%"));
         });
     }
 
@@ -92,6 +103,16 @@ class ListPurchaseReceipts
                 'value' => $receipt->status->value,
                 'label' => $receipt->status->label(),
             ],
+            'radian_status' => [
+                'value' => ($receipt->radian_status ?? PurchaseRadianStatus::Pending)->value,
+                'label' => ($receipt->radian_status ?? PurchaseRadianStatus::Pending)->label(),
+            ],
+            'radian_checked_at' => $receipt->radian_checked_at?->format('d/m/Y H:i'),
+            'radian_error_message' => $receipt->radian_error_message,
+            'has_source_file' => $receipt->source_file_path !== null,
+            'source_file_url' => $receipt->source_file_path
+                ? route('purchases.attachment', $receipt, false)
+                : null,
             'supplier' => [
                 'name' => $receipt->supplier?->name,
                 'nit' => $receipt->supplier?->nit,
@@ -111,7 +132,7 @@ class ListPurchaseReceipts
     }
 
     /**
-     * @return array{receipts: int, total: int, items: int}
+     * @return array{receipts: int, total: int, items: int, radian_pending: int}
      */
     private function stats(): array
     {
@@ -123,6 +144,7 @@ class ListPurchaseReceipts
             'items' => (int) PurchaseReceipt::where('status', $received)
                 ->join('purchase_receipt_items', 'purchase_receipts.id', '=', 'purchase_receipt_items.purchase_receipt_id')
                 ->count('purchase_receipt_items.id'),
+            'radian_pending' => PurchaseReceipt::where('radian_status', PurchaseRadianStatus::Pending)->count(),
         ];
     }
 
@@ -139,8 +161,26 @@ class ListPurchaseReceipts
             ->all();
     }
 
+    /**
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function radianStatuses(): array
+    {
+        return collect(PurchaseRadianStatus::cases())
+            ->map(fn (PurchaseRadianStatus $status) => [
+                'value' => $status->value,
+                'label' => $status->label(),
+            ])
+            ->all();
+    }
+
     private function isValidStatus(string $status): bool
     {
         return PurchaseReceiptStatus::tryFrom($status) !== null;
+    }
+
+    private function isValidRadianStatus(string $status): bool
+    {
+        return PurchaseRadianStatus::tryFrom($status) !== null;
     }
 }

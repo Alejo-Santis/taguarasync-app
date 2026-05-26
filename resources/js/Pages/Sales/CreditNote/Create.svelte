@@ -8,7 +8,7 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    const form = useForm({
+    const form = useForm(() => ({
         discrepancy_reason_code: '',
         notes: '',
         items: sale.items.map((i) => ({
@@ -19,7 +19,7 @@
             tax_rate: Number(i.tax_rate),
             included: true,
         })),
-    });
+    }));
 
     const includedItems = $derived(form.items.filter((i) => i.included));
 

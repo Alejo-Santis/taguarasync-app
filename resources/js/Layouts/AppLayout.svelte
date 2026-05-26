@@ -68,7 +68,7 @@
 
     let searchModalOpen = $state(false);
 
-    const perms = auth?.permissions ?? [];
+    const perms = $derived(auth?.permissions ?? []);
     const can = (p) => perms.includes(p);
 
     const allNavGroups = [

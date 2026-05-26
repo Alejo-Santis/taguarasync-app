@@ -5,6 +5,7 @@
 
     const tabs = [
         { label: 'Ventas', href: '/reports/sales', key: 'sales' },
+        { label: 'Fiscal', href: '/reports/fiscal', key: 'fiscal' },
         { label: 'Cajas', href: '/reports/cash-sessions', key: 'cash-sessions' },
         { label: 'Inventario', href: '/reports/inventory', key: 'inventory' },
         { label: 'Compras', href: '/reports/purchases', key: 'purchases' },

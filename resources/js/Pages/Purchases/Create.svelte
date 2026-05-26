@@ -44,6 +44,7 @@
         document_number: '',
         document_date: today,
         received_at: '',
+        source_file: null,
         notes: '',
         items: [defaultItem()],
     }));
@@ -83,7 +84,7 @@
     };
 
     const submit = () => {
-        form.post('/purchases');
+        form.post('/purchases', { forceFormData: true });
     };
 </script>
 
@@ -146,6 +147,19 @@
                             <label class="form-label" for="received_at">Fecha de recepcion</label>
                             <input id="received_at" class:is-invalid={error('received_at')} class="form-control" type="datetime-local" bind:value={form.received_at}>
                             {#if error('received_at')}<div class="invalid-feedback">{error('received_at')}</div>{/if}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="source_file">Soporte XML/PDF</label>
+                            <input
+                                id="source_file"
+                                class:is-invalid={error('source_file')}
+                                class="form-control"
+                                type="file"
+                                accept=".xml,.pdf,.zip,.jpg,.jpeg,.png,.webp"
+                                onchange={(event) => { form.source_file = event.currentTarget.files?.[0] ?? null; }}
+                            >
+                            {#if error('source_file')}<div class="invalid-feedback">{error('source_file')}</div>{/if}
                         </div>
 
                         <div class="col-12">

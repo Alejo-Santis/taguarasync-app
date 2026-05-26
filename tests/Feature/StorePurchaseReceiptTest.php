@@ -11,7 +11,10 @@ use App\Models\Supplier;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
@@ -19,6 +22,9 @@ function purchaseFormContext(): array
 {
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
+    Permission::findOrCreate('purchases.view');
+    Permission::findOrCreate('purchases.create');
+    $user->givePermissionTo(['purchases.view', 'purchases.create']);
     $supplier = Supplier::factory()->for($tenant)->create(['name' => 'Proveedor Caribe']);
     $unit = ProductUnit::factory()->create(['name' => 'Unidad', 'code' => "unit-store-purchase-{$tenant->id}"]);
     $product = Product::factory()
@@ -55,12 +61,14 @@ test('authenticated users can open the purchase receipt form', function () {
 
 test('authenticated users can store a purchase receipt and update inventory', function () {
     [, $user, $supplier, $product, $presentation] = purchaseFormContext();
+    Storage::fake();
 
     $this->actingAs($user)
         ->post('/purchases', [
             'supplier_id' => $supplier->id,
             'document_number' => 'REM-STORE-1001',
             'document_date' => '2026-05-18',
+            'source_file' => UploadedFile::fake()->create('factura-proveedor.pdf', 64, 'application/pdf'),
             'items' => [
                 [
                     'product_id' => $product->id,
@@ -80,9 +88,38 @@ test('authenticated users can store a purchase receipt and update inventory', fu
     expect(PurchaseReceipt::count())->toBe(1)
         ->and(PurchaseReceipt::first()?->document_number)->toBe('REM-STORE-1001')
         ->and(PurchaseReceipt::first()?->total)->toBe(12500)
+        ->and(PurchaseReceipt::first()?->source_file_path)->not->toBeNull()
         ->and(PurchaseReceiptItem::count())->toBe(1)
         ->and(InventoryLot::first()?->current_quantity)->toBe(50)
         ->and(InventoryMovement::first()?->reference_code)->toBe('REM-STORE-1001');
+
+    Storage::assertExists(PurchaseReceipt::first()->source_file_path);
+});
+
+test('purchase receipts cannot repeat supplier and document number', function () {
+    [$tenant, $user, $supplier, $product, $presentation] = purchaseFormContext();
+
+    PurchaseReceipt::factory()->for($tenant)->for($user)->for($supplier)->create([
+        'document_number' => 'FAC-DUP-1001',
+    ]);
+
+    $this->actingAs($user)
+        ->post('/purchases', [
+            'supplier_id' => $supplier->id,
+            'document_number' => 'FAC-DUP-1001',
+            'items' => [
+                [
+                    'product_id' => $product->id,
+                    'product_presentation_id' => $presentation->id,
+                    'description' => 'Ibuprofeno caja',
+                    'lot_number' => 'LOT-DUP-01',
+                    'quantity' => 50,
+                    'unit_cost' => 250,
+                    'tax_rate' => 0,
+                ],
+            ],
+        ])
+        ->assertSessionHasErrors('document_number');
 });
 
 test('purchase receipt validation keeps presentations tied to their products', function () {

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\PurchaseRadianStatus;
 use App\Enums\PurchaseReceiptStatus;
 use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\PurchaseReceiptFactory;
@@ -24,6 +25,10 @@ use Illuminate\Support\Str;
     'tax_total',
     'total',
     'status',
+    'radian_status',
+    'radian_checked_at',
+    'radian_response',
+    'radian_error_message',
     'source_file_path',
     'notes',
 ])]
@@ -80,6 +85,9 @@ class PurchaseReceipt extends Model
             'tax_total' => 'integer',
             'total' => 'integer',
             'status' => PurchaseReceiptStatus::class,
+            'radian_status' => PurchaseRadianStatus::class,
+            'radian_checked_at' => 'datetime',
+            'radian_response' => 'array',
         ];
     }
 }

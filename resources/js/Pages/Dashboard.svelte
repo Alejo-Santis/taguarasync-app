@@ -56,27 +56,27 @@
         <!-- KPIs reales -->
         <section class="row g-3">
             <div class="col-12 col-md-6 col-xl-3">
-                <article class="taguara-kpi-card" role="button" tabindex="0" onclick={() => router.visit('/pos')} style="cursor:pointer">
+                <button class="taguara-kpi-card taguara-click-card" type="button" onclick={() => router.visit('/pos')}>
                     <span class="taguara-kpi-icon text-bg-success"><CircleDollarSign size={20} /></span>
                     <div>
                         <p class="text-secondary small mb-1">Ventas de hoy</p>
                         <p class="h3 mb-1">{fmt(kpis.sales_today)}</p>
                         <p class="small text-secondary mb-0">{kpis.sales_today_count} transacciones</p>
                     </div>
-                </article>
+                </button>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
-                <article class="taguara-kpi-card" role="button" tabindex="0" onclick={() => router.visit('/inventory')} style="cursor:pointer">
+                <button class="taguara-kpi-card taguara-click-card" type="button" onclick={() => router.visit('/inventory')}>
                     <span class="taguara-kpi-icon text-bg-primary"><Boxes size={20} /></span>
                     <div>
                         <p class="text-secondary small mb-1">Unidades en stock</p>
                         <p class="h3 mb-1">{kpis.inventory_units.toLocaleString('es-CO')}</p>
                         <p class="small text-secondary mb-0">{kpis.inventory_lots} lotes activos</p>
                     </div>
-                </article>
+                </button>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
-                <article class="taguara-kpi-card" role="button" tabindex="0" onclick={() => router.visit('/inventory?expiry=soon')} style="cursor:pointer">
+                <button class="taguara-kpi-card taguara-click-card" type="button" onclick={() => router.visit('/inventory?expiry=soon')}>
                     <span class={`taguara-kpi-icon ${kpis.expiring_soon > 0 ? 'text-bg-warning' : 'text-bg-secondary'}`}>
                         <CalendarClock size={20} />
                     </span>
@@ -85,17 +85,17 @@
                         <p class="h3 mb-1">{kpis.expiring_soon}</p>
                         <p class="small text-secondary mb-0">Lotes cerca de caducar</p>
                     </div>
-                </article>
+                </button>
             </div>
             <div class="col-12 col-md-6 col-xl-3">
-                <article class="taguara-kpi-card" role="button" tabindex="0" onclick={() => router.visit('/purchases')} style="cursor:pointer">
+                <button class="taguara-kpi-card taguara-click-card" type="button" onclick={() => router.visit('/purchases')}>
                     <span class="taguara-kpi-icon text-bg-info"><ReceiptText size={20} /></span>
                     <div>
                         <p class="text-secondary small mb-1">Compras del mes</p>
                         <p class="h3 mb-1">{kpis.purchases_month}</p>
                         <p class="small text-secondary mb-0">{fmt(kpis.purchases_month_total)}</p>
                     </div>
-                </article>
+                </button>
             </div>
         </section>
 
@@ -168,11 +168,11 @@
                             <p class="text-uppercase small fw-semibold text-success mb-1">Alertas</p>
                             <h3 class="h5 mb-0">Requieren atencion</h3>
                         </div>
-                        <AlertTriangle class={alerts.expiring_lots > 0 || alerts.expired_lots > 0 || alerts.low_stock > 0 ? 'text-warning' : 'text-secondary'} size={22} />
+                        <AlertTriangle class={alerts.expiring_lots > 0 || alerts.expired_lots > 0 || alerts.low_stock > 0 || alerts.radian_pending > 0 || alerts.bank_differences > 0 ? 'text-warning' : 'text-secondary'} size={22} />
                     </div>
 
                     <div class="vstack gap-3">
-                        <div class="taguara-alert-row" role="button" tabindex="0" onclick={() => router.visit('/inventory?expiry=soon')} style="cursor:pointer">
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/inventory?expiry=soon')}>
                             <div>
                                 <p class="fw-semibold mb-1">Lotes por vencer (30 dias)</p>
                                 <p class="small text-secondary mb-0">{alerts.expiring_lots > 0 ? 'Revisar antes de vencer' : 'Sin lotes proximos a vencer'}</p>
@@ -180,8 +180,8 @@
                             <span class={`taguara-alert-value ${alerts.expiring_lots > 0 ? '' : 'bg-light text-secondary border'}`}>
                                 {alerts.expiring_lots}
                             </span>
-                        </div>
-                        <div class="taguara-alert-row" role="button" tabindex="0" onclick={() => router.visit('/inventory?expiry=expired')} style="cursor:pointer">
+                        </button>
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/inventory?expiry=expired')}>
                             <div>
                                 <p class="fw-semibold mb-1">Lotes vencidos en stock</p>
                                 <p class="small text-secondary mb-0">{alerts.expired_lots > 0 ? 'Retirar del inventario' : 'Sin lotes vencidos'}</p>
@@ -189,8 +189,8 @@
                             <span class={`taguara-alert-value ${alerts.expired_lots > 0 ? 'bg-danger text-white' : 'bg-light text-secondary border'}`}>
                                 {alerts.expired_lots}
                             </span>
-                        </div>
-                        <div class="taguara-alert-row" role="button" tabindex="0" onclick={() => router.visit('/products')} style="cursor:pointer">
+                        </button>
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/products')}>
                             <div>
                                 <p class="fw-semibold mb-1">Productos bajo stock minimo</p>
                                 <p class="small text-secondary mb-0">{alerts.low_stock > 0 ? 'Pedir a proveedor' : 'Stock suficiente en todos'}</p>
@@ -198,7 +198,25 @@
                             <span class={`taguara-alert-value ${alerts.low_stock > 0 ? 'bg-warning text-dark' : 'bg-light text-secondary border'}`}>
                                 {alerts.low_stock}
                             </span>
-                        </div>
+                        </button>
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/purchases?radian_status=pending')}>
+                            <div>
+                                <p class="fw-semibold mb-1">Compras sin validar RADIAN</p>
+                                <p class="small text-secondary mb-0">{alerts.radian_pending > 0 ? 'Validar documentos de proveedor' : 'Compras al dia'}</p>
+                            </div>
+                            <span class={`taguara-alert-value ${alerts.radian_pending > 0 ? 'bg-warning text-dark' : 'bg-light text-secondary border'}`}>
+                                {alerts.radian_pending}
+                            </span>
+                        </button>
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/settings/banks?movement_status=difference')}>
+                            <div>
+                                <p class="fw-semibold mb-1">Diferencias bancarias</p>
+                                <p class="small text-secondary mb-0">{alerts.bank_differences > 0 ? 'Revisar conciliacion' : 'Sin diferencias pendientes'}</p>
+                            </div>
+                            <span class={`taguara-alert-value ${alerts.bank_differences > 0 ? 'bg-danger text-white' : 'bg-light text-secondary border'}`}>
+                                {alerts.bank_differences}
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>

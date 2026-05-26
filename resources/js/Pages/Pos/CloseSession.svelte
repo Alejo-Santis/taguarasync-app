@@ -8,10 +8,10 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    const form = useForm({
+    const form = useForm(() => ({
         actual_closing_amount: session.expected_closing,
         notes: '',
-    });
+    }));
 
     const difference = $derived(Number(form.actual_closing_amount) - session.expected_closing);
     const isShort = $derived(difference < 0);

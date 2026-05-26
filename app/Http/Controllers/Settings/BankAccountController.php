@@ -20,6 +20,8 @@ class BankAccountController extends Controller
         $filters = [
             'q' => $request->string('q')->toString(),
             'status' => $request->string('status')->toString(),
+            'movement_status' => $request->string('movement_status')->toString(),
+            'account_id' => $request->integer('account_id'),
         ];
 
         $accounts = BankAccount::query()
@@ -53,9 +55,11 @@ class BankAccountController extends Controller
             ]);
 
         $movements = BankAccountMovement::query()
-            ->with('bankAccount:id,bank_name,account_name')
+            ->with(['bankAccount:id,bank_name,account_name', 'reconciledBy:id,name'])
+            ->when($filters['account_id'] > 0, fn (Builder $query) => $query->where('bank_account_id', $filters['account_id']))
+            ->when($this->isValidMovementStatus($filters['movement_status']), fn (Builder $query) => $query->where('status', $filters['movement_status']))
             ->latest('occurred_at')
-            ->limit(12)
+            ->limit(30)
             ->get()
             ->map(fn (BankAccountMovement $movement) => [
                 'id' => $movement->id,
@@ -65,8 +69,12 @@ class BankAccountController extends Controller
                 'amount' => $movement->amount,
                 'reference' => $movement->reference,
                 'status' => $movement->status,
+                'status_label' => $this->movementStatusLabel($movement->status),
                 'occurred_at' => $movement->occurred_at->format('d/m/Y H:i'),
                 'description' => $movement->description,
+                'reconciled_at' => $movement->reconciled_at?->format('d/m/Y H:i'),
+                'reconciled_by' => $movement->reconciledBy?->name,
+                'reconciliation_notes' => $movement->reconciliation_notes,
             ]);
 
         return Inertia::render('Settings/Banks/Index', [
@@ -80,7 +88,9 @@ class BankAccountController extends Controller
                     ->selectRaw("COALESCE(SUM(CASE WHEN type = 'inflow' THEN amount ELSE -amount END), 0) as total")
                     ->value('total'),
                 'pending' => (int) BankAccountMovement::query()->where('status', 'pending')->sum('amount'),
+                'difference' => (int) BankAccountMovement::query()->where('status', 'difference')->sum('amount'),
             ],
+            'movementStatuses' => $this->movementStatuses(),
             'tenant' => [
                 'id' => $currentTenant->id(),
             ],
@@ -112,6 +122,23 @@ class BankAccountController extends Controller
         $bankAccount->update(['is_active' => ! $bankAccount->is_active]);
 
         return back()->with('success', 'Estado de la cuenta actualizado.');
+    }
+
+    public function reconcileMovement(BankAccountMovement $movement, Request $request): RedirectResponse
+    {
+        $data = $request->validate([
+            'status' => ['required', 'string', Rule::in(['pending', 'confirmed', 'difference'])],
+            'reconciliation_notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $movement->update([
+            'status' => $data['status'],
+            'reconciliation_notes' => $data['reconciliation_notes'] ?? null,
+            'reconciled_at' => $data['status'] === 'pending' ? null : now(),
+            'reconciled_by_user_id' => $data['status'] === 'pending' ? null : $request->user()->id,
+        ]);
+
+        return back()->with('success', 'Movimiento bancario actualizado.');
     }
 
     /**
@@ -146,5 +173,32 @@ class BankAccountController extends Controller
         BankAccount::query()
             ->when($except, fn (Builder $query) => $query->whereKeyNot($except->id))
             ->update(['is_default' => false]);
+    }
+
+    private function isValidMovementStatus(string $status): bool
+    {
+        return in_array($status, ['pending', 'confirmed', 'difference'], true);
+    }
+
+    /**
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function movementStatuses(): array
+    {
+        return collect(['pending', 'confirmed', 'difference'])
+            ->map(fn (string $status): array => [
+                'value' => $status,
+                'label' => $this->movementStatusLabel($status),
+            ])
+            ->all();
+    }
+
+    private function movementStatusLabel(string $status): string
+    {
+        return match ($status) {
+            'confirmed' => 'Conciliado',
+            'difference' => 'Con diferencia',
+            default => 'Pendiente',
+        };
     }
 }

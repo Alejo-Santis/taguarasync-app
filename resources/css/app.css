@@ -864,6 +864,15 @@ body {
     padding: 1.125rem;
 }
 
+.taguara-click-card,
+.taguara-click-row {
+    width: 100%;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
 .taguara-kpi-card:hover {
     box-shadow: var(--taguara-shadow-md);
 }
@@ -2297,6 +2306,61 @@ body {
     align-items: center;
     justify-content: center;
     width: 42px;
+}
+
+.taguara-fiscal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--taguara-border);
+    color: var(--taguara-muted);
+}
+
+.taguara-fiscal-row:last-child {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.taguara-fiscal-row strong {
+    color: var(--taguara-ink);
+    font-size: 1rem;
+    white-space: nowrap;
+}
+
+.taguara-print-block {
+    display: none !important;
+}
+
+@media print {
+    body {
+        background: #fff !important;
+    }
+
+    .taguara-sidebar,
+    .taguara-topbar,
+    .taguara-print-hide {
+        display: none !important;
+    }
+
+    .taguara-main {
+        margin-left: 0 !important;
+    }
+
+    .taguara-content {
+        padding: 0 !important;
+    }
+
+    .taguara-print-block {
+        display: block !important;
+    }
+
+    .taguara-panel,
+    .taguara-kpi-card {
+        box-shadow: none !important;
+        break-inside: avoid;
+    }
 }
 
 @media (max-width: 991.98px) {

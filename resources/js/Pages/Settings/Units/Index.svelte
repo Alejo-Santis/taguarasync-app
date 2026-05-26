@@ -1,5 +1,6 @@
 <script>
     import { Link, router, useForm } from '@inertiajs/svelte';
+    import { untrack } from 'svelte';
     import { fade, fly } from 'svelte/transition';
     import { Pencil, Plus, RotateCcw, Ruler, Search, Settings, ToggleLeft, ToggleRight, X } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
@@ -7,7 +8,7 @@
 
     let { auth, items, filters, stats } = $props();
 
-    let form = $state({ q: filters.q ?? '', status: filters.status ?? '' });
+    let form = $state(untrack(() => ({ q: filters.q ?? '', status: filters.status ?? '' })));
     let drawerOpen = $state(false);
     let editingItem = $state(null);
 

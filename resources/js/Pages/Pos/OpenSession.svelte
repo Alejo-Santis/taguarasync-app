@@ -9,11 +9,11 @@
 
     const availableRegisters = $derived(registers.filter((r) => !r.has_open_session));
 
-    const form = useForm({
+    const form = useForm(() => ({
         cash_register_id: availableRegisters[0]?.id ?? '',
         opening_amount: 0,
         notes: '',
-    });
+    }));
 
     const submit = () => {
         form.post('/pos/session');

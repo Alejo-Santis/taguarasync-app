@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { untrack } from 'svelte';
     import { fade, fly } from 'svelte/transition';
     import {
         AlertCircle,
@@ -25,13 +26,13 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    let form = $state({
+    let form = $state(untrack(() => ({
         q: filters.q ?? '',
         method: filters.method ?? '',
         status: filters.status ?? '',
         from: filters.from ?? '',
         to: filters.to ?? '',
-    });
+    })));
 
     let selectedSale = $state(null);
     let confirmVoid = $state(null);

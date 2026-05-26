@@ -16,6 +16,7 @@ class TestNextpymeConnection
     {
         $startedAt = microtime(true);
         $baseUrl = rtrim((string) config('fe.api_url'), '/');
+        $ublPrefix = rtrim((string) config('fe.ubl_prefix'), '/');
         $feConfig = $tenant->feConfig;
         $token = $providedToken ?: ($feConfig?->api_token ?: (string) config('fe.api_token'));
         $tokenSource = $providedToken
@@ -41,14 +42,14 @@ class TestNextpymeConnection
                 ->timeout(15)
                 ->connectTimeout(6)
                 ->retry(1, 400, throw: false)
-                ->get("{$baseUrl}/config/company");
+                ->get("{$baseUrl}/{$ublPrefix}/config/company");
 
             if ($response->successful()) {
                 $company = $response->json() ?? [];
 
                 return $this->result(true, 'Conexión exitosa con Nextpyme.', $startedAt, [
                     'base_url' => $baseUrl,
-                    'checked_endpoint' => "{$baseUrl}/config/company",
+                    'checked_endpoint' => "{$baseUrl}/{$ublPrefix}/config/company",
                     'status_code' => $response->status(),
                     'token_source' => $tokenSource,
                     'company' => [
@@ -61,7 +62,7 @@ class TestNextpymeConnection
             if ($response->status() === 404) {
                 return $this->result(true, 'API online; el endpoint de prueba /config/company no está expuesto en esta instalación de Nextpyme.', $startedAt, [
                     'base_url' => $baseUrl,
-                    'checked_endpoint' => "{$baseUrl}/config/company",
+                    'checked_endpoint' => "{$baseUrl}/{$ublPrefix}/config/company",
                     'status_code' => $response->status(),
                     'token_source' => $tokenSource,
                 ]);
@@ -72,18 +73,20 @@ class TestNextpymeConnection
 
             return $this->result(false, $message, $startedAt, [
                 'base_url' => $baseUrl,
-                'checked_endpoint' => "{$baseUrl}/config/company",
+                'checked_endpoint' => "{$baseUrl}/{$ublPrefix}/config/company",
                 'status_code' => $response->status(),
                 'token_source' => $tokenSource,
             ]);
         } catch (ConnectionException $exception) {
             return $this->result(false, 'No se pudo conectar con Nextpyme: '.$exception->getMessage(), $startedAt, [
                 'base_url' => $baseUrl,
+                'checked_endpoint' => "{$baseUrl}/{$ublPrefix}/config/company",
                 'token_source' => $tokenSource,
             ]);
         } catch (Throwable $exception) {
             return $this->result(false, 'Error verificando la conexión: '.$exception->getMessage(), $startedAt, [
                 'base_url' => $baseUrl,
+                'checked_endpoint' => "{$baseUrl}/{$ublPrefix}/config/company",
                 'token_source' => $tokenSource,
             ]);
         }

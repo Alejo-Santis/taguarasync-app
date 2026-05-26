@@ -62,6 +62,17 @@ class NextpymeClient
         ]);
     }
 
+    public function validatePurchaseDocument(array $payload): array
+    {
+        $path = (string) config('fe.purchase_validation_path');
+
+        if ($path === '') {
+            throw new RuntimeException('No hay endpoint de validación de compras configurado. Define FE_PURCHASE_VALIDATION_PATH cuando NextPyme confirme la ruta RADIAN para documentos de proveedor.');
+        }
+
+        return $this->post($path, $payload);
+    }
+
     private function post(string $path, array $payload): array
     {
         if (empty($this->globalToken)) {

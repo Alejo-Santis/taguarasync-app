@@ -546,7 +546,7 @@
                     <input type="hidden" bind:value={adjustForm.inventory_lot_id} />
 
                     <div>
-                        <label class="form-label fw-semibold">Tipo de ajuste</label>
+                        <div class="form-label fw-semibold">Tipo de ajuste</div>
                         <div class="d-flex gap-2">
                             <button
                                 type="button"

@@ -38,7 +38,7 @@
     };
 
     // ── Formulario unificado (tenant básico + fe_config) ──────────────────────
-    const fiscalForm = useForm({
+    const fiscalForm = useForm(() => ({
         // Datos básicos del tenant
         name: tenant.name ?? '',
         legal_name: tenant.legal_name ?? '',
@@ -61,7 +61,7 @@
         environment: fe_config.environment ?? 'test',
         api_token: '',
         software_id: fe_config.software_id ?? '',
-    });
+    }));
 
     // DV reactivo
     const dv = $derived(calculateDv(fiscalForm.nit));
@@ -141,7 +141,7 @@
     let drawerOpen = $state(false);
     let editingResolution = $state(null);
 
-    const resolutionForm = useForm({
+    const resolutionForm = useForm(() => ({
         code: '',
         type: 'invoice',
         prefix: '',
@@ -154,7 +154,7 @@
         valid_until: '',
         environment: fe_config.environment ?? 'test',
         next_document_number: '',
-    });
+    }));
 
     $effect(() => {
         document.body.style.overflow = drawerOpen ? 'hidden' : '';

@@ -1,16 +1,16 @@
 <script>
     import { Link, router, useForm } from '@inertiajs/svelte';
     import { fade, fly } from 'svelte/transition';
-    import { Banknote, Building2, Landmark, Pencil, Plus, RotateCcw, Search, Settings, ToggleLeft, ToggleRight, X } from '@lucide/svelte';
+    import { Banknote, Building2, CheckCircle2, Download, Landmark, Pencil, Plus, RotateCcw, Search, Settings, ToggleLeft, ToggleRight, TriangleAlert, X } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
     import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
 
-    let { auth, items, movements, filters, stats } = $props();
+    let { auth, items, movements, filters, stats, movementStatuses } = $props();
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (value) => money.format(value ?? 0);
 
-    let form = $state({ q: '', status: '' });
+    let form = $state({ q: '', status: '', movement_status: '', account_id: '' });
     let drawerOpen = $state(false);
     let editingItem = $state(null);
 
@@ -30,8 +30,18 @@
     }[type] ?? type);
 
     const movementTypeLabel = (type) => type === 'outflow' ? 'Salida' : 'Entrada';
+    const movementStatusClass = (status) => {
+        if (status === 'confirmed') return 'text-bg-success';
+        if (status === 'difference') return 'text-bg-danger';
+        return 'text-bg-warning text-dark';
+    };
 
-    $effect(() => { form.q = filters.q ?? ''; form.status = filters.status ?? ''; });
+    $effect(() => {
+        form.q = filters.q ?? '';
+        form.status = filters.status ?? '';
+        form.movement_status = filters.movement_status ?? '';
+        form.account_id = filters.account_id ? String(filters.account_id) : '';
+    });
     $effect(() => {
         document.body.style.overflow = drawerOpen ? 'hidden' : '';
         return () => { document.body.style.overflow = ''; };
@@ -39,7 +49,10 @@
 
     const handleKeydown = (event) => { if (event.key === 'Escape') closeDrawer(); };
     const submit = (event) => { event.preventDefault(); router.get('/settings/banks', form, { preserveState: true, replace: true }); };
-    const resetFilters = () => { form = { q: '', status: '' }; router.get('/settings/banks', {}, { preserveState: true, replace: true }); };
+    const resetFilters = () => {
+        form = { q: '', status: '', movement_status: '', account_id: '' };
+        router.get('/settings/banks', {}, { preserveState: true, replace: true });
+    };
 
     const openCreate = () => {
         editingItem = null;
@@ -76,6 +89,9 @@
     };
 
     const toggle = (item) => { router.patch(`/settings/banks/${item.id}/toggle`, {}, { preserveScroll: true }); };
+    const reconcileMovement = (movement, status) => {
+        router.patch(`/settings/banks/movements/${movement.id}/reconcile`, { status }, { preserveScroll: true });
+    };
 </script>
 
 <svelte:window onkeydown={handleKeydown} />
@@ -88,7 +104,12 @@
                 <h2 class="h3 mb-2">Bancos y conciliación</h2>
                 <p class="text-secondary mb-0">Controla las cuentas donde llegan transferencias, tarjetas y billeteras del POS.</p>
             </div>
-            <Landmark class="text-secondary" size={22} />
+            <div class="d-flex align-items-center gap-2">
+                <a class="btn btn-light border taguara-icon-button" href="/reports/banks/export" aria-label="Exportar movimientos bancarios">
+                    <Download size={18} />
+                </a>
+                <Landmark class="text-secondary" size={22} />
+            </div>
         </section>
 
         <SettingsNav active="banks" />
@@ -113,6 +134,13 @@
                 <div>
                     <p class="taguara-kpi-label">Pendiente por conciliar</p>
                     <h3>{fmt(stats.pending)}</h3>
+                </div>
+            </article>
+            <article class="taguara-kpi-card">
+                <span class="taguara-kpi-icon text-bg-danger"><TriangleAlert size={20} /></span>
+                <div>
+                    <p class="taguara-kpi-label">Con diferencia</p>
+                    <h3>{fmt(stats.difference)}</h3>
                 </div>
             </article>
         </section>
@@ -211,9 +239,33 @@
             <div class="taguara-panel-header align-items-start">
                 <div>
                     <p class="text-uppercase small fw-semibold text-success mb-1">Movimientos</p>
-                    <h3 class="h5 mb-0">Últimas entradas y salidas</h3>
+                    <h3 class="h5 mb-0">Conciliación bancaria</h3>
                 </div>
             </div>
+            <form class="taguara-filter-grid mb-3" onsubmit={submit} style="grid-template-columns: minmax(180px,1fr) minmax(160px,220px) auto">
+                <label class="form-label mb-0">
+                    <span class="small fw-semibold text-secondary">Cuenta</span>
+                    <select class="form-select" bind:value={form.account_id}>
+                        <option value="">Todas</option>
+                        {#each items.data as item}
+                            <option value={item.id}>{item.bank_name} · {item.account_name}</option>
+                        {/each}
+                    </select>
+                </label>
+                <label class="form-label mb-0">
+                    <span class="small fw-semibold text-secondary">Estado conciliación</span>
+                    <select class="form-select" bind:value={form.movement_status}>
+                        <option value="">Todos</option>
+                        {#each movementStatuses as status}
+                            <option value={status.value}>{status.label}</option>
+                        {/each}
+                    </select>
+                </label>
+                <div class="d-flex align-items-end gap-2">
+                    <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="submit"><Search size={17} />Filtrar</button>
+                    <button class="btn btn-light border taguara-icon-button" type="button" onclick={resetFilters}><RotateCcw size={17} /></button>
+                </div>
+            </form>
             <div class="taguara-table-wrapper">
                 <table class="taguara-table">
                     <thead>
@@ -224,6 +276,7 @@
                             <th>Tipo</th>
                             <th class="text-end">Monto</th>
                             <th>Estado</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -234,10 +287,28 @@
                                 <td>{movement.reference ?? 'Sin referencia'}</td>
                                 <td>{movementTypeLabel(movement.type)}</td>
                                 <td class="text-end fw-semibold">{fmt(movement.amount)}</td>
-                                <td><span class={`badge ${movement.status === 'confirmed' ? 'text-bg-success' : 'text-bg-warning text-dark'}`}>{movement.status === 'confirmed' ? 'Conciliado' : 'Pendiente'}</span></td>
+                                <td>
+                                    <span class={`badge ${movementStatusClass(movement.status)}`}>{movement.status_label}</span>
+                                    {#if movement.reconciled_at}
+                                        <div class="taguara-table-sub">{movement.reconciled_at} · {movement.reconciled_by ?? 'Usuario'}</div>
+                                    {/if}
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" title="Conciliar" onclick={() => reconcileMovement(movement, 'confirmed')}>
+                                            <CheckCircle2 size={15} class="text-success" />
+                                        </button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" title="Marcar diferencia" onclick={() => reconcileMovement(movement, 'difference')}>
+                                            <TriangleAlert size={15} class="text-danger" />
+                                        </button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" title="Dejar pendiente" onclick={() => reconcileMovement(movement, 'pending')}>
+                                            <RotateCcw size={15} />
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         {:else}
-                            <tr><td colspan="6"><div class="taguara-empty-state" style="min-height:120px"><Banknote size={28} /><p class="text-secondary small mb-0">Aún no hay movimientos bancarios.</p></div></td></tr>
+                            <tr><td colspan="7"><div class="taguara-empty-state" style="min-height:120px"><Banknote size={28} /><p class="text-secondary small mb-0">Aún no hay movimientos bancarios.</p></div></td></tr>
                         {/each}
                     </tbody>
                 </table>

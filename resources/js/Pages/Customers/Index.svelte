@@ -1,5 +1,6 @@
 <script>
     import { Link, router, useForm } from '@inertiajs/svelte';
+    import { untrack } from 'svelte';
     import { fade, fly } from 'svelte/transition';
     import {
         Building2,
@@ -18,7 +19,7 @@
     let { auth, items, filters, stats, options } = $props();
 
     // ── Filtros ───────────────────────────────────────────────────────────────
-    let filterForm = $state({ q: filters.q ?? '', status: filters.status ?? '' });
+    let filterForm = $state(untrack(() => ({ q: filters.q ?? '', status: filters.status ?? '' })));
 
     $effect(() => {
         filterForm.q = filters.q ?? '';

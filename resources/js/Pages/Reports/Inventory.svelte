@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { untrack } from 'svelte';
     import { AlertTriangle, BarChart3, Boxes, CircleDollarSign, RotateCcw } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
     import ReportsNav from '../../Components/Reports/ReportsNav.svelte';
@@ -9,7 +10,7 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
 
-    let expiry = $state(filters.expiry ?? '');
+    let expiry = $state(untrack(() => filters.expiry ?? ''));
 
     const expiryClass = (days) => {
         if (days === null) return 'text-secondary';

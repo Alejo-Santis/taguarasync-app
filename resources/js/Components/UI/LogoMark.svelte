@@ -1,9 +1,9 @@
 <script>
     let { size = 38, variant = 'color' } = $props();
 
-    const fill0 = variant === 'white' ? 'white' : 'url(#ts-bg)';
-    const mark = variant === 'white' ? 'rgba(20,108,67,0.95)' : 'white';
     const id = `ts-bg-${Math.random().toString(36).slice(2, 7)}`;
+    const fill = $derived(variant === 'white' ? 'white' : `url(#${id})`);
+    const mark = $derived(variant === 'white' ? 'rgba(20,108,67,0.95)' : 'white');
 </script>
 
 <svg
@@ -21,7 +21,7 @@
         </linearGradient>
     </defs>
 
-    <rect width="100" height="100" rx="22" fill={variant === 'white' ? 'white' : `url(#${id})`}/>
+    <rect width="100" height="100" rx="22" {fill}/>
 
     <!-- T crossbar -->
     <rect x="15" y="17" width="70" height="14" rx="7" fill={mark}/>
