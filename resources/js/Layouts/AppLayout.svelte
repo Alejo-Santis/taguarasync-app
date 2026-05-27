@@ -71,6 +71,20 @@
 
     let searchModalOpen = $state(false);
 
+    // ── Grupos colapsables ────────────────────────────────────────────────────
+    const savedCollapsed = JSON.parse(localStorage.getItem('nav-collapsed-groups') ?? '[]');
+    let collapsedGroups = $state(new Set(savedCollapsed));
+
+    const toggleGroup = (groupName) => {
+        const next = new Set(collapsedGroups);
+        next.has(groupName) ? next.delete(groupName) : next.add(groupName);
+        collapsedGroups = next;
+        localStorage.setItem('nav-collapsed-groups', JSON.stringify([...next]));
+    };
+
+    // Muestra ítems si: no hay label de grupo, sidebar colapsado (iconos), o grupo no está cerrado
+    const groupVisible = (group) => !group || isCollapsed || !collapsedGroups.has(group);
+
     const perms = $derived(auth?.permissions ?? []);
     const can = (p) => perms.includes(p);
 
@@ -187,52 +201,65 @@
             </button>
         </div>
 
-        <nav class="taguara-sidebar-nav" aria-label="Principal">
-            {#each navGroups as { group, items }}
-                {#if group}
-                    <span class="taguara-nav-group-label taguara-nav-label">{group}</span>
-                {/if}
-                {#each items as item}
-                    {@const Icon = item.icon}
-                    {#if item.soon}
-                        <span
-                            class="taguara-nav-link taguara-nav-link-soon"
-                            aria-disabled="true"
-                            use:navTooltip={item.label}
+        <div class="taguara-sidebar-scroll">
+            <nav class="taguara-sidebar-nav" aria-label="Principal">
+                {#each navGroups as { group, items }}
+                    {#if group}
+                        <button
+                            class="taguara-nav-group-label taguara-nav-label"
+                            type="button"
+                            onclick={() => toggleGroup(group)}
                         >
-                            <Icon size={18} strokeWidth={2} />
-                            <span class="taguara-nav-label">{item.label}</span>
-                            <span class="taguara-nav-soon-badge taguara-nav-label">Pronto</span>
-                        </span>
-                    {:else}
-                        <div use:navTooltip={item.label}>
-                            <Link
-                                class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`}
-                                href={item.href}
-                            >
-                                <Icon size={18} strokeWidth={2} />
-                                <span class="taguara-nav-label">{item.label}</span>
-                            </Link>
-                        </div>
+                            <span>{group}</span>
+                            <span class="taguara-nav-group-chevron {collapsedGroups.has(group) ? 'is-collapsed' : ''}">
+                                <ChevronDown size={11} />
+                            </span>
+                        </button>
+                    {/if}
+                    {#if groupVisible(group)}
+                        {#each items as item}
+                            {@const Icon = item.icon}
+                            {#if item.soon}
+                                <span
+                                    class="taguara-nav-link taguara-nav-link-soon"
+                                    aria-disabled="true"
+                                    use:navTooltip={item.label}
+                                >
+                                    <Icon size={18} strokeWidth={2} />
+                                    <span class="taguara-nav-label">{item.label}</span>
+                                    <span class="taguara-nav-soon-badge taguara-nav-label">Pronto</span>
+                                </span>
+                            {:else}
+                                <div use:navTooltip={item.label}>
+                                    <Link
+                                        class={`taguara-nav-link ${item.section === activeSection ? 'active' : ''}`}
+                                        href={item.href}
+                                    >
+                                        <Icon size={18} strokeWidth={2} />
+                                        <span class="taguara-nav-label">{item.label}</span>
+                                    </Link>
+                                </div>
+                            {/if}
+                        {/each}
                     {/if}
                 {/each}
-            {/each}
-        </nav>
-
-        {#if auth?.user?.is_super_admin}
-            <nav class="taguara-sidebar-nav border-top pt-2 mt-1" aria-label="Super Admin">
-                <span class="taguara-nav-group-label taguara-nav-label text-danger">Super admin</span>
-                <div use:navTooltip={'Farmacias'}>
-                    <Link
-                        class={`taguara-nav-link ${activeSection === 'admin' ? 'active' : ''}`}
-                        href="/admin/tenants"
-                    >
-                        <Building2 size={18} strokeWidth={2} />
-                        <span class="taguara-nav-label">Farmacias</span>
-                    </Link>
-                </div>
             </nav>
-        {/if}
+
+            {#if auth?.user?.is_super_admin}
+                <nav class="taguara-sidebar-nav border-top pt-2 mt-1" aria-label="Super Admin">
+                    <span class="taguara-nav-group-label taguara-nav-label text-danger">Super admin</span>
+                    <div use:navTooltip={'Farmacias'}>
+                        <Link
+                            class={`taguara-nav-link ${activeSection === 'admin' ? 'active' : ''}`}
+                            href="/admin/tenants"
+                        >
+                            <Building2 size={18} strokeWidth={2} />
+                            <span class="taguara-nav-label">Farmacias</span>
+                        </Link>
+                    </div>
+                </nav>
+            {/if}
+        </div>
 
         <div class="taguara-sidebar-footer">
             <div class="taguara-tenant-chip">
