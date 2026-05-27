@@ -5,16 +5,21 @@
         ArrowRight,
         Boxes,
         CalendarClock,
+        CheckCircle2,
+        ChevronDown,
+        ChevronUp,
+        Circle,
         CircleDollarSign,
         PackageCheck,
         ReceiptText,
+        Rocket,
         ShoppingCart,
         TrendingUp,
     } from '@lucide/svelte';
     import AppLayout from '../Layouts/AppLayout.svelte';
     import LogoMark from '../Components/UI/LogoMark.svelte';
 
-    let { auth, kpis, alerts, salesLast7, recentSales } = $props();
+    let { auth, kpis, alerts, setup, salesLast7, recentSales } = $props();
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
@@ -28,6 +33,17 @@
         { label: 'Crear producto', icon: PackageCheck, tone: 'dark', href: '/products/create' },
         { label: 'Ver inventario', icon: Boxes, tone: 'secondary', href: '/inventory' },
     ];
+
+    // Setup checklist state — persisted in localStorage
+    let setupCollapsed = $state(localStorage.getItem('setup-checklist-collapsed') === 'true');
+    const toggleSetup = () => {
+        setupCollapsed = !setupCollapsed;
+        localStorage.setItem('setup-checklist-collapsed', String(setupCollapsed));
+    };
+
+    const doneCount = $derived(setup.steps.filter((s) => s.done).length);
+    const totalCount = $derived(setup.steps.length);
+    const progressPct = $derived(Math.round((doneCount / totalCount) * 100));
 </script>
 
 <AppLayout title="Panel operativo" activeSection="dashboard" {auth}>
@@ -52,6 +68,67 @@
                 </button>
             </div>
         </section>
+
+        <!-- Setup checklist — visible only while not complete -->
+        {#if !setup.complete}
+            <section class="taguara-panel taguara-setup-panel">
+                <button class="taguara-setup-header" type="button" onclick={toggleSetup}>
+                    <div class="d-flex align-items-center gap-3 min-w-0">
+                        <span class="taguara-setup-rocket">
+                            <Rocket size={18} />
+                        </span>
+                        <div class="min-w-0">
+                            <p class="fw-semibold mb-0">Configura tu farmacia</p>
+                            <p class="text-secondary small mb-0">{doneCount} de {totalCount} pasos completados</p>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 flex-shrink-0">
+                        <div class="taguara-setup-progress-wrap d-none d-sm-block">
+                            <div class="taguara-setup-progress-bar">
+                                <div class="taguara-setup-progress-fill" style="width:{progressPct}%"></div>
+                            </div>
+                            <span class="small text-secondary">{progressPct}%</span>
+                        </div>
+                        {#if setupCollapsed}
+                            <ChevronDown size={18} class="text-secondary" />
+                        {:else}
+                            <ChevronUp size={18} class="text-secondary" />
+                        {/if}
+                    </div>
+                </button>
+
+                {#if !setupCollapsed}
+                    <div class="taguara-setup-steps">
+                        {#each setup.steps as step}
+                            <button
+                                class="taguara-setup-step {step.done ? 'taguara-setup-step--done' : ''}"
+                                type="button"
+                                onclick={() => !step.done && router.visit(step.href)}
+                                disabled={step.done}
+                            >
+                                <span class="taguara-setup-step-icon">
+                                    {#if step.done}
+                                        <CheckCircle2 size={20} class="text-success" />
+                                    {:else}
+                                        <Circle size={20} class="text-secondary" />
+                                    {/if}
+                                </span>
+                                <div class="min-w-0 flex-grow-1 text-start">
+                                    <p class="fw-semibold mb-0 small {step.done ? 'text-decoration-line-through text-secondary' : ''}">{step.label}</p>
+                                    <p class="text-secondary mb-0" style="font-size:0.78rem">{step.description}</p>
+                                </div>
+                                {#if !step.done}
+                                    <span class="taguara-setup-step-cta">
+                                        Ir
+                                        <ArrowRight size={13} />
+                                    </span>
+                                {/if}
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+            </section>
+        {/if}
 
         <!-- KPIs reales -->
         <section class="row g-3">
@@ -168,7 +245,7 @@
                             <p class="text-uppercase small fw-semibold text-success mb-1">Alertas</p>
                             <h3 class="h5 mb-0">Requieren atencion</h3>
                         </div>
-                        <AlertTriangle class={alerts.expiring_lots > 0 || alerts.expired_lots > 0 || alerts.low_stock > 0 || alerts.radian_pending > 0 || alerts.bank_differences > 0 ? 'text-warning' : 'text-secondary'} size={22} />
+                        <AlertTriangle class={alerts.expiring_lots > 0 || alerts.expired_lots > 0 || alerts.low_stock > 0 || alerts.radian_pending > 0 || alerts.bank_differences > 0 || alerts.credit_overdue > 0 ? 'text-warning' : 'text-secondary'} size={22} />
                     </div>
 
                     <div class="vstack gap-3">
@@ -215,6 +292,15 @@
                             </div>
                             <span class={`taguara-alert-value ${alerts.bank_differences > 0 ? 'bg-danger text-white' : 'bg-light text-secondary border'}`}>
                                 {alerts.bank_differences}
+                            </span>
+                        </button>
+                        <button class="taguara-alert-row taguara-click-row" type="button" onclick={() => router.visit('/sales/receivables')}>
+                            <div>
+                                <p class="fw-semibold mb-1">Cartera vencida</p>
+                                <p class="small text-secondary mb-0">{alerts.credit_overdue > 0 ? 'Ventas a credito con vencimiento pasado' : 'Sin cartera vencida'}</p>
+                            </div>
+                            <span class={`taguara-alert-value ${alerts.credit_overdue > 0 ? 'bg-danger text-white' : 'bg-light text-secondary border'}`}>
+                                {alerts.credit_overdue}
                             </span>
                         </button>
                     </div>
@@ -267,7 +353,7 @@
                             <span class="taguara-timeline-time text-bg-success text-white">Activo</span>
                             <div>
                                 <p class="fw-semibold mb-1">Compras e inventario</p>
-                                <p class="text-secondary small mb-0">Recepciones, lotes con vencimiento, movimientos FEFO</p>
+                                <p class="text-secondary small mb-0">Recepciones, lotes con vencimiento, ordenes de compra, devoluciones</p>
                             </div>
                         </div>
                         <div class="taguara-timeline-item">
@@ -278,10 +364,17 @@
                             </div>
                         </div>
                         <div class="taguara-timeline-item">
-                            <span class="taguara-timeline-time" style="background:var(--taguara-soft-blue);color:#084298">Proximo</span>
+                            <span class="taguara-timeline-time text-bg-success text-white">Activo</span>
                             <div>
-                                <p class="fw-semibold mb-1">Reportes y facturacion DIAN</p>
-                                <p class="text-secondary small mb-0">Ventas, inventario, compras · Factura electronica Colombia</p>
+                                <p class="fw-semibold mb-1">Facturacion electronica DIAN</p>
+                                <p class="text-secondary small mb-0">FE, notas credito, RADIAN (030/032), validacion ante la DIAN</p>
+                            </div>
+                        </div>
+                        <div class="taguara-timeline-item">
+                            <span class="taguara-timeline-time text-bg-success text-white">Activo</span>
+                            <div>
+                                <p class="fw-semibold mb-1">Reportes y auditoria</p>
+                                <p class="text-secondary small mb-0">Ventas, fiscal, inventario, compras, rentabilidad, movimientos</p>
                             </div>
                         </div>
                     </div>

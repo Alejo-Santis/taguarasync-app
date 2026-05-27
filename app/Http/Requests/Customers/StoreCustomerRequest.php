@@ -39,6 +39,7 @@ class StoreCustomerRequest extends FormRequest
             'address' => ['nullable', 'string', 'max:500'],
             'municipality_code' => ['nullable', 'string', Rule::exists('dian_municipalities', 'code')],
             'price_list_id' => ['nullable', 'integer', Rule::exists('price_lists', 'id')->where('tenant_id', $tenantId)],
+            'credit_limit' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['boolean'],
             'notes' => ['nullable', 'string'],
         ];

@@ -38,7 +38,7 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<AppLayout title={customer.full_name} activeSection="sales" {auth}>
+<AppLayout title={customer.full_name} activeSection="receivables" {auth}>
     <div class="taguara-products">
         <section class="taguara-command-band">
             <div>

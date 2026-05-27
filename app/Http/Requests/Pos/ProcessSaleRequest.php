@@ -23,12 +23,24 @@ class ProcessSaleRequest extends FormRequest
         $tenantId = $this->user()?->tenant_id;
 
         return [
-            'customer_id' => ['nullable', 'integer', Rule::exists('customers', 'id')->where('tenant_id', $tenantId)],
-            'payment_method' => ['required', Rule::enum(PaymentMethod::class)],
+            'customer_id' => [
+                'nullable', 'integer',
+                Rule::exists('customers', 'id')->where('tenant_id', $tenantId),
+                Rule::requiredIf($this->input('payment_form') === '2'),
+            ],
+            'payment_method' => [
+                Rule::requiredIf($this->input('payment_form') !== '2'),
+                'nullable',
+                Rule::enum(PaymentMethod::class),
+            ],
             'payment_form' => ['nullable', 'string', Rule::in(['1', '2'])],
+            'payment_due_date' => [
+                'nullable', 'date',
+                Rule::requiredIf($this->input('payment_form') === '2'),
+            ],
             'amount_tendered' => [
                 'nullable', 'integer', 'min:0',
-                Rule::requiredIf($this->input('payment_method') === PaymentMethod::Cash->value),
+                Rule::requiredIf($this->input('payment_method') === PaymentMethod::Cash->value && $this->input('payment_form') !== '2'),
             ],
             'notes' => ['nullable', 'string', 'max:500'],
             'payments' => ['nullable', 'array', 'min:1', 'max:5'],
@@ -60,6 +72,11 @@ class ProcessSaleRequest extends FormRequest
     {
         return [
             function ($validator): void {
+                // Credit sales (payment_form=2) don't require payment validation at POS time
+                if ($this->input('payment_form') === '2') {
+                    return;
+                }
+
                 $total = collect($this->input('items', []))->reduce(function (int $carry, array $item): int {
                     $gross = ($item['quantity'] ?? 0) * ($item['unit_price'] ?? 0);
                     $discountRate = (float) ($item['discount_rate'] ?? 0);

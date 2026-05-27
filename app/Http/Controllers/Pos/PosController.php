@@ -101,10 +101,14 @@ class PosController extends Controller
                 ->orWhere('business_name', 'ilike', "%{$query}%");
         })
             ->where('is_active', true)
-            // Consumidor Final siempre primero si coincide con la búsqueda
             ->orderByRaw("CASE WHEN identification_number = '222222222222' THEN 0 ELSE 1 END")
             ->limit(8)
-            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code', 'price_list_id']);
+            ->withSum(
+                ['sales as credit_invoiced' => fn ($q) => $q->where('payment_form', '2')->where('status', '!=', 'voided')],
+                'total'
+            )
+            ->withSum('collections as credit_collected', 'amount')
+            ->get(['id', 'identification_type_code', 'identification_number', 'verification_digit', 'first_name', 'last_name', 'business_name', 'regime_type_code', 'price_list_id', 'credit_limit']);
 
         return response()->json($customers->map(fn (Customer $c) => $this->formatCustomer($c)));
     }
@@ -112,6 +116,10 @@ class PosController extends Controller
     /** @return array<string, mixed> */
     private function formatCustomer(Customer $c): array
     {
+        $creditInvoiced = (int) ($c->credit_invoiced ?? 0);
+        $creditCollected = (int) ($c->credit_collected ?? 0);
+        $creditBalance = $creditInvoiced - $creditCollected;
+
         return [
             'id' => $c->id,
             'full_name' => $c->full_name,
@@ -120,6 +128,8 @@ class PosController extends Controller
             'regime_code' => $c->regime_type_code,
             'is_consumidor_final' => $c->isConsumidorFinal(),
             'price_list_id' => $c->price_list_id,
+            'credit_limit' => $c->credit_limit,
+            'credit_balance' => $creditBalance,
         ];
     }
 
@@ -171,11 +181,15 @@ class PosController extends Controller
             return back()->withErrors(['cart' => $e->getMessage()]);
         }
 
+        $isCredit = $sale->payment_form === '2';
+
         return to_route('pos.index')->with('completedSale', [
             'uuid' => $sale->uuid,
             'document_number' => $sale->document_number,
             'total' => $sale->total,
-            'payment_method' => $sale->payment_method->label(),
+            'payment_form' => $sale->payment_form,
+            'payment_due_date' => $isCredit ? $sale->payment_due_date?->toDateString() : null,
+            'payment_method' => $isCredit ? 'Crédito' : $sale->payment_method->label(),
             'change_amount' => $sale->change_amount,
             'payments' => $sale->payments()
                 ->with('paymentMethod:id,name')

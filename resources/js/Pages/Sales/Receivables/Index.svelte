@@ -11,7 +11,7 @@
     const balanceClass = (b) => b > 0 ? 'text-danger fw-semibold' : b < 0 ? 'text-success fw-semibold' : 'text-secondary';
 </script>
 
-<AppLayout title="Cartera de clientes" activeSection="sales" {auth}>
+<AppLayout title="Cartera de clientes" activeSection="receivables" {auth}>
     <div class="taguara-products">
         <section class="taguara-command-band">
             <div>

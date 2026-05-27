@@ -12,27 +12,35 @@ use Spatie\Permission\Models\Permission;
 
 uses(RefreshDatabase::class);
 
-test('purchase radian validation stores accepted api response', function () {
+$fakeCufe = str_repeat('a', 96);
+
+test('purchase radian validation sends events 030 and 032 when cufe is set', function () use ($fakeCufe) {
     Config::set('fe.api_url', 'https://nextpyme.test/api');
+    Config::set('fe.ubl_prefix', '/ubl2.1');
     Config::set('fe.api_token', 'secret-token');
-    Config::set('fe.purchase_validation_path', '/radian/purchases/validate');
+
+    // Mock: checkRadianEvents → no events yet (status 67)
     Http::fake([
-        'https://nextpyme.test/api/radian/purchases/validate' => Http::response([
-            'valid' => true,
-            'message' => 'Documento encontrado en RADIAN.',
+        "https://nextpyme.test/api/ubl2.1/status/events-document/{$fakeCufe}" => Http::response([
+            'success' => false,
+            'message' => 'no tiene eventos asociados',
         ]),
+        // sendRadianEvent event_id=1 (030)
+        'https://nextpyme.test/api/ubl2.1/send-event-data' => Http::sequence()
+            ->push(['ResponseDian' => ['Envelope' => ['Body' => ['SendEventUpdateStatusResponse' => ['SendEventUpdateStatusResult' => ['IsValid' => 'true', 'XmlDocumentKey' => str_repeat('b', 96)]]]]]])
+            ->push(['ResponseDian' => ['Envelope' => ['Body' => ['SendEventUpdateStatusResponse' => ['SendEventUpdateStatusResult' => ['IsValid' => 'true', 'XmlDocumentKey' => str_repeat('c', 96)]]]]]]),
     ]);
 
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
     Permission::findOrCreate('purchases.create');
     $user->givePermissionTo('purchases.create');
-    $supplier = Supplier::factory()->for($tenant)->create(['nit' => '900123456']);
+    $supplier = Supplier::factory()->for($tenant)->create();
     $receipt = PurchaseReceipt::factory()
         ->for($tenant)
         ->for($supplier)
         ->for($user)
-        ->create(['document_number' => 'FE-PROV-1001']);
+        ->create(['supplier_cufe' => $fakeCufe]);
 
     $this->actingAs($user)
         ->post("/purchases/{$receipt->uuid}/validate-radian")
@@ -42,22 +50,34 @@ test('purchase radian validation stores accepted api response', function () {
 
     expect($receipt->radian_status)->toBe(PurchaseRadianStatus::Validated)
         ->and($receipt->radian_checked_at)->not->toBeNull()
-        ->and($receipt->radian_response['message'])->toBe('Documento encontrado en RADIAN.')
         ->and($receipt->radian_error_message)->toBeNull();
-
-    Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer secret-token')
-        && $request['document_number'] === 'FE-PROV-1001'
-        && $request['supplier']['nit'] === '900123456');
 });
 
-test('purchase radian validation records configuration errors', function () {
-    Config::set('fe.purchase_validation_path', null);
+test('purchase radian validation marks as already validated when 030 and 032 already exist', function () use ($fakeCufe) {
+    Config::set('fe.api_url', 'https://nextpyme.test/api');
+    Config::set('fe.ubl_prefix', '/ubl2.1');
+    Config::set('fe.api_token', 'secret-token');
+
+    Http::fake([
+        "https://nextpyme.test/api/ubl2.1/status/events-document/{$fakeCufe}" => Http::response([
+            'success' => true,
+            'events' => [
+                ['dian_code' => '030', 'cude' => str_repeat('b', 96), 'date' => '2026-01-01'],
+                ['dian_code' => '032', 'cude' => str_repeat('c', 96), 'date' => '2026-01-01'],
+            ],
+        ]),
+    ]);
 
     $tenant = Tenant::factory()->create();
     $user = User::factory()->for($tenant)->create();
     Permission::findOrCreate('purchases.create');
     $user->givePermissionTo('purchases.create');
-    $receipt = PurchaseReceipt::factory()->for($tenant)->for($user)->create();
+    $supplier = Supplier::factory()->for($tenant)->create();
+    $receipt = PurchaseReceipt::factory()
+        ->for($tenant)
+        ->for($supplier)
+        ->for($user)
+        ->create(['supplier_cufe' => $fakeCufe]);
 
     $this->actingAs($user)
         ->post("/purchases/{$receipt->uuid}/validate-radian")
@@ -65,6 +85,31 @@ test('purchase radian validation records configuration errors', function () {
 
     $receipt->refresh();
 
-    expect($receipt->radian_status)->toBe(PurchaseRadianStatus::Error)
-        ->and($receipt->radian_error_message)->toContain('FE_PURCHASE_VALIDATION_PATH');
+    expect($receipt->radian_status)->toBe(PurchaseRadianStatus::Validated)
+        ->and($receipt->radian_error_message)->toBeNull();
+
+    // No debe haber llamado al endpoint de envío de eventos
+    Http::assertNotSent(fn ($request) => str_contains((string) $request->url(), 'send-event-data'));
+});
+
+test('purchase radian validation marks pending with message when supplier cufe is missing', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->for($tenant)->create();
+    Permission::findOrCreate('purchases.create');
+    $user->givePermissionTo('purchases.create');
+    $supplier = Supplier::factory()->for($tenant)->create();
+    $receipt = PurchaseReceipt::factory()
+        ->for($tenant)
+        ->for($supplier)
+        ->for($user)
+        ->create(['supplier_cufe' => null]);
+
+    $this->actingAs($user)
+        ->post("/purchases/{$receipt->uuid}/validate-radian")
+        ->assertRedirect();
+
+    $receipt->refresh();
+
+    expect($receipt->radian_status)->toBe(PurchaseRadianStatus::Pending)
+        ->and($receipt->radian_error_message)->toContain('CUFE');
 });

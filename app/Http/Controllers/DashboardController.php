@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Enums\InventoryLotStatus;
+use App\Enums\PaymentForm;
 use App\Enums\PurchaseRadianStatus;
 use App\Enums\PurchaseReceiptStatus;
+use App\Enums\SaleStatus;
 use App\Models\BankAccountMovement;
+use App\Models\CashRegister;
 use App\Models\InventoryLot;
 use App\Models\Product;
 use App\Models\PurchaseReceipt;
 use App\Models\Sale;
+use App\Models\Supplier;
+use App\Models\TenantFeConfig;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -63,7 +68,12 @@ class DashboardController extends Controller
                     ->count(),
                 'radian_pending' => PurchaseReceipt::where('radian_status', PurchaseRadianStatus::Pending)->count(),
                 'bank_differences' => BankAccountMovement::where('status', 'difference')->count(),
+                'credit_overdue' => Sale::where('payment_form', PaymentForm::Credit)
+                    ->where('status', SaleStatus::Completed)
+                    ->whereDate('payment_due_date', '<', $today)
+                    ->count(),
             ],
+            'setup' => $this->setupChecklist(),
             'salesLast7' => $salesLast7,
             'recentSales' => Sale::with('cashSession.register')
                 ->latest()
@@ -76,5 +86,61 @@ class DashboardController extends Controller
                     'at' => $s->created_at->format('H:i d/m'),
                 ]),
         ]);
+    }
+
+    /**
+     * @return array{complete: bool, steps: array<int, array{key: string, label: string, description: string, done: bool, href: string}>}
+     */
+    private function setupChecklist(): array
+    {
+        $steps = [
+            [
+                'key' => 'cash_register',
+                'label' => 'Crear caja registradora',
+                'description' => 'Necesaria para abrir el POS y registrar ventas.',
+                'done' => CashRegister::where('is_active', true)->exists(),
+                'href' => '/settings/registers',
+            ],
+            [
+                'key' => 'supplier',
+                'label' => 'Agregar un proveedor',
+                'description' => 'Indispensable para recibir compras e inventario.',
+                'done' => Supplier::where('is_active', true)->exists(),
+                'href' => '/settings/suppliers',
+            ],
+            [
+                'key' => 'products',
+                'label' => 'Cargar el catálogo de productos',
+                'description' => 'Crea productos manualmente o importa desde CSV.',
+                'done' => Product::exists(),
+                'href' => '/products',
+            ],
+            [
+                'key' => 'first_stock',
+                'label' => 'Cargar inventario inicial',
+                'description' => 'Registra tu stock existente o recibe tu primera compra.',
+                'done' => InventoryLot::where('current_quantity', '>', 0)->exists(),
+                'href' => '/inventory/opening',
+            ],
+            [
+                'key' => 'first_sale',
+                'label' => 'Realizar la primera venta',
+                'description' => 'Abre una sesión POS y procesa tu primera transacción.',
+                'done' => Sale::exists(),
+                'href' => '/pos',
+            ],
+            [
+                'key' => 'fe_config',
+                'label' => 'Configurar facturación electrónica',
+                'description' => 'Ingresa tus credenciales DIAN/Nextpyme para emitir FE.',
+                'done' => TenantFeConfig::whereNotNull('api_token')->exists(),
+                'href' => '/settings/fe',
+            ],
+        ];
+
+        return [
+            'complete' => collect($steps)->every(fn (array $s) => $s['done']),
+            'steps' => $steps,
+        ];
     }
 }

@@ -46,6 +46,7 @@ class StorePurchaseReceiptRequest extends FormRequest
             ],
             'document_date' => ['nullable', 'date'],
             'received_at' => ['nullable', 'date'],
+            'supplier_cufe' => ['nullable', 'string', 'min:10', 'max:120'],
             'source_file' => ['nullable', File::types(['pdf', 'xml', 'zip', 'jpg', 'jpeg', 'png', 'webp'])->max(8 * 1024)],
             'notes' => ['nullable', 'string', 'max:1000'],
             'items' => ['required', 'array', 'min:1', 'max:80'],

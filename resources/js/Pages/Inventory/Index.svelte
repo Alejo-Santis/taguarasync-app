@@ -11,6 +11,7 @@
         Eye,
         Filter,
         PackageSearch,
+        Plus,
         Printer,
         RotateCcw,
         Search,
@@ -170,10 +171,16 @@
                 <h2 class="h3 mb-2">Inventario operativo</h2>
                 <p class="text-secondary mb-0">Consulta existencias, vencimientos y valor en stock antes de conectar compras y POS.</p>
             </div>
-            <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/inventory/kardex">
-                <PackageSearch size={18} />
-                Ver Kardex
-            </Link>
+            <div class="d-flex flex-wrap gap-2">
+                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/inventory/opening">
+                    <Plus size={18} />
+                    Carga inicial
+                </Link>
+                <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/inventory/kardex">
+                    <PackageSearch size={18} />
+                    Ver Kardex
+                </Link>
+            </div>
         </section>
 
         <section class="row g-3">

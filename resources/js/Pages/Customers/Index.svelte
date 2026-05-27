@@ -66,6 +66,7 @@
         address: '',
         municipality_code: '',
         price_list_id: '',
+        credit_limit: '',
     });
 
     const isNit = $derived(form.identification_type_code === '31');
@@ -99,6 +100,7 @@
         form.address = item.address ?? '';
         form.municipality_code = item.municipality_code ?? '';
         form.price_list_id = item.price_list_id ? String(item.price_list_id) : '';
+        form.credit_limit = item.credit_limit ? String(item.credit_limit) : '';
         drawerOpen = true;
     };
 
@@ -483,6 +485,22 @@
                                 <div class="form-text">Define qué precios ve este cliente en el POS.</div>
                             </div>
                         {/if}
+
+                        <div>
+                            <label class="form-label" for="cust-credit-limit">Límite de crédito (COP)</label>
+                            <input
+                                id="cust-credit-limit"
+                                class="form-control"
+                                class:is-invalid={form.errors.credit_limit}
+                                type="number"
+                                min="0"
+                                step="1000"
+                                bind:value={form.credit_limit}
+                                placeholder="Sin límite"
+                            />
+                            {#if form.errors.credit_limit}<div class="invalid-feedback">{form.errors.credit_limit}</div>{/if}
+                            <div class="form-text">Máximo saldo pendiente permitido. Vacío = sin restricción.</div>
+                        </div>
 
                     </div>
                 </form>

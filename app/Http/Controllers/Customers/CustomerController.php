@@ -60,6 +60,7 @@ class CustomerController extends Controller
                 'is_active' => $c->is_active,
                 'deleted_at' => $c->deleted_at,
                 'price_list_id' => $c->price_list_id,
+                'credit_limit' => $c->credit_limit,
             ]);
 
         return Inertia::render('Customers/Index', [

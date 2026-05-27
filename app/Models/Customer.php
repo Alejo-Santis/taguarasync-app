@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
     'uuid',
     'tenant_id',
     'price_list_id',
+    'credit_limit',
     'identification_type_code',
     'identification_number',
     'merchant_registration',

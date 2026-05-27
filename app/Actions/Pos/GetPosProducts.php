@@ -22,7 +22,7 @@ class GetPosProducts
             ->select([
                 'id', 'commercial_name', 'generic_name', 'pharmaceutical_form',
                 'concentration', 'internal_code', 'barcode', 'sale_price',
-                'tax_rate', 'minimum_unit_id', 'is_controlled',
+                'regulated_price', 'tax_rate', 'minimum_unit_id', 'is_controlled',
             ])
             ->with([
                 'presentations' => fn ($q) => $q
@@ -83,6 +83,7 @@ class GetPosProducts
                 'concentration' => $product->concentration,
                 'internal_code' => $product->internal_code,
                 'sale_price' => $basePrice,
+                'regulated_price' => $product->regulated_price,
                 'tax_rate' => $product->tax_rate,
                 'is_controlled' => $product->is_controlled,
                 'minimum_unit_code' => $product->minimumUnit?->code ?? 'und',

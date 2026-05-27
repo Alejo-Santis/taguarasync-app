@@ -1,6 +1,7 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
     import {
+        ActivitySquare,
         BarChart3,
         Bell,
         Boxes,
@@ -9,6 +10,7 @@
         ChevronLeft,
         ChevronRight,
         CheckCheck,
+        CircleDollarSign,
         FileText,
         LayoutDashboard,
         LogOut,
@@ -18,6 +20,7 @@
         Search,
         Settings,
         ShoppingCart,
+        Truck,
         User,
         Users,
     } from '@lucide/svelte';
@@ -83,15 +86,17 @@
                 { label: 'POS', href: '/pos', icon: ShoppingCart, section: 'pos', perm: 'pos.sell' },
                 { label: 'Ventas', href: '/sales', icon: ReceiptText, section: 'sales', perm: 'sales.view' },
                 { label: 'Clientes', href: '/customers', icon: User, section: 'customers', perm: 'sales.view' },
+                { label: 'Cartera', href: '/sales/receivables', icon: CircleDollarSign, section: 'receivables', perm: 'sales.view' },
                 { label: 'Facturación FE', href: '/fe/submissions', icon: FileText, section: 'fe-submissions', perm: 'billing.view' },
             ],
         },
         {
-            group: 'Inventario',
+            group: 'Compras e inventario',
             items: [
                 { label: 'Productos', href: '/products', icon: Package, section: 'products', perm: 'products.view' },
                 { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory', perm: 'inventory.view' },
                 { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases', perm: 'purchases.view' },
+                { label: 'Proveedores', href: '/purchases/payables', icon: Truck, section: 'payables', perm: 'purchases.view' },
             ],
         },
         {
@@ -103,6 +108,7 @@
         {
             group: 'Administración',
             items: [
+                { label: 'Auditorías', href: '/audit', icon: ActivitySquare, section: 'audit', perm: 'reports.view' },
                 { label: 'Equipo', href: '/team', icon: Users, section: 'team', perm: 'users.manage' },
                 { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion', perm: 'settings.manage' },
             ],

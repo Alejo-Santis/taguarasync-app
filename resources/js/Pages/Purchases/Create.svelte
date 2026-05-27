@@ -44,6 +44,7 @@
         document_number: '',
         document_date: today,
         received_at: '',
+        supplier_cufe: '',
         source_file: null,
         notes: '',
         items: [defaultItem()],
@@ -147,6 +148,16 @@
                             <label class="form-label" for="received_at">Fecha de recepcion</label>
                             <input id="received_at" class:is-invalid={error('received_at')} class="form-control" type="datetime-local" bind:value={form.received_at}>
                             {#if error('received_at')}<div class="invalid-feedback">{error('received_at')}</div>{/if}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="supplier_cufe">CUFE del proveedor <span class="text-secondary fw-normal">(opcional)</span></label>
+                            <input id="supplier_cufe" class:is-invalid={error('supplier_cufe')} class="form-control font-monospace" type="text" maxlength="120" bind:value={form.supplier_cufe} placeholder="Código único de la factura electrónica (96 caracteres)">
+                            {#if error('supplier_cufe')}<div class="invalid-feedback">{error('supplier_cufe')}</div>{/if}
+                            <div class="form-text d-flex align-items-center gap-1">
+                                <Info size={13} class="flex-shrink-0" />
+                                Requerido para validar eventos RADIAN (030/032) ante la DIAN.
+                            </div>
                         </div>
 
                         <div class="col-12">

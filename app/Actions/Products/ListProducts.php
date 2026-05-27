@@ -68,6 +68,10 @@ class ListProducts
                     ->orderBy('name'),
             ])
             ->withCount('presentations')
+            ->withSum(
+                ['inventoryLots as current_stock' => fn ($q) => $q->where('status', InventoryLotStatus::Available)],
+                'current_quantity'
+            )
             ->when($filters['q'] !== '', fn (Builder $query) => $this->applySearch($query, $filters['q']))
             ->when($this->isValidStatus($filters['status']), fn (Builder $query) => $query->where('status', $filters['status']))
             ->when($filters['controlled'] === 'yes', fn (Builder $query) => $query->where('is_controlled', true))
@@ -141,6 +145,8 @@ class ListProducts
                 'name' => $product->minimumUnit->name,
                 'code' => $product->minimumUnit->code,
             ] : null,
+            'minimum_stock' => $product->minimum_stock ?? 0,
+            'current_stock' => (int) ($product->current_stock ?? 0),
             'presentations_count' => $product->presentations_count,
             'presentations' => $product->presentations->map(fn ($presentation) => [
                 'name' => $presentation->name,

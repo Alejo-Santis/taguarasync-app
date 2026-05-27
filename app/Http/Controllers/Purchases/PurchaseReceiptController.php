@@ -6,6 +6,7 @@ use App\Actions\Purchases\GetPurchaseReceiptFormOptions;
 use App\Actions\Purchases\ListPurchaseReceipts;
 use App\Actions\Purchases\ReceivePurchaseReceipt;
 use App\Actions\Purchases\ValidatePurchaseReceiptRadian;
+use App\Enums\PurchaseRadianStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Purchase\StorePurchaseReceiptRequest;
 use App\Models\PurchaseReceipt;
@@ -63,8 +64,10 @@ class PurchaseReceiptController extends Controller
                 'tax_total' => $purchase->tax_total,
                 'total' => $purchase->total,
                 'notes' => $purchase->notes,
+                'supplier_cufe' => $purchase->supplier_cufe,
                 'radian_status' => $purchase->radian_status,
                 'radian_checked_at' => $purchase->radian_checked_at?->toDateTimeString(),
+                'radian_error_message' => $purchase->radian_error_message,
                 'has_attachment' => (bool) $purchase->source_file_path,
                 'supplier' => [
                     'name' => $purchase->supplier->name,
@@ -91,9 +94,26 @@ class PurchaseReceiptController extends Controller
         ]);
     }
 
+    public function updateCufe(PurchaseReceipt $purchase, Request $request): RedirectResponse
+    {
+        $request->validate(['supplier_cufe' => ['nullable', 'string', 'min:10', 'max:120']]);
+
+        $purchase->forceFill([
+            'supplier_cufe' => $request->input('supplier_cufe') ?: null,
+        ])->save();
+
+        return back()->with('success', 'CUFE del proveedor actualizado.');
+    }
+
     public function validateRadian(PurchaseReceipt $purchase, ValidatePurchaseReceiptRadian $validatePurchaseReceiptRadian): RedirectResponse
     {
         $validatePurchaseReceiptRadian->execute($purchase);
+
+        $purchase->refresh();
+
+        if ($purchase->radian_status === PurchaseRadianStatus::Error) {
+            return back()->withErrors(['radian' => $purchase->radian_error_message ?? 'Error al validar RADIAN.']);
+        }
 
         return back()->with('success', "Validación RADIAN ejecutada para {$purchase->document_number}.");
     }

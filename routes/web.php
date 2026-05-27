@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Catalog\ProductController;
 use App\Http\Controllers\Customers\CustomerController;
 use App\Http\Controllers\DashboardController;
@@ -113,9 +114,13 @@ Route::middleware(['auth', 'permission:inventory.view'])->group(function () {
     Route::get('/inventory/print/stock-by-laboratory', InventoryStockPrintController::class)->name('inventory.print.stock-by-laboratory');
 });
 
-// ── Inventario — ajustes ──────────────────────────────────────────────────
+// ── Inventario — ajustes y carga inicial ──────────────────────────────────
 Route::middleware(['auth', 'permission:inventory.adjust'])->group(function () {
     Route::post('/inventory/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+    Route::get('/inventory/opening', [InventoryController::class, 'openingForm'])->name('inventory.opening');
+    Route::get('/inventory/opening/template', [InventoryController::class, 'openingTemplate'])->name('inventory.opening.template');
+    Route::post('/inventory/opening/import', [InventoryController::class, 'parseOpeningImport'])->name('inventory.opening.import');
+    Route::post('/inventory/opening', [InventoryController::class, 'storeOpening'])->name('inventory.opening.store');
 });
 
 // ── Compras — consulta ────────────────────────────────────────────────────
@@ -129,6 +134,7 @@ Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
 Route::middleware(['auth', 'permission:purchases.create'])->group(function () {
     Route::get('purchases/create', [PurchaseReceiptController::class, 'create'])->name('purchases.create');
     Route::post('purchases', [PurchaseReceiptController::class, 'store'])->name('purchases.store');
+    Route::patch('purchases/{purchase}/cufe', [PurchaseReceiptController::class, 'updateCufe'])->name('purchases.update-cufe');
     Route::post('purchases/{purchase}/validate-radian', [PurchaseReceiptController::class, 'validateRadian'])->name('purchases.validate-radian');
 });
 
@@ -170,6 +176,15 @@ Route::middleware(['auth', 'permission:purchases.view'])->group(function () {
     Route::get('purchases/{purchase}', [PurchaseReceiptController::class, 'show'])->name('purchases.show');
 });
 
+// ── Cartera de clientes (cuentas por cobrar) ──────────────────────────────
+Route::middleware(['auth', 'permission:sales.view'])->group(function () {
+    Route::get('sales/receivables', [CustomerReceivableController::class, 'index'])->name('sales.receivables.index');
+    Route::get('sales/receivables/{customer}', [CustomerReceivableController::class, 'show'])->name('sales.receivables.show');
+});
+Route::middleware(['auth', 'permission:sales.cancel'])->group(function () {
+    Route::post('sales/receivables/{customer}/collections', [CustomerReceivableController::class, 'storeCollection'])->name('sales.receivables.collection');
+});
+
 // ── Ventas — consulta y recibo ────────────────────────────────────────────
 Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sales.')->group(function () {
     Route::get('/', [SaleController::class, 'index'])->name('index');
@@ -181,15 +196,6 @@ Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sal
 // ── Ventas — anulación ────────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:sales.cancel'])->prefix('sales')->name('sales.')->group(function () {
     Route::post('{sale}/void', [SaleController::class, 'void'])->name('void');
-});
-
-// ── Cartera de clientes (cuentas por cobrar) ──────────────────────────────
-Route::middleware(['auth', 'permission:sales.view'])->group(function () {
-    Route::get('sales/receivables', [CustomerReceivableController::class, 'index'])->name('sales.receivables.index');
-    Route::get('sales/receivables/{customer}', [CustomerReceivableController::class, 'show'])->name('sales.receivables.show');
-});
-Route::middleware(['auth', 'permission:sales.cancel'])->group(function () {
-    Route::post('sales/receivables/{customer}/collections', [CustomerReceivableController::class, 'storeCollection'])->name('sales.receivables.collection');
 });
 
 // ── FE — panel de transmisiones ───────────────────────────────────────────
@@ -217,6 +223,11 @@ Route::middleware(['auth', 'permission:reports.view'])->prefix('reports')->name(
     Route::get('cash-sessions', [CashSessionReportController::class, 'index'])->name('cash-sessions');
     Route::get('cash-sessions/{session}', [CashSessionReportController::class, 'show'])->name('cash-sessions.show');
     Route::get('profitability', [ProfitabilityReportController::class, 'index'])->name('profitability');
+});
+
+// ── Auditorías ────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'permission:reports.view'])->group(function () {
+    Route::get('audit', [AuditController::class, 'index'])->name('audit.index');
 });
 
 // ── Equipo ────────────────────────────────────────────────────────────────

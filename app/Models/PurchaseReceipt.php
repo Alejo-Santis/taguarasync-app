@@ -32,6 +32,7 @@ use Illuminate\Support\Str;
     'radian_error_message',
     'source_file_path',
     'notes',
+    'supplier_cufe',
 ])]
 class PurchaseReceipt extends Model
 {

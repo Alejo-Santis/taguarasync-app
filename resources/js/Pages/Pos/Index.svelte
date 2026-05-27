@@ -47,14 +47,18 @@
 
     // Payment modal
     let paymentOpen = $state(false);
+    let paymentForm = $state('1'); // '1' = contado, '2' = crédito
     let paymentMethod = $state('cash');
     let paymentMethodId = $state(untrack(() => paymentOptions.methods?.[0]?.id ?? null));
     let amountTendered = $state('');
+    let paymentDueDate = $state('');
     let paymentReference = $state('');
     let paymentBankAccountId = $state('');
     let paymentAttachment = $state(null);
     let isProcessing = $state(false);
     let amountTenderedInput = $state(null);
+
+    const isCredit = $derived(paymentForm === '2');
 
     // Receipt
     let receipt = $state(null);
@@ -88,6 +92,7 @@
             concentration: product.concentration,
             quantity: 1,
             unit_price: presentation.unit_price,
+            regulated_price: product.regulated_price ?? null,
             discount_rate: 0,
             tax_rate: Number(product.tax_rate),
             available: presentation.available,
@@ -124,6 +129,7 @@
                 concentration: product.concentration,
                 quantity: 1,
                 unit_price: presentation.unit_price,
+                regulated_price: prescriptionModal.product.regulated_price ?? null,
                 discount_rate: 0,
                 tax_rate: Number(product.tax_rate),
                 available: presentation.available,
@@ -177,16 +183,21 @@
             ? Math.max(0, Number(amountTendered) - cartTotal)
             : null
     );
+    const creditLimitExceeded = $derived(
+        isCredit &&
+        !!selectedCustomer?.credit_limit &&
+        (selectedCustomer.credit_balance + cartTotal) > selectedCustomer.credit_limit
+    );
+
     const canConfirm = $derived(
         hasCart && (
-            !isCashPayment ||
-            (amountTendered !== '' && Number(amountTendered) >= cartTotal)
-        ) && (
-            !selectedPaymentMethod?.requires_reference ||
-            paymentReference.trim().length > 0
-        ) && (
-            !selectedPaymentMethod?.requires_bank_account ||
-            !!paymentBankAccountId
+            isCredit
+                ? (!!selectedCustomer && !selectedCustomer.is_consumidor_final && !!paymentDueDate && !creditLimitExceeded)
+                : (
+                    (!isCashPayment || (amountTendered !== '' && Number(amountTendered) >= cartTotal)) &&
+                    (!selectedPaymentMethod?.requires_reference || paymentReference.trim().length > 0) &&
+                    (!selectedPaymentMethod?.requires_bank_account || !!paymentBankAccountId)
+                )
         )
     );
 
@@ -415,6 +426,8 @@
 
     const openPayment = async (method = 'cash') => {
         if (!hasCart) return;
+        paymentForm = '1';
+        paymentDueDate = '';
         await setPaymentMethod(method);
         paymentOpen = true;
         if (isCashPayment) {
@@ -429,10 +442,11 @@
 
         const payload = {
             customer_id: selectedCustomer?.id ?? null,
-            payment_method: paymentMethod,
-            payment_form: '1',
-            amount_tendered: isCashPayment ? Number(amountTendered) : undefined,
-            payments: selectedPaymentMethod ? [{
+            payment_method: isCredit ? undefined : paymentMethod,
+            payment_form: paymentForm,
+            payment_due_date: isCredit ? paymentDueDate : undefined,
+            amount_tendered: (!isCredit && isCashPayment) ? Number(amountTendered) : undefined,
+            payments: (!isCredit && selectedPaymentMethod) ? [{
                 payment_method_id: selectedPaymentMethod.id,
                 bank_account_id: paymentBankAccountId ? Number(paymentBankAccountId) : null,
                 amount: cartTotal,
@@ -786,8 +800,16 @@
                                     {#if item.is_controlled}
                                         <ShieldAlert size={12} class="text-warning flex-shrink-0" title="Medicamento controlado" />
                                     {/if}
+                                    {#if item.regulated_price && item.unit_price > item.regulated_price}
+                                        <span class="badge text-bg-danger" style="font-size:.6rem" title="Precio supera el precio regulado {fmt(item.regulated_price)}">P. regulado</span>
+                                    {/if}
                                 </div>
-                                <div class="taguara-table-sub">{item.presentation_name} · {fmt(item.unit_price)}</div>
+                                <div class="taguara-table-sub d-flex align-items-center gap-1">
+                                    {item.presentation_name} · {fmt(item.unit_price)}
+                                    {#if item.regulated_price}
+                                        <span class="taguara-table-sub" style="color:var(--bs-secondary-color)">· Reg: {fmt(item.regulated_price)}</span>
+                                    {/if}
+                                </div>
                                 {#if item.is_controlled && item.patient_id_number}
                                     <div class="taguara-table-sub" style="color:var(--bs-warning-text-emphasis)">
                                         Paciente: {item.patient_name || item.patient_id_number}
@@ -883,6 +905,62 @@
             </div>
 
             <div class="taguara-pos-modal-body">
+                <!-- Forma de pago: Contado / Crédito -->
+                <div class="d-flex gap-2 mb-3">
+                    <button
+                        type="button"
+                        class="btn flex-fill {paymentForm === '1' ? 'btn-taguara' : 'btn-light border'}"
+                        onclick={() => { paymentForm = '1'; }}
+                    >Contado</button>
+                    <button
+                        type="button"
+                        class="btn flex-fill {paymentForm === '2' ? 'btn-taguara' : 'btn-light border'}"
+                        onclick={() => { paymentForm = '2'; }}
+                        disabled={!selectedCustomer || selectedCustomer.is_consumidor_final}
+                        title={!selectedCustomer ? 'Selecciona un cliente primero' : selectedCustomer.is_consumidor_final ? 'No disponible para Consumidor Final' : ''}
+                    >A crédito</button>
+                </div>
+
+                {#if isCredit}
+                    <!-- Credit sale UI -->
+                    {#if !selectedCustomer || selectedCustomer.is_consumidor_final}
+                        <div class="alert alert-warning small py-2 mb-3">
+                            Selecciona un cliente identificado (no Consumidor Final) para registrar venta a crédito.
+                        </div>
+                    {:else}
+                        <div class="mb-3 p-3 rounded-3 border" style="background:var(--taguara-soft-blue)">
+                            <p class="small fw-semibold mb-1">{selectedCustomer.full_name}</p>
+                            <div class="d-flex gap-3 flex-wrap" style="font-size:.8rem">
+                                <span class="text-secondary">Saldo actual: <strong class="{selectedCustomer.credit_balance > 0 ? 'text-danger' : 'text-success'}">{fmt(selectedCustomer.credit_balance)}</strong></span>
+                                {#if selectedCustomer.credit_limit}
+                                    <span class="text-secondary">Límite: <strong>{fmt(selectedCustomer.credit_limit)}</strong></span>
+                                    {#if creditLimitExceeded}
+                                        <span class="badge text-bg-danger">Límite excedido</span>
+                                    {:else}
+                                        <span class="text-secondary">Disponible: <strong class="text-success">{fmt(selectedCustomer.credit_limit - selectedCustomer.credit_balance)}</strong></span>
+                                    {/if}
+                                {/if}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold" for="credit-due-date">Fecha límite de pago <span class="text-danger">*</span></label>
+                            <input
+                                id="credit-due-date"
+                                class="form-control {!paymentDueDate ? 'is-invalid' : ''}"
+                                type="date"
+                                bind:value={paymentDueDate}
+                                min={new Date().toISOString().slice(0, 10)}
+                            />
+                            {#if !paymentDueDate}<div class="invalid-feedback">Requerida para ventas a crédito.</div>{/if}
+                        </div>
+                        {#if creditLimitExceeded}
+                            <div class="alert alert-danger small py-2">
+                                Esta venta supera el límite de crédito del cliente ({fmt(selectedCustomer.credit_limit)}).
+                                Saldo actual: {fmt(selectedCustomer.credit_balance)}. No se puede confirmar.
+                            </div>
+                        {/if}
+                    {/if}
+                {:else}
                 <p class="small fw-semibold text-secondary mb-2">Metodo de pago</p>
                 <div class="taguara-pos-payment-methods">
                     {#each paymentMethods as method}
@@ -990,6 +1068,8 @@
                     {/if}
                 {/if}
 
+                {/if}<!-- end {#if isCredit} -->
+
                 <button
                     class="btn btn-taguara btn-lg w-100 mt-4 d-inline-flex align-items-center justify-content-center gap-2"
                     type="button"
@@ -1001,7 +1081,7 @@
                         Procesando...
                     {:else}
                         <CheckCircle2 size={18} />
-                        Confirmar venta <kbd class="taguara-btn-kbd">F9</kbd>
+                        {isCredit ? 'Registrar venta a crédito' : 'Confirmar venta'} <kbd class="taguara-btn-kbd">F9</kbd>
                     {/if}
                 </button>
             </div>
@@ -1140,11 +1220,21 @@
             </div>
 
             <div class="taguara-pos-modal-body">
+                {#if receipt.payment_form === '2'}
+                    <div class="alert alert-info small py-2 mb-3 d-flex align-items-center gap-2">
+                        <CreditCard size={15} class="flex-shrink-0" />
+                        Venta a crédito registrada. El pago se gestiona en Cartera.
+                    </div>
+                {/if}
                 <div class="taguara-drawer-grid mb-4">
-                    <span class="taguara-drawer-label">Total cobrado</span>
+                    <span class="taguara-drawer-label">Total</span>
                     <span class="fw-bold">{fmt(receipt.total)}</span>
-                    <span class="taguara-drawer-label">Metodo de pago</span>
+                    <span class="taguara-drawer-label">Forma de pago</span>
                     <span>{receipt.payment_method}</span>
+                    {#if receipt.payment_form === '2' && receipt.payment_due_date}
+                        <span class="taguara-drawer-label">Vence</span>
+                        <span class="text-warning fw-semibold">{receipt.payment_due_date}</span>
+                    {/if}
                     {#if receipt.change_amount !== null && receipt.change_amount > 0}
                         <span class="taguara-drawer-label">Cambio entregado</span>
                         <span class="text-success fw-semibold">{fmt(receipt.change_amount)}</span>

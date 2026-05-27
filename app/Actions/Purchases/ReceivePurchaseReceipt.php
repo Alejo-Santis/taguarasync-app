@@ -19,6 +19,7 @@ class ReceivePurchaseReceipt
      *     document_number: string,
      *     document_date?: mixed,
      *     received_at?: mixed,
+     *     supplier_cufe?: string|null,
      *     source_file_path?: string|null,
      *     notes?: string|null,
      *     items: array<int, array{
@@ -49,6 +50,7 @@ class ReceivePurchaseReceipt
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
                 'status' => PurchaseReceiptStatus::Received,
+                'supplier_cufe' => $data['supplier_cufe'] ?? null,
                 'source_file_path' => $data['source_file_path'] ?? null,
                 'notes' => $data['notes'] ?? null,
             ]);

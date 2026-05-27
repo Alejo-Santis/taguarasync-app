@@ -62,6 +62,34 @@ class NextpymeClient
         ]);
     }
 
+    /**
+     * Consulta los eventos RADIAN registrados para un CUFE dado.
+     * POST /ubl2.1/status/events-document/{cufe}
+     * OK: {success:true, events:[{dian_code,cude,date,time,description}]}
+     * Código 67: documento existe en DIAN pero sin eventos registrados aún.
+     */
+    public function checkRadianEvents(string $cufe): array
+    {
+        return $this->post($this->ublPath("/status/events-document/{$cufe}"), []);
+    }
+
+    /**
+     * Envía un evento RADIAN al documento del proveedor (identificado por su CUFE).
+     * event_id: 1=Acuse recibo (030), 2=Reclamo (031), 3=Recibo bien/servicio (032), 4=Aceptación (033)
+     * POST /ubl2.1/send-event-data
+     */
+    public function sendRadianEvent(string $cufe, int $eventId, bool $sendMail = false): array
+    {
+        return $this->post($this->ublPath('/send-event-data'), [
+            'event_id' => $eventId,
+            'sendmail' => $sendMail,
+            'document_reference' => ['cufe' => $cufe],
+            'resend_consecutive' => false,
+            'allow_cash_documents' => false,
+        ]);
+    }
+
+    /** @deprecated Usar checkRadianEvents() / sendRadianEvent() con el CUFE del proveedor. */
     public function validatePurchaseDocument(array $payload): array
     {
         $path = (string) config('fe.purchase_validation_path');

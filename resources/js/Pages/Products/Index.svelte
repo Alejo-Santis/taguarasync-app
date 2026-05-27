@@ -299,6 +299,7 @@
                                 <th>Forma · Concentracion</th>
                                 <th>Estado</th>
                                 <th class="text-end">Precio base</th>
+                                <th class="text-end">Stock / Mín.</th>
                                 <th class="text-center">Pres.</th>
                                 <th></th>
                             </tr>
@@ -323,6 +324,16 @@
                                         {/if}
                                     </td>
                                     <td class="text-end fw-semibold" style="font-size: 0.875rem">{formatMoney(product.sale_price)}</td>
+                                    <td class="text-end" style="font-size:.8rem">
+                                        {#if product.minimum_stock > 0}
+                                            <span class={product.current_stock < product.minimum_stock ? 'fw-bold text-danger' : 'text-success fw-semibold'}>
+                                                {product.current_stock.toLocaleString('es-CO')}
+                                            </span>
+                                            <span class="taguara-table-sub"> / {product.minimum_stock.toLocaleString('es-CO')}</span>
+                                        {:else}
+                                            <span class="taguara-table-sub">{product.current_stock.toLocaleString('es-CO')}</span>
+                                        {/if}
+                                    </td>
                                     <td class="text-center">
                                         <span class="badge text-bg-light border text-secondary">{product.presentations_count}</span>
                                     </td>

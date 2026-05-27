@@ -5,6 +5,7 @@ namespace App\Actions\Pos;
 use App\Actions\Inventory\RegisterInventoryMovement;
 use App\Enums\FeStatus;
 use App\Enums\InventoryLotStatus;
+use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
 use App\Models\BankAccountMovement;
 use App\Models\InventoryLot;
@@ -23,8 +24,9 @@ class ProcessSale
     /**
      * @param  array{
      *     customer_id?: int|null,
-     *     payment_method: string,
+     *     payment_method?: string|null,
      *     payment_form?: string|null,
+     *     payment_due_date?: string|null,
      *     amount_tendered?: int|null,
      *     notes?: string|null,
      *     payments?: array<int, array{
@@ -56,10 +58,13 @@ class ProcessSale
         $sale = DB::transaction(function () use ($data, $user, $cashSessionId): Sale {
             $totals = $this->calculateTotals($data['items']);
 
+            $isCredit = ($data['payment_form'] ?? '1') === '2';
+
             $amountTendered = isset($data['amount_tendered']) ? (int) $data['amount_tendered'] : null;
             $change = ($amountTendered !== null) ? max(0, $amountTendered - $totals['total']) : null;
 
-            $payments = $this->normalizePayments($data, $user, $totals['total'], $amountTendered, $change);
+            // Credit sales: no payment is recorded at this point
+            $payments = $isCredit ? collect() : $this->normalizePayments($data, $user, $totals['total'], $amountTendered, $change);
 
             $feEnabled = config('fe.enabled') && $user->tenant?->feConfig?->electronic_invoicing_enabled;
 
@@ -74,8 +79,9 @@ class ProcessSale
                 'discount_total' => $totals['discount_total'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
-                'payment_method' => $data['payment_method'],
+                'payment_method' => $data['payment_method'] ?? PaymentMethod::Transfer->value,
                 'payment_form' => $data['payment_form'] ?? '1',
+                'payment_due_date' => $isCredit ? ($data['payment_due_date'] ?? null) : null,
                 'amount_tendered' => $amountTendered,
                 'change_amount' => $change,
                 'status' => SaleStatus::Completed,

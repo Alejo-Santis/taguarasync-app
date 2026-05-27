@@ -238,7 +238,12 @@
                                         <div style="font-size:.875rem">{sale.cashier}</div>
                                         <div class="taguara-table-sub">{sale.register}</div>
                                     </td>
-                                    <td class="text-secondary" style="font-size:.875rem">{sale.payment_method.label}</td>
+                                    <td style="font-size:.875rem">
+                                        {#if sale.payment_form?.value === '2'}
+                                            <span class="badge text-bg-info me-1">Crédito</span>
+                                        {/if}
+                                        <span class="text-secondary">{sale.payment_method.label}</span>
+                                    </td>
                                     <td class="text-center">
                                         <span class="badge text-bg-light border text-secondary">{sale.items_count}</span>
                                     </td>
@@ -331,6 +336,13 @@
                 <div class="taguara-drawer-section">
                     <p class="text-uppercase small fw-semibold text-success mb-2">Pago</p>
                     <div class="taguara-drawer-grid">
+                        <span class="taguara-drawer-label">Forma</span>
+                        <span>
+                            {selectedSale.payment_form?.label ?? 'Contado'}
+                            {#if selectedSale.payment_form?.value === '2' && selectedSale.payment_due_date}
+                                <span class="badge text-bg-warning text-dark ms-1" style="font-size:.65rem">Vence {selectedSale.payment_due_date}</span>
+                            {/if}
+                        </span>
                         <span class="taguara-drawer-label">Método</span>
                         <span>{selectedSale.payment_method.label}</span>
                         <span class="taguara-drawer-label">Subtotal</span>
@@ -404,6 +416,13 @@
             </div>
 
             <div class="taguara-drawer-footer vstack gap-2">
+                <Link
+                    class="btn btn-taguara w-100 d-inline-flex align-items-center justify-content-center gap-2"
+                    href={`/sales/${selectedSale.uuid}`}
+                >
+                    <Eye size={17} />
+                    Ver detalle completo
+                </Link>
                 <a
                     class="btn btn-light border w-100 d-inline-flex align-items-center justify-content-center gap-2"
                     href={`/sales/${selectedSale.uuid}/receipt`}

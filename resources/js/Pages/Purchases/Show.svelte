@@ -1,17 +1,19 @@
 <script>
-    import { Link, router } from '@inertiajs/svelte';
+    import { Link, router, useForm } from '@inertiajs/svelte';
     import {
         ArrowLeft,
         Download,
         Package,
+        Pencil,
         ReceiptText,
         ShieldAlert,
         ShieldCheck,
         ShieldQuestion,
+        X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, receipt } = $props();
+    let { auth, receipt, errors = {} } = $props();
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
@@ -41,6 +43,16 @@
         if (s === 'validated') return ShieldCheck;
         if (s === 'rejected' || s === 'error') return ShieldAlert;
         return ShieldQuestion;
+    };
+
+    let editingCufe = $state(false);
+    const cufeForm = useForm({ supplier_cufe: receipt.supplier_cufe ?? '' });
+
+    const saveCufe = () => {
+        cufeForm.patch(`/purchases/${receipt.uuid}/cufe`, {
+            preserveScroll: true,
+            onSuccess: () => { editingCufe = false; },
+        });
     };
 
     const validateRadian = () => {
@@ -79,12 +91,6 @@
                         <Download size={17} />
                         Adjunto
                     </a>
-                {/if}
-                {#if receipt.status !== 'voided' && receipt.radian_status !== 'validated'}
-                    <button class="btn btn-light border d-inline-flex align-items-center gap-2" type="button" onclick={validateRadian}>
-                        <ShieldQuestion size={17} />
-                        Validar RADIAN
-                    </button>
                 {/if}
                 <Link href="/purchases" class="btn btn-light border d-inline-flex align-items-center gap-2">
                     <ArrowLeft size={17} />
@@ -211,5 +217,86 @@
                 </table>
             </div>
         </section>
+
+        <!-- Panel RADIAN -->
+        {#if receipt.status !== 'voided'}
+            <section class="taguara-panel">
+                <div class="taguara-panel-header">
+                    <div>
+                        <p class="text-uppercase small fw-semibold text-success mb-1">Facturación electrónica</p>
+                        <h3 class="h5 mb-0">RADIAN — Validación del documento de proveedor</h3>
+                    </div>
+                    {#if receipt.radian_status}
+                        {@const RIcon = RadianIcon(receipt.radian_status)}
+                        <span class={`badge fs-6 d-inline-flex align-items-center gap-1 ${radianClass(receipt.radian_status)}`}>
+                            <RIcon size={13} />
+                            {radianLabel(receipt.radian_status)}
+                        </span>
+                    {/if}
+                </div>
+
+                <!-- CUFE del proveedor -->
+                <div class="mt-3">
+                    <p class="small text-secondary mb-2">
+                        El <strong>CUFE</strong> es la clave única del documento electrónico del proveedor en la DIAN.
+                        Se necesita para enviar eventos RADIAN (030 acuse · 032 recibo del bien).
+                    </p>
+                    {#if editingCufe}
+                        <div class="d-flex gap-2 align-items-start">
+                            <input
+                                class="form-control form-control-sm"
+                                class:is-invalid={cufeForm.errors.supplier_cufe}
+                                type="text"
+                                placeholder="Pega aquí el CUFE del proveedor (96 caracteres)"
+                                bind:value={cufeForm.supplier_cufe}
+                                style="font-family: monospace; font-size: 0.8rem"
+                            />
+                            <button class="btn btn-sm btn-taguara flex-shrink-0" type="button" onclick={saveCufe} disabled={cufeForm.processing}>Guardar</button>
+                            <button class="btn btn-sm btn-light border flex-shrink-0" type="button" onclick={() => { editingCufe = false; cufeForm.reset(); }}><X size={15} /></button>
+                        </div>
+                        {#if cufeForm.errors.supplier_cufe}
+                            <div class="text-danger small mt-1">{cufeForm.errors.supplier_cufe}</div>
+                        {/if}
+                    {:else}
+                        <div class="d-flex align-items-center gap-2">
+                            {#if receipt.supplier_cufe}
+                                <code class="small text-secondary text-break flex-grow-1">{receipt.supplier_cufe}</code>
+                            {:else}
+                                <span class="small text-secondary fst-italic flex-grow-1">Sin CUFE — ingresa el del documento del proveedor</span>
+                            {/if}
+                            <button class="btn btn-sm btn-light border flex-shrink-0" type="button" onclick={() => { cufeForm.supplier_cufe = receipt.supplier_cufe ?? ''; editingCufe = true; }}>
+                                <Pencil size={14} />
+                            </button>
+                        </div>
+                    {/if}
+                </div>
+
+                <!-- Error RADIAN -->
+                {#if errors.radian || receipt.radian_error_message}
+                    <div class="alert alert-danger mt-3 mb-0 small py-2">
+                        {errors.radian ?? receipt.radian_error_message}
+                    </div>
+                {/if}
+
+                <!-- Botón validar -->
+                {#if receipt.radian_status !== 'validated'}
+                    <div class="mt-3">
+                        <button
+                            class="btn btn-light border d-inline-flex align-items-center gap-2"
+                            type="button"
+                            onclick={validateRadian}
+                            disabled={!receipt.supplier_cufe}
+                            title={!receipt.supplier_cufe ? 'Ingresa el CUFE antes de validar' : ''}
+                        >
+                            <ShieldQuestion size={17} />
+                            Enviar eventos RADIAN (030 + 032)
+                        </button>
+                        {#if receipt.radian_checked_at}
+                            <span class="text-secondary small ms-2">Última consulta: {receipt.radian_checked_at}</span>
+                        {/if}
+                    </div>
+                {/if}
+            </section>
+        {/if}
     </div>
 </AppLayout>
