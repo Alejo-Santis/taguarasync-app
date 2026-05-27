@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleAndPermissionSeeder::class,
+            SuperAdminSeeder::class,
             DianCatalogsSeeder::class,
             DianMunicipalitiesSeeder::class,
         ]);
