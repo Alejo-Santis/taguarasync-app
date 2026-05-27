@@ -219,6 +219,21 @@
             {/each}
         </nav>
 
+        {#if auth?.user?.is_super_admin}
+            <nav class="taguara-sidebar-nav border-top pt-2 mt-1" aria-label="Super Admin">
+                <span class="taguara-nav-group-label taguara-nav-label text-danger">Super admin</span>
+                <div use:navTooltip={'Farmacias'}>
+                    <Link
+                        class={`taguara-nav-link ${activeSection === 'admin' ? 'active' : ''}`}
+                        href="/admin/tenants"
+                    >
+                        <Building2 size={18} strokeWidth={2} />
+                        <span class="taguara-nav-label">Farmacias</span>
+                    </Link>
+                </div>
+            </nav>
+        {/if}
+
         <div class="taguara-sidebar-footer">
             <div class="taguara-tenant-chip">
                 <span class="taguara-tenant-avatar">

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\TenantAdminController;
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\Catalog\ProductController;
 use App\Http\Controllers\Customers\CustomerController;
@@ -39,6 +40,7 @@ use App\Http\Controllers\Settings\ProductCategoryController;
 use App\Http\Controllers\Settings\ProductUnitController;
 use App\Http\Controllers\Settings\SupplierController;
 use App\Http\Controllers\Team\TeamController;
+use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +48,13 @@ Route::get('/', function () {
     return Auth::check()
         ? redirect()->route('dashboard')
         : redirect()->route('login');
+});
+
+// ── Super admin — gestión de tenants ──────────────────────────────────────
+Route::middleware(['auth', EnsureSuperAdmin::class])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/tenants', [TenantAdminController::class, 'index'])->name('tenants.index');
+    Route::post('/tenants', [TenantAdminController::class, 'store'])->name('tenants.store');
+    Route::patch('/tenants/{tenant}/toggle-status', [TenantAdminController::class, 'toggleStatus'])->name('tenants.toggle-status');
 });
 
 // ── Acceso general (cualquier usuario autenticado) ─────────────────────────

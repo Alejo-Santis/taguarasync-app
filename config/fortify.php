@@ -144,7 +144,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Features::registration(), // Registro público deshabilitado — tenants se crean desde /admin/tenants
         Features::resetPasswords(),
         // Features::emailVerification(),
         Features::updateProfileInformation(),

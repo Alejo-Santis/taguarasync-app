@@ -50,8 +50,8 @@
         </button>
     </form>
 
-    <p class="text-center text-secondary small mt-4 mb-0">
+    <!-- <p class="text-center text-secondary small mt-4 mb-0">
         Aun no tienes cuenta?
         <Link href="/register">Crear cuenta</Link>
-    </p>
+    </p> -->
 </GuestLayout>
