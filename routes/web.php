@@ -13,6 +13,7 @@ use App\Http\Controllers\Inventory\KardexController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Pos\CashSessionController;
 use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Print\PrintController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\PurchaseReceiptController;
@@ -294,6 +295,15 @@ Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->n
     Route::get('price-lists/{priceList}', [PriceListController::class, 'show'])->name('price-lists.show');
     Route::post('price-lists/{priceList}/items', [PriceListController::class, 'upsertItem'])->name('price-lists.items.upsert');
     Route::delete('price-lists/{priceList}/items/{item}', [PriceListController::class, 'removeItem'])->name('price-lists.items.remove');
+});
+
+// ── Impresión QZ Tray ─────────────────────────────────────────────────────
+// certificate es público (QZ lo pide sin sesión); sign requiere auth
+Route::get('/print/certificate', [PrintController::class, 'certificate'])->name('print.certificate');
+Route::middleware('auth')->post('/print/sign', [PrintController::class, 'sign'])->name('print.sign');
+Route::middleware(['auth', 'permission:settings.manage'])->group(function () {
+    Route::get('/settings/printer', [PrintController::class, 'index'])->name('settings.printer.index');
+    Route::put('/settings/printer', [PrintController::class, 'update'])->name('settings.printer.update');
 });
 
 // ── Configuración — facturación electrónica ───────────────────────────────

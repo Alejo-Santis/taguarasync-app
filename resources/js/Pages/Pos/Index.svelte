@@ -25,8 +25,20 @@
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import PrinterStatus from '../../Components/UI/PrinterStatus.svelte';
+    import QzPrinter from '../../Services/QzPrinter.js';
 
     let { auth, activeSession, customerFormOptions, paymentOptions = { methods: [], bank_accounts: [] } } = $props();
+
+    // ── Configuración de impresora (viene del tenant compartido en auth) ──
+    const printerCfg = $derived(auth?.tenant?.printer_settings ?? {});
+    const printerName = $derived(printerCfg.printer_name ?? null);
+    const autoPrint   = $derived(printerCfg.auto_print ?? false);
+    const paperWidth  = $derived(printerCfg.paper_width ?? '80mm');
+    const copies      = $derived(printerCfg.copies ?? 1);
+
+    let qzPrinting = $state(false);
+    let qzError    = $state('');
 
     const page = usePage();
     let completedSale = $derived(page.props.completedSale ?? null);
@@ -145,8 +157,29 @@
     $effect(() => {
         if (completedSale) {
             receipt = completedSale;
+            // Auto-print si está configurado y hay impresora seleccionada
+            if (autoPrint && printerName) {
+                printDirectly(completedSale);
+            }
         }
     });
+
+    async function printDirectly(saleData) {
+        if (!printerName) {
+            qzError = 'No hay impresora configurada. Ve a Configuración → Impresora.';
+            return;
+        }
+        qzPrinting = true;
+        qzError    = '';
+        try {
+            if (!QzPrinter.connected) await QzPrinter.connect();
+            await QzPrinter.printReceipt(printerName, saleData, { paperWidth, copies });
+        } catch (err) {
+            qzError = err?.message ?? 'Error al imprimir. ¿QZ Tray está corriendo?';
+        } finally {
+            qzPrinting = false;
+        }
+    }
 
     // Derived cart totals
     const lineGross = (item) => item.quantity * item.unit_price;
@@ -566,10 +599,13 @@
             </div>
         </div>
 
-        <button class="taguara-pos-close-btn" type="button" onclick={closeSession}>
-            <Lock size={13} />
-            Cerrar caja
-        </button>
+        <div class="d-flex align-items-center gap-2">
+            <PrinterStatus compact={true} showLabel={false} />
+            <button class="taguara-pos-close-btn" type="button" onclick={closeSession}>
+                <Lock size={13} />
+                Cerrar caja
+            </button>
+        </div>
     </div>
 
     <div class="taguara-pos-shortcuts" aria-label="Atajos del punto de venta">
@@ -1243,16 +1279,49 @@
                     <span>{receipt.items_count}</span>
                 </div>
 
+                {#if qzError}
+                    <div class="alert alert-warning small py-2 mb-2">{qzError}</div>
+                {/if}
+
+                <div class="d-flex gap-2 mb-2">
+                    {#if printerName}
+                        <!-- Impresión directa QZ Tray -->
+                        <button
+                            class="btn btn-outline-success flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                            type="button"
+                            onclick={() => printDirectly(receipt)}
+                            disabled={qzPrinting}
+                        >
+                            <PrinterCheck size={16} />
+                            {qzPrinting ? 'Imprimiendo...' : 'Imprimir directo'}
+                        </button>
+                    {:else}
+                        <!-- Fallback: recibo HTML en nueva pestaña -->
+                        <a
+                            class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                            href={receipt?.uuid ? `/sales/${receipt.uuid}/receipt` : '#'}
+                            target="_blank"
+                            rel="noopener"
+                        >
+                            <PrinterCheck size={17} />
+                            Imprimir recibo
+                        </a>
+                    {/if}
+                </div>
+
                 <div class="d-flex gap-2">
-                    <a
-                        class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2"
-                        href={receipt?.uuid ? `/sales/${receipt.uuid}/receipt` : '#'}
-                        target="_blank"
-                        rel="noopener"
-                    >
-                        <PrinterCheck size={17} />
-                        Imprimir
-                    </a>
+                    {#if printerName}
+                        <!-- Si hay QZ, igual ofrecer el HTML como alternativa -->
+                        <a
+                            class="btn btn-light border d-inline-flex align-items-center justify-content-center gap-1"
+                            href={receipt?.uuid ? `/sales/${receipt.uuid}/receipt` : '#'}
+                            target="_blank"
+                            rel="noopener"
+                            title="Abrir recibo en el navegador"
+                        >
+                            <PrinterCheck size={15} />
+                        </a>
+                    {/if}
                     <button class="btn btn-taguara flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={startNewSale}>
                         <Plus size={17} />
                         Nueva venta

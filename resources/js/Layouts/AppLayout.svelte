@@ -16,6 +16,7 @@
         LogOut,
         Menu,
         Package,
+        Printer,
         ReceiptText,
         Search,
         Settings,
@@ -124,6 +125,7 @@
             items: [
                 { label: 'Auditorías', href: '/audit', icon: ActivitySquare, section: 'audit', perm: 'reports.view' },
                 { label: 'Equipo', href: '/team', icon: Users, section: 'team', perm: 'users.manage' },
+                { label: 'Impresora', href: '/settings/printer', icon: Printer, section: 'printer', perm: 'settings.manage' },
                 { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion', perm: 'settings.manage' },
             ],
         },

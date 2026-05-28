@@ -27,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'timezone',
     'status',
     'trial_ends_at',
+    'printer_settings',
 ])]
 class Tenant extends Model
 {
@@ -118,6 +119,7 @@ class Tenant extends Model
         return [
             'status' => TenantStatus::class,
             'trial_ends_at' => 'datetime',
+            'printer_settings' => 'array',
         ];
     }
 }

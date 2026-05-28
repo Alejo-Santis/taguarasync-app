@@ -64,6 +64,12 @@ class HandleInertiaRequests extends Middleware
                     'name' => $tenant->name,
                     'slug' => $tenant->slug,
                     'status' => $tenant->status->value,
+                    'printer_settings' => $tenant->printer_settings ?? [
+                        'printer_name' => null,
+                        'paper_width' => '80mm',
+                        'copies' => 1,
+                        'auto_print' => false,
+                    ],
                 ] : null,
                 'permissions' => fn () => $request->user()
                     ? $request->user()->getAllPermissions()->pluck('name')->values()->all()
