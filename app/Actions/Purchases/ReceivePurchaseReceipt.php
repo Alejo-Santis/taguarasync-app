@@ -9,6 +9,7 @@ use App\Models\InventoryLot;
 use App\Models\PurchaseReceipt;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Ramsey\Uuid\Uuid;
 
 class ReceivePurchaseReceipt
 {
@@ -40,6 +41,7 @@ class ReceivePurchaseReceipt
             $totals = $this->totals($data['items']);
 
             $receipt = PurchaseReceipt::create([
+                'uuid' => Uuid::uuid4()->toString(),
                 'tenant_id' => $data['tenant_id'],
                 'supplier_id' => $data['supplier_id'],
                 'user_id' => $user?->id,
