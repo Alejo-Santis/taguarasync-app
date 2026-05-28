@@ -111,8 +111,8 @@
 
             <div class="row g-3">
                 <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Proveedor <span class="text-danger">*</span></label>
-                    <select class="form-select {error('supplier_id') ? 'is-invalid' : ''}" bind:value={form.supplier_id}>
+                    <label class="form-label fw-semibold" for="po-supplier">Proveedor <span class="text-danger">*</span></label>
+                    <select id="po-supplier" class="form-select {error('supplier_id') ? 'is-invalid' : ''}" bind:value={form.supplier_id}>
                         {#each options.suppliers as supplier}
                             <option value={supplier.id}>{supplier.name} {supplier.nit ? `(${supplier.nit})` : ''}</option>
                         {/each}
@@ -121,26 +121,26 @@
                 </div>
 
                 <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Número de orden <span class="text-danger">*</span></label>
-                    <input class="form-control {error('order_number') ? 'is-invalid' : ''}" type="text" bind:value={form.order_number} placeholder="OC-001" />
+                    <label class="form-label fw-semibold" for="po-order-number">Número de orden <span class="text-danger">*</span></label>
+                    <input id="po-order-number" class="form-control {error('order_number') ? 'is-invalid' : ''}" type="text" bind:value={form.order_number} placeholder="OC-001" />
                     {#if error('order_number')}<div class="invalid-feedback">{error('order_number')}</div>{/if}
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">Fecha de orden <span class="text-danger">*</span></label>
-                    <input class="form-control {error('order_date') ? 'is-invalid' : ''}" type="date" bind:value={form.order_date} />
+                    <label class="form-label fw-semibold" for="po-order-date">Fecha de orden <span class="text-danger">*</span></label>
+                    <input id="po-order-date" class="form-control {error('order_date') ? 'is-invalid' : ''}" type="date" bind:value={form.order_date} />
                     {#if error('order_date')}<div class="invalid-feedback">{error('order_date')}</div>{/if}
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">Fecha esperada de entrega</label>
-                    <input class="form-control {error('expected_date') ? 'is-invalid' : ''}" type="date" bind:value={form.expected_date} />
+                    <label class="form-label fw-semibold" for="po-expected-date">Fecha esperada de entrega</label>
+                    <input id="po-expected-date" class="form-control {error('expected_date') ? 'is-invalid' : ''}" type="date" bind:value={form.expected_date} />
                     {#if error('expected_date')}<div class="invalid-feedback">{error('expected_date')}</div>{/if}
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label fw-semibold">Observaciones</label>
-                    <textarea class="form-control {error('notes') ? 'is-invalid' : ''}" rows="2" bind:value={form.notes} placeholder="Instrucciones especiales..."></textarea>
+                    <label class="form-label fw-semibold" for="po-notes">Observaciones</label>
+                    <textarea id="po-notes" class="form-control {error('notes') ? 'is-invalid' : ''}" rows="2" bind:value={form.notes} placeholder="Instrucciones especiales..."></textarea>
                     {#if error('notes')}<div class="invalid-feedback">{error('notes')}</div>{/if}
                 </div>
             </div>
@@ -175,8 +175,9 @@
                         {/if}
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label class="form-label fw-semibold small">Producto</label>
+                                <label class="form-label fw-semibold small" for="item-product-{index}">Producto</label>
                                 <select
+                                    id="item-product-{index}"
                                     class="form-select form-select-sm {error(`items.${index}.product_id`) ? 'is-invalid' : ''}"
                                     bind:value={item.product_id}
                                     onchange={() => setProduct(index)}
@@ -189,8 +190,9 @@
                             </div>
 
                             <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold small">Cantidad</label>
+                                <label class="form-label fw-semibold small" for="item-qty-{index}">Cantidad</label>
                                 <input
+                                    id="item-qty-{index}"
                                     class="form-control form-control-sm text-end {error(`items.${index}.quantity`) ? 'is-invalid' : ''}"
                                     type="number" min="1"
                                     bind:value={item.quantity}
@@ -199,8 +201,9 @@
                             </div>
 
                             <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold small">Costo unitario</label>
+                                <label class="form-label fw-semibold small" for="item-cost-{index}">Costo unitario</label>
                                 <input
+                                    id="item-cost-{index}"
                                     class="form-control form-control-sm text-end {error(`items.${index}.unit_cost`) ? 'is-invalid' : ''}"
                                     type="number" min="0"
                                     bind:value={item.unit_cost}
@@ -209,8 +212,9 @@
                             </div>
 
                             <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold small">IVA %</label>
+                                <label class="form-label fw-semibold small" for="item-tax-{index}">IVA %</label>
                                 <input
+                                    id="item-tax-{index}"
                                     class="form-control form-control-sm text-end {error(`items.${index}.tax_rate`) ? 'is-invalid' : ''}"
                                     type="number" min="0" max="100" step="0.01"
                                     bind:value={item.tax_rate}
@@ -219,8 +223,9 @@
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label fw-semibold small">Descripción</label>
+                                <label class="form-label fw-semibold small" for="item-desc-{index}">Descripción</label>
                                 <input
+                                    id="item-desc-{index}"
                                     class="form-control form-control-sm {error(`items.${index}.description`) ? 'is-invalid' : ''}"
                                     type="text"
                                     bind:value={item.description}

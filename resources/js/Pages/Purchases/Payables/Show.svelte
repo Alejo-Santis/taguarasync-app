@@ -11,13 +11,13 @@
 
     let drawerOpen = $state(false);
 
-    const paymentForm = useForm({
+    const paymentForm = useForm(() => ({
         bank_account_id: bankAccounts.find((a) => a.is_default)?.id?.toString() ?? '',
         payment_date: new Date().toISOString().slice(0, 10),
         amount: '',
         reference: '',
         notes: '',
-    });
+    }));
 
     $effect(() => {
         document.body.style.overflow = drawerOpen ? 'hidden' : '';

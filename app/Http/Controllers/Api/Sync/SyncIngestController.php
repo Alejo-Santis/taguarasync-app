@@ -34,6 +34,11 @@ class SyncIngestController extends Controller
         $tenantId = (int) $data['tenant_id'];
         $serverId = $data['server_id'];
 
+        $tenant = Tenant::find($tenantId);
+        if (! $tenant || ! $tenant->offline_sync_enabled) {
+            abort(403, 'Offline sync is not available for this tenant\'s plan.');
+        }
+
         $ingested = ['sales' => 0, 'movements' => 0, 'conflicts' => 0];
 
         DB::transaction(function () use ($data, $tenantId, $serverId, $resolver, &$ingested) {

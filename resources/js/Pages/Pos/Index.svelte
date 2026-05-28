@@ -955,8 +955,9 @@
                                     </div>
                                 {/if}
                                 <div class="d-flex align-items-center gap-1 mt-1">
-                                    <label class="taguara-table-sub mb-0" style="white-space:nowrap">Dto %:</label>
+                                    <label class="taguara-table-sub mb-0" for="pos-discount" style="white-space:nowrap">Dto %:</label>
                                     <input
+                                        id="pos-discount"
                                         type="number"
                                         min="0"
                                         max="100"
@@ -1491,8 +1492,9 @@
                     Este medicamento requiere registro del paciente y número de receta (Res. 1478/2006).
                 </p>
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold">No. de receta médica</label>
+                    <label class="form-label small fw-semibold" for="rx-numero">No. de receta médica</label>
                     <input
+                        id="rx-numero"
                         type="text"
                         class="form-control"
                         placeholder="Ej. RM-2024-001234"
@@ -1500,8 +1502,9 @@
                     />
                 </div>
                 <div class="mb-3">
-                    <label class="form-label small fw-semibold">Cédula del paciente <span class="text-danger">*</span></label>
+                    <label class="form-label small fw-semibold" for="rx-cedula">Cédula del paciente <span class="text-danger">*</span></label>
                     <input
+                        id="rx-cedula"
                         type="text"
                         class="form-control"
                         placeholder="Número de identificación"
@@ -1509,8 +1512,9 @@
                     />
                 </div>
                 <div class="mb-4">
-                    <label class="form-label small fw-semibold">Nombre del paciente</label>
+                    <label class="form-label small fw-semibold" for="rx-nombre">Nombre del paciente</label>
                     <input
+                        id="rx-nombre"
                         type="text"
                         class="form-control"
                         placeholder="Nombre completo"

@@ -46,7 +46,7 @@
     };
 
     let editingCufe = $state(false);
-    const cufeForm = useForm({ supplier_cufe: receipt.supplier_cufe ?? '' });
+    const cufeForm = useForm(() => ({ supplier_cufe: receipt.supplier_cufe ?? '' }));
 
     const saveCufe = () => {
         cufeForm.patch(`/purchases/${receipt.uuid}/cufe`, {

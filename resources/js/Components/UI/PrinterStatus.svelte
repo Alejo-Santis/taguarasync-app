@@ -47,7 +47,7 @@
         }
     }
 
-    const iconSize = compact ? 15 : 16;
+    const iconSize = $derived(compact ? 15 : 16);
 </script>
 
 <button

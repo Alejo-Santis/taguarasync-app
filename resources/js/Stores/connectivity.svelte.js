@@ -19,7 +19,7 @@ let serverId     = $state('cloud');
 let syncStatus   = $state('pending');   // pending|syncing|synced|error
 let lastSyncAt   = $state(null);
 let syncError    = $state(null);
-let initialized  = $state(false);
+let initialized  = false;
 
 let _pollTimer = null;
 

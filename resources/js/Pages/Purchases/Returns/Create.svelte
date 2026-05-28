@@ -131,10 +131,10 @@
 
             <div class="row g-3">
                 <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">
+                    <label class="form-label fw-semibold" for="ret-supplier">
                         Proveedor <span class="text-danger">*</span>
                     </label>
-                    <select class="form-select {error('supplier_id') ? 'is-invalid' : ''}" bind:value={form.supplier_id}>
+                    <select id="ret-supplier" class="form-select {error('supplier_id') ? 'is-invalid' : ''}" bind:value={form.supplier_id}>
                         {#each options.suppliers as supplier}
                             <option value={supplier.id}>{supplier.name} {supplier.nit ? `(${supplier.nit})` : ''}</option>
                         {/each}
@@ -143,8 +143,8 @@
                 </div>
 
                 <div class="col-12 col-md-6">
-                    <label class="form-label fw-semibold">Compra relacionada</label>
-                    <select class="form-select {error('purchase_receipt_id') ? 'is-invalid' : ''}" bind:value={form.purchase_receipt_id}>
+                    <label class="form-label fw-semibold" for="ret-purchase">Compra relacionada</label>
+                    <select id="ret-purchase" class="form-select {error('purchase_receipt_id') ? 'is-invalid' : ''}" bind:value={form.purchase_receipt_id}>
                         <option value="">— Sin referencia —</option>
                         {#each options.receipts as receipt}
                             <option value={receipt.id}>{receipt.document_number} ({receipt.received_at})</option>
@@ -154,30 +154,30 @@
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">
+                    <label class="form-label fw-semibold" for="ret-docnum">
                         Número de documento <span class="text-danger">*</span>
                     </label>
-                    <input class="form-control {error('document_number') ? 'is-invalid' : ''}" type="text" bind:value={form.document_number} placeholder="DEV-001" />
+                    <input id="ret-docnum" class="form-control {error('document_number') ? 'is-invalid' : ''}" type="text" bind:value={form.document_number} placeholder="DEV-001" />
                     {#if error('document_number')}<div class="invalid-feedback">{error('document_number')}</div>{/if}
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">
+                    <label class="form-label fw-semibold" for="ret-date">
                         Fecha de devolución <span class="text-danger">*</span>
                     </label>
-                    <input class="form-control {error('return_date') ? 'is-invalid' : ''}" type="date" bind:value={form.return_date} />
+                    <input id="ret-date" class="form-control {error('return_date') ? 'is-invalid' : ''}" type="date" bind:value={form.return_date} />
                     {#if error('return_date')}<div class="invalid-feedback">{error('return_date')}</div>{/if}
                 </div>
 
                 <div class="col-12 col-md-4">
-                    <label class="form-label fw-semibold">Motivo</label>
-                    <input class="form-control {error('reason') ? 'is-invalid' : ''}" type="text" bind:value={form.reason} placeholder="Producto vencido, defectuoso..." />
+                    <label class="form-label fw-semibold" for="ret-reason">Motivo</label>
+                    <input id="ret-reason" class="form-control {error('reason') ? 'is-invalid' : ''}" type="text" bind:value={form.reason} placeholder="Producto vencido, defectuoso..." />
                     {#if error('reason')}<div class="invalid-feedback">{error('reason')}</div>{/if}
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label fw-semibold">Observaciones</label>
-                    <textarea class="form-control {error('notes') ? 'is-invalid' : ''}" rows="2" bind:value={form.notes} placeholder="Información adicional..."></textarea>
+                    <label class="form-label fw-semibold" for="ret-notes">Observaciones</label>
+                    <textarea id="ret-notes" class="form-control {error('notes') ? 'is-invalid' : ''}" rows="2" bind:value={form.notes} placeholder="Información adicional..."></textarea>
                     {#if error('notes')}<div class="invalid-feedback">{error('notes')}</div>{/if}
                 </div>
             </div>
@@ -216,8 +216,9 @@
 
                         <div class="row g-3">
                             <div class="col-12 col-md-5">
-                                <label class="form-label fw-semibold small">Producto</label>
+                                <label class="form-label fw-semibold small" for="ret-product-{index}">Producto</label>
                                 <select
+                                    id="ret-product-{index}"
                                     class="form-select form-select-sm {error(`items.${index}.product_id`) ? 'is-invalid' : ''}"
                                     bind:value={item.product_id}
                                     onchange={() => setProduct(index)}
@@ -230,8 +231,9 @@
                             </div>
 
                             <div class="col-12 col-md-4">
-                                <label class="form-label fw-semibold small">Lote</label>
+                                <label class="form-label fw-semibold small" for="ret-lot-{index}">Lote</label>
                                 <select
+                                    id="ret-lot-{index}"
                                     class="form-select form-select-sm {error(`items.${index}.inventory_lot_id`) ? 'is-invalid' : ''}"
                                     bind:value={item.inventory_lot_id}
                                     onchange={() => setLot(index)}
@@ -244,8 +246,9 @@
                             </div>
 
                             <div class="col-6 col-md-3">
-                                <label class="form-label fw-semibold small">Cantidad</label>
+                                <label class="form-label fw-semibold small" for="ret-qty-{index}">Cantidad</label>
                                 <input
+                                    id="ret-qty-{index}"
                                     class="form-control form-control-sm text-end {error(`items.${index}.quantity`) ? 'is-invalid' : ''}"
                                     type="number"
                                     min="1"
@@ -255,8 +258,9 @@
                             </div>
 
                             <div class="col-12 col-md-5">
-                                <label class="form-label fw-semibold small">Descripción</label>
+                                <label class="form-label fw-semibold small" for="ret-desc-{index}">Descripción</label>
                                 <input
+                                    id="ret-desc-{index}"
                                     class="form-control form-control-sm {error(`items.${index}.description`) ? 'is-invalid' : ''}"
                                     type="text"
                                     bind:value={item.description}
@@ -265,8 +269,9 @@
                             </div>
 
                             <div class="col-6 col-md-3">
-                                <label class="form-label fw-semibold small">Costo unitario</label>
+                                <label class="form-label fw-semibold small" for="ret-cost-{index}">Costo unitario</label>
                                 <input
+                                    id="ret-cost-{index}"
                                     class="form-control form-control-sm text-end {error(`items.${index}.unit_cost`) ? 'is-invalid' : ''}"
                                     type="number"
                                     min="0"
@@ -276,8 +281,9 @@
                             </div>
 
                             <div class="col-6 col-md-2">
-                                <label class="form-label fw-semibold small">IVA %</label>
+                                <label class="form-label fw-semibold small" for="ret-tax-{index}">IVA %</label>
                                 <input
+                                    id="ret-tax-{index}"
                                     class="form-control form-control-sm text-end {error(`items.${index}.tax_rate`) ? 'is-invalid' : ''}"
                                     type="number"
                                     min="0"

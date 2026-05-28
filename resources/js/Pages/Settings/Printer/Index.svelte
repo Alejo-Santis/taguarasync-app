@@ -187,7 +187,7 @@
 
                 <!-- Ancho de papel -->
                 <div class="col-md-4">
-                    <label class="form-label fw-semibold">Ancho de papel</label>
+                    <p class="form-label fw-semibold mb-2">Ancho de papel</p>
                     <div class="d-flex gap-2">
                         {#each ['58mm', '80mm'] as w}
                             <button

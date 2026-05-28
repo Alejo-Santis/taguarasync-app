@@ -64,6 +64,13 @@ class HandleInertiaRequests extends Middleware
                     'name' => $tenant->name,
                     'slug' => $tenant->slug,
                     'status' => $tenant->status->value,
+                    'plan' => $tenant->plan?->value,
+                    'plan_label' => $tenant->plan?->label(),
+                    'limits' => [
+                        'max_users' => $tenant->max_users,
+                        'max_cash_registers' => $tenant->max_cash_registers,
+                        'offline_sync_enabled' => (bool) $tenant->offline_sync_enabled,
+                    ],
                     'printer_settings' => $tenant->printer_settings ?? [
                         'printer_name' => null,
                         'paper_width' => '80mm',

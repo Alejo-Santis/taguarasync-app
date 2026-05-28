@@ -294,7 +294,7 @@
                 {/if}
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Plan <span class="text-danger">*</span></label>
+                    <p class="form-label fw-semibold mb-2">Plan <span class="text-danger">*</span></p>
                     <div class="vstack gap-2">
                         {#each plans as plan}
                             <label class="d-flex align-items-center gap-3 border rounded p-3 cursor-pointer {paymentForm.plan === plan.value ? 'border-success bg-light' : ''}">
@@ -318,7 +318,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label fw-semibold">Ciclo de facturación <span class="text-danger">*</span></label>
+                    <p class="form-label fw-semibold mb-2">Ciclo de facturación <span class="text-danger">*</span></p>
                     <div class="d-flex gap-2">
                         <label class="flex-fill d-flex align-items-center gap-2 border rounded p-3 cursor-pointer {paymentForm.billing_cycle === 'monthly' ? 'border-success bg-light' : ''}">
                             <input class="form-check-input mt-0" type="radio" name="billing_cycle" value="monthly" bind:group={paymentForm.billing_cycle} />

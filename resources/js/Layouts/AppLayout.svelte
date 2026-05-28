@@ -1,5 +1,6 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
+    import { onMount } from 'svelte';
     import {
         ActivitySquare,
         BarChart3,
@@ -34,8 +35,8 @@
     let { title = 'Panel', activeSection = 'dashboard', auth, sync, children } = $props();
     let isMobileNavOpen = $state(false);
 
-    // Inicializar connectivity store con el modo de la app
-    $effect(() => {
+    // Inicializar connectivity store una sola vez al montar el layout
+    onMount(() => {
         connectivity.init(sync ?? { app_mode: 'cloud', server_id: 'cloud' });
         return () => connectivity.destroy();
     });
