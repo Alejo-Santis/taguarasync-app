@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\InviteTeamMemberRequest;
 use App\Http\Requests\Team\UpdateTeamMemberRequest;
 use App\Models\User;
+use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -49,6 +50,15 @@ class TeamController extends Controller
 
     public function store(InviteTeamMemberRequest $request): RedirectResponse
     {
+        $tenant = app(CurrentTenant::class)->get();
+        $currentCount = User::where('tenant_id', $tenant->id)->count();
+
+        if (! $tenant->canAddUser($currentCount)) {
+            return back()->withErrors([
+                'email' => "Has alcanzado el límite de {$tenant->max_users} usuarios de tu plan {$tenant->plan?->label()}. Contacta al soporte para ampliar tu plan.",
+            ]);
+        }
+
         $user = User::create([
             'tenant_id' => $request->user()->tenant_id,
             'name' => $request->validated('name'),

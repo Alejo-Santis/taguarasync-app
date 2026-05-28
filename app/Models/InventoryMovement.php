@@ -6,6 +6,7 @@ use App\Enums\InventoryMovementType;
 use App\Models\Concerns\BelongsToTenant;
 use Database\Factories\InventoryMovementFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -29,6 +30,8 @@ use Illuminate\Support\Str;
     'reference_code',
     'notes',
     'occurred_at',
+    'server_id',
+    'synced_at',
 ])]
 class InventoryMovement extends Model
 {
@@ -39,6 +42,7 @@ class InventoryMovement extends Model
     {
         static::creating(function (InventoryMovement $inventoryMovement): void {
             $inventoryMovement->uuid ??= (string) Str::uuid();
+            $inventoryMovement->server_id ??= config('sync.server_id', 'cloud');
         });
     }
 
@@ -99,6 +103,13 @@ class InventoryMovement extends Model
             'quantity_after' => 'integer',
             'unit_cost' => 'integer',
             'occurred_at' => 'datetime',
+            'synced_at' => 'datetime',
         ];
+    }
+
+    /** Scope: movimientos pendientes de sync originados en este servidor. */
+    public function scopePendingSync(Builder $query): Builder
+    {
+        return $query->where('server_id', config('sync.server_id'))->whereNull('synced_at');
     }
 }

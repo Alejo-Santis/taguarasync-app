@@ -40,6 +40,7 @@ use App\Http\Controllers\Settings\PriceListController;
 use App\Http\Controllers\Settings\ProductCategoryController;
 use App\Http\Controllers\Settings\ProductUnitController;
 use App\Http\Controllers\Settings\SupplierController;
+use App\Http\Controllers\Sync\SyncStatusController;
 use App\Http\Controllers\Team\TeamController;
 use App\Http\Middleware\EnsureSuperAdmin;
 use Illuminate\Support\Facades\Auth;
@@ -56,6 +57,7 @@ Route::middleware(['auth', EnsureSuperAdmin::class])->prefix('admin')->name('adm
     Route::get('/tenants', [TenantAdminController::class, 'index'])->name('tenants.index');
     Route::post('/tenants', [TenantAdminController::class, 'store'])->name('tenants.store');
     Route::patch('/tenants/{tenant}/toggle-status', [TenantAdminController::class, 'toggleStatus'])->name('tenants.toggle-status');
+    Route::post('/tenants/{tenant}/record-payment', [TenantAdminController::class, 'recordPayment'])->name('tenants.record-payment');
 });
 
 // ── Acceso general (cualquier usuario autenticado) ─────────────────────────
@@ -306,6 +308,9 @@ Route::middleware(['auth', 'permission:settings.manage'])->group(function () {
     Route::get('/settings/printer', [PrintController::class, 'index'])->name('settings.printer.index');
     Route::put('/settings/printer', [PrintController::class, 'update'])->name('settings.printer.update');
 });
+
+// ── Sync — estado de conectividad para el frontend (modo local) ───────────
+Route::middleware('auth')->get('/sync/status', SyncStatusController::class)->name('sync.status');
 
 // ── Configuración — facturación electrónica ───────────────────────────────
 Route::middleware(['auth', 'permission:billing.configure'])->prefix('settings')->name('settings.')->group(function () {

@@ -87,6 +87,10 @@ class HandleInertiaRequests extends Middleware
                 'message' => fn () => $request->session()->get('message'),
             ],
             'completedSale' => fn () => $request->session()->get('completedSale'),
+            'sync' => [
+                'app_mode' => config('sync.app_mode', 'cloud'),
+                'server_id' => config('sync.server_id', 'cloud'),
+            ],
         ];
     }
 }

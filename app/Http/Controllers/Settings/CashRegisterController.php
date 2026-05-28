@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreCashRegisterRequest;
 use App\Http\Requests\Settings\UpdateCashRegisterRequest;
 use App\Models\CashRegister;
+use App\Support\Tenancy\CurrentTenant;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -48,6 +49,15 @@ class CashRegisterController extends Controller
 
     public function store(StoreCashRegisterRequest $request): RedirectResponse
     {
+        $tenant = app(CurrentTenant::class)->get();
+        $currentCount = CashRegister::count();
+
+        if (! $tenant->canAddCashRegister($currentCount)) {
+            return back()->withErrors([
+                'name' => "Has alcanzado el límite de {$tenant->max_cash_registers} cajas de tu plan {$tenant->plan?->label()}. Contacta al soporte para ampliar tu plan.",
+            ]);
+        }
+
         CashRegister::create($request->validated());
 
         return back()->with('success', 'Caja creada correctamente.');

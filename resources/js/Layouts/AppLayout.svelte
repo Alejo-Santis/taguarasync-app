@@ -28,9 +28,17 @@
     import FlashMessages from '../Components/UI/FlashMessages.svelte';
     import LogoMark from '../Components/UI/LogoMark.svelte';
     import SearchModal from '../Components/UI/SearchModal.svelte';
+    import { WifiOff, RefreshCw } from '@lucide/svelte';
+    import { connectivity } from '../Stores/connectivity.svelte.js';
 
-    let { title = 'Panel', activeSection = 'dashboard', auth, children } = $props();
+    let { title = 'Panel', activeSection = 'dashboard', auth, sync, children } = $props();
     let isMobileNavOpen = $state(false);
+
+    // Inicializar connectivity store con el modo de la app
+    $effect(() => {
+        connectivity.init(sync ?? { app_mode: 'cloud', server_id: 'cloud' });
+        return () => connectivity.destroy();
+    });
     let isCollapsed = $state(localStorage.getItem('sidebar-collapsed') === 'true');
 
     const toggleSidebar = () => {
@@ -397,6 +405,21 @@
                 </Link>
             {/each}
         </div>
+
+        {#if connectivity.isLocal && connectivity.offline}
+            <div class="taguara-offline-banner">
+                <WifiOff size={16} />
+                <span>Modo offline — las ventas se guardan localmente y se sincronizarán al recuperar conexión.</span>
+                {#if connectivity.syncStatus === 'error'}
+                    <span class="taguara-offline-banner__error">({connectivity.syncError})</span>
+                {/if}
+            </div>
+        {:else if connectivity.isLocal && connectivity.syncStatus === 'syncing'}
+            <div class="taguara-sync-banner">
+                <RefreshCw size={14} class="taguara-spin" />
+                <span>Sincronizando con el cloud…</span>
+            </div>
+        {/if}
 
         <section class="taguara-content">
             {@render children?.()}

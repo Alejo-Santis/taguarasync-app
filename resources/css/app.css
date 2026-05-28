@@ -2672,3 +2672,41 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ── Sync / Conectividad ──────────────────────────────────────────────────── */
+.taguara-offline-banner {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .5rem 1.25rem;
+    background: #fff3cd;
+    border-bottom: 1px solid #ffc107;
+    font-size: .8125rem;
+    font-weight: 500;
+    color: #664d03;
+}
+
+.taguara-offline-banner__error {
+    color: #842029;
+    margin-left: .25rem;
+    font-weight: 400;
+}
+
+.taguara-sync-banner {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: .35rem 1.25rem;
+    background: #e8f4ee;
+    border-bottom: 1px solid #b7dfc8;
+    font-size: .75rem;
+    color: var(--taguara-primary-dark);
+}
+
+@keyframes taguara-spin {
+    to { transform: rotate(360deg); }
+}
+
+.taguara-spin {
+    animation: taguara-spin 1.2s linear infinite;
+}

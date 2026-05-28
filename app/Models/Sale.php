@@ -8,6 +8,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
 use App\Models\Concerns\BelongsToTenant;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -38,10 +39,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'fe_accepted_at',
     'fe_error_message',
     'notes',
+    'server_id',
+    'synced_at',
 ])]
 class Sale extends Model
 {
     use BelongsToTenant, HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (Sale $sale): void {
+            $sale->server_id ??= config('sync.server_id', 'cloud');
+        });
+    }
 
     public function getRouteKeyName(): string
     {
@@ -109,6 +119,19 @@ class Sale extends Model
             'fe_status' => FeStatus::class,
             'fe_sent_at' => 'datetime',
             'fe_accepted_at' => 'datetime',
+            'synced_at' => 'datetime',
         ];
+    }
+
+    /** Devuelve true si este registro ya fue sincronizado con el cloud. */
+    public function isSynced(): bool
+    {
+        return $this->synced_at !== null;
+    }
+
+    /** Scope: registros pendientes de sync (originados en este servidor, sin synced_at). */
+    public function scopePendingSync(Builder $query): Builder
+    {
+        return $query->where('server_id', config('sync.server_id'))->whereNull('synced_at');
     }
 }

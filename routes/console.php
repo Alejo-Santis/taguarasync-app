@@ -23,3 +23,7 @@ Schedule::command('fe:alerts')
 Schedule::command('operations:alerts')
     ->hourly()
     ->withoutOverlapping();
+
+Schedule::command('billing:check')
+    ->dailyAt('08:00')
+    ->withoutOverlapping();
