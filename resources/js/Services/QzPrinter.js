@@ -26,7 +26,6 @@ const CMD = {
     UNDERLINE_OFF:  ESC + '-\x00',
     FEED:           '\x0A',             // Line feed
     CUT:            GS  + 'V\x42\x00', // Full cut
-    DASHED_LINE:    '--------------------------------\n', // 32 chars = 58mm; ajusta abajo
 };
 
 // ── Estado de conexión ────────────────────────────────────────────────────
@@ -125,36 +124,51 @@ const QzPrinter = {
 
     /**
      * Imprime datos raw ESC/POS en la impresora indicada.
-     * @param {string}   printerName  - Nombre exacto de la impresora
-     * @param {string[]} data         - Array de comandos/texto ESC/POS
-     * @param {object}   options      - Opciones adicionales de QZ
+     * Acepta items mixtos: strings (formato plain) u objetos { type, format, data }.
+     * @param {string}           printerName
+     * @param {Array<string|object>} data
+     * @param {object}           options
      */
     async print(printerName, data, options = {}) {
         if (!_connected) throw new Error('QZ Tray no está conectado.');
 
         const config = qz.configs.create(printerName, {
-            copies:       options.copies       ?? 1,
-            colorType:    'blackWhite',
-            duplex:       false,
-            ...options,
+            copies:    options.copies ?? 1,
+            colorType: 'blackWhite',
+            duplex:    false,
         });
 
-        await qz.print(config, data.map(d => ({ type: 'raw', format: 'plain', data: d })));
+        await qz.print(config, data.map(d =>
+            typeof d === 'string'
+                ? { type: 'raw', format: 'plain', data: d }
+                : d
+        ));
     },
 
     /**
      * Imprime el recibo de una venta en formato ESC/POS.
      * @param {string} printerName
-     * @param {object} sale         - Datos de la venta (viene de `completedSale` del POS)
-     * @param {object} opts         - { paperWidth: '80mm'|'58mm', copies: 1 }
+     * @param {object} sale  - sale.fe_cufe y sale.fe_qr_url opcionales para QR FE
+     * @param {object} opts  - { paperWidth: '80mm'|'58mm', copies: 1 }
      */
     async printReceipt(printerName, sale, opts = {}) {
         const data = buildReceiptEscPos(sale, opts.paperWidth ?? '80mm');
         await this.print(printerName, data, { copies: opts.copies ?? 1 });
     },
+
+    /**
+     * Imprime el Z-report (cierre de caja) en formato ESC/POS.
+     * @param {string} printerName
+     * @param {object} session  - datos de CashSession transformados
+     * @param {object} opts     - { paperWidth, copies }
+     */
+    async printCashSession(printerName, session, opts = {}) {
+        const data = buildCashSessionEscPos(session, opts.paperWidth ?? '80mm');
+        await this.print(printerName, data, { copies: opts.copies ?? 1 });
+    },
 };
 
-// ── Constructor ESC/POS del recibo ────────────────────────────────────────
+// ── Helpers de formato ────────────────────────────────────────────────────
 function col(paperWidth) {
     return paperWidth === '58mm' ? 32 : 48;
 }
@@ -169,9 +183,59 @@ function pad(left, right, width) {
 }
 
 function fmt(amount) {
-    return '$ ' + Number(amount ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 0 });
+    return '$ ' + Number(amount ?? 0).toLocaleString('es-CO', { minimumFractionDigits: 0 });
 }
 
+// ── QR nativo ESC/POS (GS ( k) ────────────────────────────────────────────
+/**
+ * Genera comandos ESC/POS para imprimir un QR usando el comando nativo GS ( k.
+ * Devuelve un objeto { type:'raw', format:'base64', data } listo para QZ Tray.
+ * @param {string} url  - Texto/URL a codificar en el QR
+ * @returns {{ type: string, format: string, data: string }}
+ */
+function buildQrEscPos(url) {
+    const dataBytes = new TextEncoder().encode(url);
+    const storeLen  = dataBytes.length + 3; // 3 = cabecera 0x31 0x50 0x30
+    const pL = storeLen & 0xFF;
+    const pH = (storeLen >> 8) & 0xFF;
+
+    const bytes = [
+        // Alinear al centro
+        0x1B, 0x61, 0x01,
+        // Modelo 2
+        0x1D, 0x28, 0x6B, 0x04, 0x00, 0x31, 0x41, 0x32, 0x00,
+        // Tamaño de módulo: 4 puntos
+        0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x43, 0x04,
+        // Corrección de errores: nivel L
+        0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x45, 0x30,
+        // Almacenar datos
+        0x1D, 0x28, 0x6B, pL, pH, 0x31, 0x50, 0x30,
+        ...dataBytes,
+        // Imprimir QR
+        0x1D, 0x28, 0x6B, 0x03, 0x00, 0x31, 0x51, 0x30,
+        // Volver a alinear a la izquierda
+        0x1B, 0x61, 0x00,
+        // Línea extra
+        0x0A,
+    ];
+
+    let binary = '';
+    bytes.forEach(b => { binary += String.fromCharCode(b); });
+
+    return { type: 'raw', format: 'base64', data: btoa(binary) };
+}
+
+// ── Constructor ESC/POS del recibo de venta ───────────────────────────────
+/**
+ * Construye el array de comandos ESC/POS para el recibo de una venta.
+ *
+ * Campos esperados en sale:
+ *   document_number, total, subtotal, tax_total, discount_total,
+ *   payment_form ('1'|'2'), payment_method, payment_due_date, change_amount,
+ *   customer_name, cashier_name, created_at, status,
+ *   items[]: { description, quantity, unit_price, discount_rate, discount_amount, line_total }
+ *   fe_cufe (optional), fe_qr_url (optional - URL a codificar en QR nativo)
+ */
 function buildReceiptEscPos(sale, paperWidth = '80mm') {
     const W    = col(paperWidth);
     const DASH = dashedLine(paperWidth);
@@ -188,7 +252,7 @@ function buildReceiptEscPos(sale, paperWidth = '80mm') {
     p((sale.tenant_name ?? 'FARMACIA').toUpperCase() + '\n');
     p(CMD.NORMAL_SIZE + CMD.BOLD_OFF);
     p('Farmacia · Drogueria\n');
-    if (sale.nit) p('NIT: ' + sale.nit + '\n');
+    if (sale.nit) { p('NIT: ' + sale.nit + '\n'); }
     p('\n');
 
     // Separador
@@ -198,12 +262,8 @@ function buildReceiptEscPos(sale, paperWidth = '80mm') {
     // Datos del documento
     p(pad('Comprobante', sale.document_number ?? '', W));
     p(pad('Fecha', sale.created_at ?? '', W));
-    if (sale.customer_name) {
-        p(pad('Cliente', sale.customer_name, W));
-    }
-    if (sale.cashier_name) {
-        p(pad('Cajero', sale.cashier_name, W));
-    }
+    if (sale.customer_name) { p(pad('Cliente', sale.customer_name, W)); }
+    if (sale.cashier_name)  { p(pad('Cajero',  sale.cashier_name, W));  }
 
     // Anulada
     if (sale.status === 'voided') {
@@ -236,12 +296,8 @@ function buildReceiptEscPos(sale, paperWidth = '80mm') {
     p(DASH);
 
     // Totales
-    if (sale.discount_total > 0) {
-        p(pad('Descuento', '-' + fmt(sale.discount_total), W));
-    }
-    if (sale.tax_total > 0) {
-        p(pad('IVA', fmt(sale.tax_total), W));
-    }
+    if (sale.discount_total > 0) { p(pad('Descuento', '-' + fmt(sale.discount_total), W)); }
+    if (sale.tax_total > 0)      { p(pad('IVA', fmt(sale.tax_total), W)); }
     p(CMD.BOLD_ON + CMD.DOUBLE_HEIGHT);
     p(CMD.ALIGN_CENTER);
     p('TOTAL  ' + fmt(sale.total) + '\n');
@@ -250,13 +306,31 @@ function buildReceiptEscPos(sale, paperWidth = '80mm') {
     p(DASH);
 
     // Pago
-    const method = sale.payment_form === '2' ? 'Crédito' : (sale.payment_method ?? 'Efectivo');
+    const method = sale.payment_form === '2' ? 'Credito' : (sale.payment_method ?? 'Efectivo');
     p(pad('Forma de pago', method, W));
     if (sale.payment_form === '2' && sale.payment_due_date) {
         p(pad('Vence', sale.payment_due_date, W));
     }
-    if (sale.change_amount > 0) {
-        p(pad('Cambio', fmt(sale.change_amount), W));
+    if (sale.change_amount > 0) { p(pad('Cambio', fmt(sale.change_amount), W)); }
+
+    // Facturación electrónica
+    if (sale.fe_cufe) {
+        p(DASH);
+        p(CMD.ALIGN_CENTER + CMD.BOLD_ON);
+        p('FACTURA ELECTRONICA\n');
+        p(CMD.BOLD_OFF);
+        p('CUFE:\n');
+        p(CMD.ALIGN_LEFT);
+        // CUFE en bloques de W caracteres
+        const cufe = sale.fe_cufe;
+        for (let i = 0; i < cufe.length; i += W) {
+            p(cufe.slice(i, i + W) + '\n');
+        }
+        // QR nativo si disponemos de una URL
+        if (sale.fe_qr_url && sale.fe_qr_url.startsWith('http')) {
+            p(CMD.ALIGN_CENTER);
+            cmds.push(buildQrEscPos(sale.fe_qr_url));
+        }
     }
 
     // Pie
@@ -272,5 +346,87 @@ function buildReceiptEscPos(sale, paperWidth = '80mm') {
     return cmds;
 }
 
+// ── Constructor ESC/POS del Z-report (cierre de caja) ────────────────────
+/**
+ * Construye el array de comandos ESC/POS para el cierre de caja.
+ *
+ * Campos esperados en session (transformados por CashSessionReportController):
+ *   register.name, cashier, opened_at, closed_at,
+ *   sales_count, sales_total, cash_sales_total, card_sales_total,
+ *   transfer_sales_total, opening_amount, expected_closing,
+ *   actual_closing_amount, difference, notes
+ */
+function buildCashSessionEscPos(session, paperWidth = '80mm') {
+    const W    = col(paperWidth);
+    const DASH = dashedLine(paperWidth);
+    const cmds = [];
+
+    const p = (text) => cmds.push(text);
+
+    p(CMD.INIT);
+    p(CMD.ALIGN_CENTER);
+    p(CMD.BOLD_ON + CMD.DOUBLE_HEIGHT);
+    p('CIERRE DE CAJA\n');
+    p(CMD.NORMAL_SIZE + CMD.BOLD_OFF);
+    p((session.register?.name ?? 'CAJA').toUpperCase() + '\n');
+    if (session.cashier) { p(session.cashier + '\n'); }
+    p('\n');
+
+    p(CMD.ALIGN_LEFT);
+    p(DASH);
+
+    p(pad('Apertura', session.opened_at ?? '', W));
+    if (session.closed_at) { p(pad('Cierre', session.closed_at, W)); }
+
+    p(DASH);
+    p(CMD.BOLD_ON);
+    p('RESUMEN DE VENTAS\n');
+    p(CMD.BOLD_OFF);
+    p(DASH);
+
+    p(pad('Documentos', String(session.sales_count ?? 0), W));
+    p(CMD.BOLD_ON);
+    p(pad('Total vendido', fmt(session.sales_total), W));
+    p(CMD.BOLD_OFF);
+    p(DASH);
+    p(pad('Efectivo', fmt(session.cash_sales_total), W));
+    p(pad('Tarjeta', fmt(session.card_sales_total), W));
+    p(pad('Transferencia', fmt(session.transfer_sales_total), W));
+
+    p(DASH);
+    p(CMD.BOLD_ON);
+    p('ARQUEO DE CAJA\n');
+    p(CMD.BOLD_OFF);
+    p(DASH);
+
+    p(pad('Saldo apertura', fmt(session.opening_amount), W));
+    p(pad('Ventas efectivo', fmt(session.cash_sales_total), W));
+    p(CMD.BOLD_ON);
+    p(pad('Total esperado', fmt(session.expected_closing), W));
+    p(CMD.BOLD_OFF);
+
+    if (session.actual_closing_amount !== null && session.actual_closing_amount !== undefined) {
+        p(pad('Total contado', fmt(session.actual_closing_amount), W));
+        const diff = session.difference ?? 0;
+        const diffStr = (diff >= 0 ? '+' : '') + fmt(diff);
+        p(CMD.BOLD_ON);
+        p(pad('Diferencia', diffStr, W));
+        p(CMD.BOLD_OFF);
+    }
+
+    if (session.notes) {
+        p(DASH);
+        p('Notas: ' + session.notes + '\n');
+    }
+
+    p(DASH);
+    p(CMD.ALIGN_CENTER);
+    p('Taguara Sync\n');
+    p('\n\n\n');
+    p(CMD.CUT);
+
+    return cmds;
+}
+
 export default QzPrinter;
-export { buildReceiptEscPos };
+export { buildReceiptEscPos, buildCashSessionEscPos };

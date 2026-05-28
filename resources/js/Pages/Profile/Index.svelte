@@ -3,8 +3,9 @@
     import { CheckCircle2, KeyRound, UserCircle } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
     import PasswordInput from '../../Components/UI/PasswordInput.svelte';
+    import TwoFactorPanel from './TwoFactorPanel.svelte';
 
-    let { auth, user } = $props();
+    let { auth, user, twoFactorEnabled, twoFactorConfirmed } = $props();
 
     const profileForm = useForm(() => ({
         name: user.name,
@@ -179,6 +180,8 @@
                     </form>
                 </div>
             </div>
+            <!-- Doble factor de autenticacion -->
+            <TwoFactorPanel {twoFactorEnabled} {twoFactorConfirmed} />
         </div>
     </div>
 </AppLayout>

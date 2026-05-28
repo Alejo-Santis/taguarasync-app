@@ -9,6 +9,7 @@
         CircleDollarSign,
         CreditCard,
         Paperclip,
+        Printer,
         PrinterCheck,
         ReceiptText,
         ShieldCheck,
@@ -18,8 +19,54 @@
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import QzPrinter from '../../Services/QzPrinter.js';
 
     let { auth, sale } = $props();
+
+    const printerName  = $derived(auth?.tenant?.printer_settings?.printer_name ?? null);
+    const paperWidth   = $derived(auth?.tenant?.printer_settings?.paper_width ?? '80mm');
+    const copies       = $derived(auth?.tenant?.printer_settings?.copies ?? 1);
+
+    let thermalPrinting = $state(false);
+    let thermalError    = $state('');
+
+    const thermalSaleData = $derived({
+        document_number: sale.document_number,
+        total:           sale.total,
+        subtotal:        sale.subtotal,
+        tax_total:       sale.tax_total,
+        discount_total:  0,
+        payment_form:    sale.payment_form_value,
+        payment_method:  sale.payment_method,
+        change_amount:   sale.change_amount,
+        payment_due_date: sale.payment_due_date,
+        customer_name:   sale.customer?.full_name ?? null,
+        cashier_name:    sale.cashier,
+        created_at:      sale.created_at,
+        status:          sale.status?.value,
+        items:           sale.items.map(i => ({
+            description:    i.description,
+            quantity:       i.quantity,
+            unit_price:     i.unit_price,
+            line_total:     i.line_total,
+        })),
+        fe_cufe:   sale.fe?.cufe ?? null,
+        fe_qr_url: sale.fe?.qr_code?.startsWith?.('http') ? sale.fe.qr_code : null,
+    });
+
+    async function printThermal() {
+        if (!printerName) return;
+        thermalPrinting = true;
+        thermalError    = '';
+        try {
+            if (!QzPrinter.connected) await QzPrinter.connect();
+            await QzPrinter.printReceipt(printerName, thermalSaleData, { paperWidth, copies });
+        } catch (err) {
+            thermalError = err?.message ?? 'Error al imprimir.';
+        } finally {
+            thermalPrinting = false;
+        }
+    }
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
@@ -96,6 +143,21 @@
                     <PrinterCheck size={17} />
                     Imprimir recibo
                 </a>
+                {#if printerName}
+                    <button
+                        class="btn btn-light border d-inline-flex align-items-center gap-2"
+                        type="button"
+                        onclick={printThermal}
+                        disabled={thermalPrinting}
+                        title="Reimprimir en impresora térmica"
+                    >
+                        <Printer size={17} />
+                        {thermalPrinting ? 'Imprimiendo...' : 'Térmica'}
+                    </button>
+                {/if}
+                {#if thermalError}
+                    <span class="text-danger small align-self-center">{thermalError}</span>
+                {/if}
                 {#if sale.fe?.status === 'pending' || sale.fe?.status === 'rejected' || sale.fe?.status === 'contingency'}
                     <button class="btn btn-outline-warning d-inline-flex align-items-center gap-2" type="button" onclick={retryFe}>
                         <ShieldCheck size={17} />

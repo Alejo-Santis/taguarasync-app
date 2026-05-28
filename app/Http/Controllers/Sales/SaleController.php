@@ -42,7 +42,7 @@ class SaleController extends Controller
                 'document_number' => $s->document_number,
                 'invoice_prefix' => $s->invoice_prefix,
                 'payment_method' => ['value' => $s->payment_method->value, 'label' => $s->payment_method->label()],
-                'payment_form' => ['value' => $s->payment_form->value, 'label' => $s->payment_form->label()],
+                'payment_form' => ['value' => $s->payment_form?->value, 'label' => $s->payment_form?->label()],
                 'payment_due_date' => $s->payment_due_date?->format('d/m/Y'),
                 'status' => ['value' => $s->status->value, 'label' => $s->status->label()],
                 'total' => $s->total,

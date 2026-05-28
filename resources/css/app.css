@@ -1916,6 +1916,41 @@ body {
     font-weight: 700;
 }
 
+.taguara-pos-recent {
+    border-top: 1px solid var(--taguara-border);
+    background: #fff;
+}
+
+.taguara-pos-recent-header {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--taguara-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-pos-recent-list {
+    max-height: 220px;
+    overflow-y: auto;
+}
+
+.taguara-pos-recent-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-pos-recent-item:last-child {
+    border-bottom: none;
+}
+
 .taguara-pos-product-card {
     background: #fff;
     border: 1px solid var(--taguara-border);

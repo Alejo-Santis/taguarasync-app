@@ -9,11 +9,14 @@
         Clock,
         CreditCard,
         DollarSign,
+        Eye,
+        History,
         Lock,
         Minus,
         Package,
         PackageCheck,
         Plus,
+        Printer,
         PrinterCheck,
         Search,
         ShieldAlert,
@@ -39,6 +42,36 @@
 
     let qzPrinting = $state(false);
     let qzError    = $state('');
+
+    // ── Últimos 10 documentos ─────────────────────────────────────────────
+    let recentSales   = $state([]);
+    let recentLoading = $state(false);
+    let recentPrinting = $state(null); // uuid actualmente imprimiendo
+
+    async function loadRecentSales() {
+        recentLoading = true;
+        try {
+            const res = await fetch('/pos/recent-sales');
+            recentSales = await res.json();
+        } catch { recentSales = []; }
+        finally { recentLoading = false; }
+    }
+
+    async function printRecentThermal(sale) {
+        if (!printerName) return;
+        recentPrinting = sale.uuid;
+        try {
+            if (!QzPrinter.connected) await QzPrinter.connect();
+            await QzPrinter.printReceipt(printerName, {
+                document_number: sale.document_number,
+                total: sale.total,
+                payment_method: sale.payment_method,
+                status: sale.status,
+                items: [],
+            }, { paperWidth, copies });
+        } catch { /* silencioso */ }
+        finally { recentPrinting = null; }
+    }
 
     const page = usePage();
     let completedSale = $derived(page.props.completedSale ?? null);
@@ -155,8 +188,15 @@
     };
 
     $effect(() => {
+        // Cargar últimos documentos al montar
+        loadRecentSales();
+    });
+
+    $effect(() => {
         if (completedSale) {
             receipt = completedSale;
+            // Actualizar historial de documentos
+            loadRecentSales();
             // Auto-print si está configurado y hay impresora seleccionada
             if (autoPrint && printerName) {
                 printDirectly(completedSale);
@@ -693,7 +733,8 @@
                     <p class="text-secondary small mb-0">No se encontraron productos con stock disponible.</p>
                 </div>
             {:else if searchQuery.length === 0}
-                <div class="taguara-pos-hint">
+                <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column;">
+                <div class="taguara-pos-hint" style="flex:none">
                     <div class="taguara-pos-hint-icon"><Search size={42} /></div>
                     <p class="fw-semibold mb-1">Listo para vender</p>
                     <p class="text-secondary small mb-3">Escanea un codigo o escribe nombre, principio activo, lote o codigo interno.</p>
@@ -703,6 +744,67 @@
                         <span>Cliente rapido</span>
                     </div>
                 </div>
+
+                <!-- Últimos documentos del turno -->
+                <div class="taguara-pos-recent">
+                    <div class="taguara-pos-recent-header">
+                        <History size={15} />
+                        <span>Últimos documentos del turno</span>
+                        {#if recentLoading}
+                            <span class="spinner-border spinner-border-sm text-secondary ms-auto" style="width:12px;height:12px" role="status"></span>
+                        {/if}
+                    </div>
+                    {#if recentSales.length > 0}
+                        <div class="taguara-pos-recent-list">
+                            {#each recentSales as sale}
+                                <div class="taguara-pos-recent-item">
+                                    <div class="min-w-0 flex-grow-1">
+                                        <div class="fw-semibold" style="font-size:.8rem">{sale.document_number}</div>
+                                        <div class="taguara-table-sub">{sale.created_at} · {sale.payment_method}</div>
+                                    </div>
+                                    <span class="fw-semibold" style="font-size:.8rem;white-space:nowrap">
+                                        $ {Number(sale.total).toLocaleString('es-CO')}
+                                    </span>
+                                    <div class="d-flex gap-1 flex-shrink-0">
+                                        <a
+                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                            href={`/sales/${sale.uuid}`}
+                                            title="Ver detalle"
+                                            aria-label="Ver detalle"
+                                        >
+                                            <Eye size={13} />
+                                        </a>
+                                        <a
+                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                            href={`/sales/${sale.uuid}/receipt`}
+                                            target="_blank"
+                                            rel="noopener"
+                                            title="Recibo HTML"
+                                            aria-label="Recibo HTML"
+                                        >
+                                            <PrinterCheck size={13} />
+                                        </a>
+                                        {#if printerName}
+                                            <button
+                                                class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                                type="button"
+                                                disabled={recentPrinting === sale.uuid}
+                                                title="Reimprimir térmica"
+                                                aria-label="Reimprimir térmica"
+                                                onclick={() => printRecentThermal(sale)}
+                                            >
+                                                <Printer size={13} />
+                                            </button>
+                                        {/if}
+                                    </div>
+                                </div>
+                            {/each}
+                        </div>
+                    {:else if !recentLoading}
+                        <p class="text-secondary small text-center py-2 mb-0">Sin ventas en este turno aún.</p>
+                    {/if}
+                </div>
+                </div><!-- /scrollable wrapper -->
             {/if}
         </div>
 

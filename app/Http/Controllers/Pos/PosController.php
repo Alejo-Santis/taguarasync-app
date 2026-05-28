@@ -13,6 +13,7 @@ use App\Models\CashSession;
 use App\Models\Customer;
 use App\Models\DianIdentificationType;
 use App\Models\DianRegimeType;
+use App\Models\Sale;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -163,6 +164,32 @@ class PosController extends Controller
             'regime' => $customer->regime_type_code === '48' ? 'Resp. IVA' : 'No resp. IVA',
             'regime_code' => $customer->regime_type_code,
         ], 201);
+    }
+
+    public function recentSales(Request $request): JsonResponse
+    {
+        $session = CashSession::where('user_id', $request->user()->id)
+            ->where('status', CashSessionStatus::Open)
+            ->first();
+
+        if (! $session) {
+            return response()->json([]);
+        }
+
+        $sales = $session->sales()
+            ->latest()
+            ->limit(10)
+            ->get(['id', 'uuid', 'document_number', 'total', 'payment_method', 'status', 'created_at'])
+            ->map(fn (Sale $sale) => [
+                'uuid' => $sale->uuid,
+                'document_number' => $sale->document_number,
+                'total' => $sale->total,
+                'payment_method' => $sale->payment_method->label(),
+                'status' => $sale->status->value,
+                'created_at' => $sale->created_at->format('H:i'),
+            ]);
+
+        return response()->json($sales);
     }
 
     public function store(ProcessSaleRequest $request, ProcessSale $processSale): RedirectResponse

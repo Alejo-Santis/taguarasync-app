@@ -78,6 +78,7 @@ Route::middleware(['auth', 'permission:pos.sell'])->prefix('pos')->name('pos.')-
     Route::get('customers', [PosController::class, 'searchCustomers'])->name('customers');
     Route::post('customers', [PosController::class, 'quickStoreCustomer'])->name('customers.store');
     Route::post('sales', [PosController::class, 'store'])->name('sales.store');
+    Route::get('recent-sales', [PosController::class, 'recentSales'])->name('recent-sales');
 });
 
 // ── POS — apertura de caja ────────────────────────────────────────────────

@@ -1,10 +1,32 @@
 <script>
     import { Link } from '@inertiajs/svelte';
-    import { ArrowLeft, CircleDollarSign, CreditCard, DollarSign, ReceiptText, ShieldAlert } from '@lucide/svelte';
+    import { ArrowLeft, CircleDollarSign, CreditCard, DollarSign, Printer, ReceiptText, ShieldAlert } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
     import ReportsNav from '../../Components/Reports/ReportsNav.svelte';
+    import QzPrinter from '../../Services/QzPrinter.js';
 
     let { auth, session, sales } = $props();
+
+    const printerName = $derived(auth?.tenant?.printer_settings?.printer_name ?? null);
+    const paperWidth  = $derived(auth?.tenant?.printer_settings?.paper_width ?? '80mm');
+    const copies      = $derived(auth?.tenant?.printer_settings?.copies ?? 1);
+
+    let zPrinting = $state(false);
+    let zError    = $state('');
+
+    async function printZReport() {
+        if (!printerName) return;
+        zPrinting = true;
+        zError    = '';
+        try {
+            if (!QzPrinter.connected) await QzPrinter.connect();
+            await QzPrinter.printCashSession(printerName, session, { paperWidth, copies });
+        } catch (err) {
+            zError = err?.message ?? 'Error al imprimir.';
+        } finally {
+            zPrinting = false;
+        }
+    }
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
@@ -25,10 +47,27 @@
                 <h2 class="h3 mb-2">{session.register.name} · {session.cashier}</h2>
                 <p class="text-secondary mb-0">Abierta {session.opened_at}{session.closed_at ? ` · Cerrada ${session.closed_at}` : ' · Turno abierto'}</p>
             </div>
-            <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/reports/cash-sessions">
-                <ArrowLeft size={18} />
-                Volver
-            </Link>
+            <div class="d-flex gap-2 flex-wrap">
+                {#if printerName}
+                    <button
+                        class="btn btn-light border d-inline-flex align-items-center gap-2"
+                        type="button"
+                        onclick={printZReport}
+                        disabled={zPrinting}
+                        title="Imprimir cierre de caja en térmica"
+                    >
+                        <Printer size={17} />
+                        {zPrinting ? 'Imprimiendo...' : 'Imprimir cierre'}
+                    </button>
+                {/if}
+                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/reports/cash-sessions">
+                    <ArrowLeft size={18} />
+                    Volver
+                </Link>
+            </div>
+            {#if zError}
+                <p class="text-danger small mt-1 mb-0">{zError}</p>
+            {/if}
         </section>
 
         <ReportsNav active="cash-sessions" />

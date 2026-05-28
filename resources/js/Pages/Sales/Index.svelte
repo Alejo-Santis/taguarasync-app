@@ -10,6 +10,7 @@
         Eye,
         Filter,
         Paperclip,
+        Printer,
         PrinterCheck,
         ReceiptText,
         RotateCcw,
@@ -20,8 +21,49 @@
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import QzPrinter from '../../Services/QzPrinter.js';
 
     let { auth, sales, filters, stats, paymentMethods, statuses } = $props();
+
+    const printerName = $derived(auth?.tenant?.printer_settings?.printer_name ?? null);
+    const paperWidth  = $derived(auth?.tenant?.printer_settings?.paper_width ?? '80mm');
+    const copies      = $derived(auth?.tenant?.printer_settings?.copies ?? 1);
+
+    let thermalPrinting = $state(null); // uuid currently printing
+    let thermalError    = $state('');
+
+    function saleToThermalData(sale) {
+        return {
+            document_number:  sale.document_number,
+            total:            sale.total,
+            subtotal:         sale.subtotal,
+            tax_total:        sale.tax_total,
+            discount_total:   0,
+            payment_form:     sale.payment_form?.value ?? '1',
+            payment_method:   sale.payment_method?.label ?? '',
+            change_amount:    sale.change_amount,
+            payment_due_date: sale.payment_due_date,
+            customer_name:    sale.customer_name ?? null,
+            cashier_name:     sale.cashier,
+            created_at:       sale.created_at,
+            status:           sale.status?.value,
+            items:            [], // no disponible en la lista
+        };
+    }
+
+    async function printThermal(sale) {
+        if (!printerName) return;
+        thermalPrinting = sale.uuid;
+        thermalError    = '';
+        try {
+            if (!QzPrinter.connected) await QzPrinter.connect();
+            await QzPrinter.printReceipt(printerName, saleToThermalData(sale), { paperWidth, copies });
+        } catch (err) {
+            thermalError = err?.message ?? 'Error al imprimir.';
+        } finally {
+            thermalPrinting = null;
+        }
+    }
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
@@ -260,11 +302,22 @@
                                                 href={`/sales/${sale.uuid}/receipt`}
                                                 target="_blank"
                                                 rel="noopener"
-                                                aria-label="Imprimir recibo"
+                                                aria-label="Imprimir recibo HTML"
                                                 onclick={(e) => e.stopPropagation()}
                                             >
                                                 <PrinterCheck size={15} />
                                             </a>
+                                            {#if printerName}
+                                                <button
+                                                    class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                                    type="button"
+                                                    aria-label="Imprimir térmica"
+                                                    disabled={thermalPrinting === sale.uuid}
+                                                    onclick={(e) => { e.stopPropagation(); printThermal(sale); }}
+                                                >
+                                                    <Printer size={15} />
+                                                </button>
+                                            {/if}
                                             <button
                                                 class="btn btn-sm btn-light border taguara-icon-button-sm"
                                                 type="button"
@@ -423,15 +476,31 @@
                     <Eye size={17} />
                     Ver detalle completo
                 </Link>
-                <a
-                    class="btn btn-light border w-100 d-inline-flex align-items-center justify-content-center gap-2"
-                    href={`/sales/${selectedSale.uuid}/receipt`}
-                    target="_blank"
-                    rel="noopener"
-                >
-                    <PrinterCheck size={17} />
-                    Imprimir recibo
-                </a>
+                <div class="d-flex gap-2">
+                    <a
+                        class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                        href={`/sales/${selectedSale.uuid}/receipt`}
+                        target="_blank"
+                        rel="noopener"
+                    >
+                        <PrinterCheck size={17} />
+                        Recibo HTML
+                    </a>
+                    {#if printerName}
+                        <button
+                            class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                            type="button"
+                            disabled={thermalPrinting === selectedSale.uuid}
+                            onclick={() => printThermal(selectedSale)}
+                        >
+                            <Printer size={17} />
+                            {thermalPrinting === selectedSale.uuid ? 'Imprimiendo...' : 'Térmica'}
+                        </button>
+                    {/if}
+                </div>
+                {#if thermalError}
+                    <p class="text-danger small mb-0">{thermalError}</p>
+                {/if}
                 {#if selectedSale.fe?.status === 'pending' || selectedSale.fe?.status === 'rejected' || selectedSale.fe?.status === 'contingency'}
                     <button
                         class="btn btn-outline-warning w-100 d-inline-flex align-items-center justify-content-center gap-2"
