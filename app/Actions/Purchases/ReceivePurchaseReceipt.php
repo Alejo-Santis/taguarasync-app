@@ -137,6 +137,7 @@ class ReceivePurchaseReceipt
             'product_id' => $item['product_id'],
             'lot_number' => $item['lot_number'],
         ], [
+            'uuid' => Uuid::uuid4()->toString(),
             'product_presentation_id' => $item['product_presentation_id'] ?? null,
             'expires_on' => $item['expires_on'] ?? null,
             'initial_quantity' => $item['quantity'],

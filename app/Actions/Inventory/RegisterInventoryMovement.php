@@ -9,6 +9,7 @@ use App\Models\InventoryMovement;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Ramsey\Uuid\Uuid;
 
 class RegisterInventoryMovement
 {
@@ -48,6 +49,8 @@ class RegisterInventoryMovement
             ])->save();
 
             return InventoryMovement::create([
+                'uuid' => Uuid::uuid4()->toString(),
+                'server_id' => config('sync.server_id', 'cloud'),
                 'tenant_id' => $lockedLot->tenant_id,
                 'inventory_lot_id' => $lockedLot->id,
                 'product_id' => $lockedLot->product_id,

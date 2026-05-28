@@ -8,6 +8,7 @@ use App\Models\CashSession;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Ramsey\Uuid\Uuid;
 
 class DemoCashRegisterSeeder extends Seeder
 {
@@ -42,6 +43,7 @@ class DemoCashRegisterSeeder extends Seeder
 
             if (! $hasOpenSession) {
                 CashSession::create([
+                    'uuid' => Uuid::uuid4()->toString(),
                     'tenant_id' => $tenant->id,
                     'cash_register_id' => $mainRegister->id,
                     'user_id' => $owner->id,
