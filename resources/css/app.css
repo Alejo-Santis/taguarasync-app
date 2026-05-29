@@ -25,11 +25,109 @@ body {
     font-family: "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.taguara-shell {
+/* ── Auth split-screen ─────────────────────────────────────────── */
+.taguara-auth-root {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     min-height: 100vh;
-    background:
-        linear-gradient(180deg, rgba(20, 108, 67, 0.08), transparent 320px),
-        var(--taguara-surface);
+}
+
+/* Branding panel */
+.taguara-auth-brand {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #0c5c35 0%, #0a3d22 55%, #071f12 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 3rem;
+}
+
+.taguara-auth-brand-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+}
+.taguara-auth-brand-orb--1 {
+    width: 420px;
+    height: 420px;
+    background: rgba(29, 144, 88, 0.35);
+    top: -100px;
+    right: -120px;
+}
+.taguara-auth-brand-orb--2 {
+    width: 320px;
+    height: 320px;
+    background: rgba(12, 66, 40, 0.6);
+    bottom: -80px;
+    left: -80px;
+}
+
+.taguara-auth-brand-content {
+    position: relative;
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.taguara-auth-brand-name {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 1.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.taguara-auth-brand-headline {
+    color: #fff;
+    font-size: clamp(1.6rem, 2.5vw, 2.1rem);
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 1rem;
+}
+
+.taguara-auth-brand-sub {
+    color: rgba(255, 255, 255, 0.55);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.taguara-auth-brand-footer {
+    position: relative;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.78rem;
+    margin: 0;
+}
+
+/* Form panel */
+.taguara-auth-form-panel {
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 2rem;
+}
+
+.taguara-auth-form-wrap {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Mobile: ocultar panel de branding */
+@media (max-width: 991.98px) {
+    .taguara-auth-root {
+        grid-template-columns: 1fr;
+    }
+    .taguara-auth-brand {
+        display: none;
+    }
+    .taguara-auth-form-panel {
+        padding: 3rem 1.5rem;
+        min-height: 100vh;
+    }
 }
 
 .taguara-app {
@@ -1228,12 +1326,7 @@ body {
     white-space: nowrap;
 }
 
-.taguara-auth-panel {
-    width: min(100%, 440px);
-    border: 1px solid var(--taguara-border);
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.07), 0 24px 56px rgba(15, 23, 42, 0.10);
-}
+/* legacy — reemplazado por split-screen */
 
 .taguara-brand-mark {
     display: inline-flex;

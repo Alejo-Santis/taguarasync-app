@@ -21,8 +21,12 @@ use Inertia\Response;
 
 class FeSettingsController extends Controller
 {
-    public function index(CurrentTenant $currentTenant): Response
+    public function index(CurrentTenant $currentTenant): Response|RedirectResponse
     {
+        if ($currentTenant->get() === null) {
+            return redirect()->route('dashboard')->with('warning', 'La configuración de facturación electrónica es específica por empresa.');
+        }
+
         $tenant = $currentTenant->get()->load('feConfig');
         $feConfig = $tenant->feConfig;
 
@@ -116,6 +120,10 @@ class FeSettingsController extends Controller
 
     public function update(UpdateFeSettingsRequest $request, CurrentTenant $currentTenant): RedirectResponse
     {
+        if ($currentTenant->get() === null) {
+            return redirect()->route('dashboard')->with('warning', 'La configuración de facturación electrónica es específica por empresa.');
+        }
+
         $data = $request->validated();
         $tenant = $currentTenant->get();
 
@@ -162,6 +170,10 @@ class FeSettingsController extends Controller
         CurrentTenant $currentTenant,
         TestNextpymeConnection $testConnection
     ): JsonResponse {
+        if ($currentTenant->get() === null) {
+            return response()->json(['ok' => false, 'message' => 'Sin empresa asociada.'], 422);
+        }
+
         $validated = $request->validate([
             'api_token' => ['nullable', 'string', 'max:500'],
         ]);

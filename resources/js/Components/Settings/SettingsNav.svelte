@@ -4,7 +4,7 @@
 
     let { active } = $props();
 
-    const perms = $derived($page.props.auth?.permissions ?? []);
+    const perms = $derived(page.props.auth?.permissions ?? []);
     const can = (p) => perms.includes(p);
 
     const allTabs = [
