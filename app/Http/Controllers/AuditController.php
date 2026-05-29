@@ -15,6 +15,9 @@ class AuditController extends Controller
     public function index(Request $request, CurrentTenant $currentTenant): Response
     {
         $tenantId = $currentTenant->id();
+
+        abort_unless($tenantId !== null, 403);
+
         $tab = $request->string('tab', 'fe')->toString();
         $page = max(1, (int) $request->integer('page', 1));
 
