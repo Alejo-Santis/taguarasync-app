@@ -6,20 +6,23 @@ use App\Models\FeSubmission;
 use App\Models\InventoryMovement;
 use App\Models\PurchaseReceipt;
 use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class AuditController extends Controller
 {
-    public function index(Request $request, CurrentTenant $currentTenant): Response
+    public function index(Request $request, CurrentTenant $currentTenant): Response|RedirectResponse
     {
         $tenantId = $currentTenant->id();
 
-        abort_unless($tenantId !== null, 403);
+        if ($tenantId === null) {
+            return redirect()->route('dashboard')
+                ->with('warning', 'Esta sección solo está disponible dentro del contexto de una empresa.');
+        }
 
         $tab = $request->string('tab', 'fe')->toString();
-        $page = max(1, (int) $request->integer('page', 1));
 
         return Inertia::render('Audit/Index', [
             'active_tab' => $tab,
