@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Actions\Purchases\ReceivePurchaseReceipt;
+use App\Models\Branch;
 use App\Models\Product;
 use App\Models\Supplier;
 use App\Models\Tenant;
@@ -13,7 +14,7 @@ class DemoPurchaseReceiptsSeeder extends Seeder
 {
     public function run(): void
     {
-        $tenant = Tenant::first();
+        $tenant = Tenant::where('slug', 'farmacia-demo')->first();
 
         if (! $tenant) {
             return;
@@ -21,12 +22,12 @@ class DemoPurchaseReceiptsSeeder extends Seeder
 
         $user = User::where('tenant_id', $tenant->id)->first();
         $supplier = Supplier::where('tenant_id', $tenant->id)->first();
+        $branch = Branch::where('tenant_id', $tenant->id)->where('is_main', true)->first();
 
-        if (! $supplier) {
+        if (! $supplier || ! $branch) {
             return;
         }
 
-        // Load products for this tenant
         $products = Product::where('tenant_id', $tenant->id)
             ->with('presentations')
             ->get()
@@ -38,8 +39,7 @@ class DemoPurchaseReceiptsSeeder extends Seeder
 
         $action = app(ReceivePurchaseReceipt::class);
 
-        // Purchase receipt 1 - analgesicos and antibiotics
-        $this->createReceipt($action, $tenant->id, $user, $supplier, [
+        $this->createReceipt($action, $tenant->id, $branch->id, $user, $supplier, [
             'document_number' => 'REM-001-2026',
             'document_date' => '2026-05-01',
             'received_at' => '2026-05-01 09:00:00',
@@ -53,8 +53,7 @@ class DemoPurchaseReceiptsSeeder extends Seeder
             ],
         ]);
 
-        // Purchase receipt 2 - antihistaminicos, digestivos, vitaminas
-        $this->createReceipt($action, $tenant->id, $user, $supplier, [
+        $this->createReceipt($action, $tenant->id, $branch->id, $user, $supplier, [
             'document_number' => 'FAC-5521-2026',
             'document_date' => '2026-05-05',
             'received_at' => '2026-05-05 14:30:00',
@@ -75,11 +74,12 @@ class DemoPurchaseReceiptsSeeder extends Seeder
     private function createReceipt(
         ReceivePurchaseReceipt $action,
         int $tenantId,
+        int $branchId,
         ?User $user,
         Supplier $supplier,
         array $data,
     ): void {
-        $items = array_filter($data['items']); // remove nulls (product not found)
+        $items = array_values(array_filter($data['items']));
 
         if (empty($items)) {
             return;
@@ -87,12 +87,13 @@ class DemoPurchaseReceiptsSeeder extends Seeder
 
         $action->execute([
             'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
             'supplier_id' => $supplier->id,
             'document_number' => $data['document_number'],
             'document_date' => $data['document_date'],
             'received_at' => $data['received_at'],
             'notes' => $data['notes'],
-            'items' => array_values($items),
+            'items' => $items,
         ], $user);
     }
 

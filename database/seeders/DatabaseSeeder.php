@@ -2,68 +2,39 @@
 
 namespace Database\Seeders;
 
-use App\Enums\TenantStatus;
-use App\Models\Tenant;
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
+/**
+ * Seeder principal — datos globales que deben existir en TODOS los entornos.
+ *
+ * Solo incluye catálogos globales (sin tenant_id) y configuración base del sistema.
+ * NO incluye datos de demostración ni datos específicos de ninguna farmacia.
+ *
+ * Para desarrollo y pruebas:
+ *   php artisan db:seed --class=DemoSeeder
+ *
+ * Para registrar una farmacia nueva en producción:
+ *   php artisan taguara:setup-tenant
+ */
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         $this->call([
-            RoleAndPermissionSeeder::class,
-            SuperAdminSeeder::class,
-            DianCatalogsSeeder::class,
-            DianMunicipalitiesSeeder::class,
-        ]);
+            // ── Sistema ────────────────────────────────────────────────────────
+            RoleAndPermissionSeeder::class,   // roles y permisos (Spatie)
+            SuperAdminSeeder::class,          // super admin del SaaS (sin tenant)
 
-        $tenant = Tenant::firstOrCreate([
-            'slug' => 'farmacia-demo',
-        ], [
-            'uuid' => (string) Str::uuid(),
-            'name' => 'Farmacia Demo',
-            'legal_name' => 'Farmacia Demo SAS',
-            'nit' => '900123456',
-            'email' => 'admin@taguara.test',
-            'phone' => '3001234567',
-            'city' => 'Barranquilla',
-            'department' => 'Atlantico',
-            'timezone' => 'America/Bogota',
-            'status' => TenantStatus::Active,
-        ]);
+            // ── Catálogos DIAN ─────────────────────────────────────────────────
+            DianCatalogsSeeder::class,        // tipos de ID, regímenes, impuestos, unidades DIAN
+            DianMunicipalitiesSeeder::class,  // municipios de Colombia
 
-        $owner = User::firstOrCreate([
-            'email' => 'admin@taguara.test',
-        ], [
-            'tenant_id' => $tenant->id,
-            'name' => 'Administrador Demo',
-            'password' => Hash::make('Password123!'),
-            'email_verified_at' => now(),
-        ]);
-
-        $owner->assignRole('owner');
-
-        $this->call([
-            ProductUnitsSeeder::class,
-            ColombianLaboratoriesSeeder::class,
-            ProductCategoriesSeeder::class,
-            ActiveIngredientsSeeder::class,
-            ProductCatalogSeeder::class,
-            OtcProductsSeeder::class,
-            PaymentMethodSeeder::class,
-            ConsumidorFinalSeeder::class,
-            DemoSuppliersSeeder::class,
-            DemoPurchaseReceiptsSeeder::class,
-            DemoCashRegisterSeeder::class,
+            // ── Catálogos farmacéuticos globales (sin tenant_id) ───────────────
+            ProductUnitsSeeder::class,        // und, ml, g, bls, caj, fra, tub, amp, sob, tir
+            ActiveIngredientsSeeder::class,   // principios activos con código ATC
         ]);
     }
 }
