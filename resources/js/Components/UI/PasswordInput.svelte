@@ -42,6 +42,7 @@
         class="form-control"
         type={isVisible ? 'text' : 'password'}
         bind:value
+        placeholder="Ingresa tu contraseña"
         {autocomplete}
     >
     <button
