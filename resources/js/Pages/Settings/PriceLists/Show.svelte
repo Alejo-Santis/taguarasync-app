@@ -1,7 +1,7 @@
 <script>
     import { Link, router, useForm } from '@inertiajs/svelte';
     import { fade, fly } from 'svelte/transition';
-    import { ArrowLeft, Pencil, Plus, Search, Tag, Trash2, X } from '@lucide/svelte';
+    import { ArrowLeft, FileSpreadsheet, Pencil, Plus, Search, Tag, Trash2, X } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
     import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
 
@@ -96,10 +96,17 @@
                 <h2 class="h3 mb-2">{priceList.name}</h2>
                 <p class="text-secondary mb-0">{priceList.description ?? 'Precios especiales por producto para esta lista.'}</p>
             </div>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center flex-wrap gap-2">
                 <Link href="/settings/price-lists" class="btn btn-light border d-inline-flex align-items-center gap-2">
                     <ArrowLeft size={17} />
                     Volver
+                </Link>
+                <Link
+                    href="/settings/price-lists/{priceList.id}/import"
+                    class="btn btn-outline-secondary d-inline-flex align-items-center gap-2"
+                >
+                    <FileSpreadsheet size={16} />
+                    Importar CSV
                 </Link>
                 <div class="d-flex gap-1 flex-wrap justify-content-end">
                     {#if priceList.is_default}<span class="badge text-bg-primary">Por defecto</span>{/if}

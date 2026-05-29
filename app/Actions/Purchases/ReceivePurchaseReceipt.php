@@ -16,6 +16,7 @@ class ReceivePurchaseReceipt
     /**
      * @param  array{
      *     tenant_id: int,
+     *     branch_id: int,
      *     supplier_id: int,
      *     document_number: string,
      *     document_date?: mixed,
@@ -43,6 +44,7 @@ class ReceivePurchaseReceipt
             $receipt = PurchaseReceipt::create([
                 'uuid' => Uuid::uuid4()->toString(),
                 'tenant_id' => $data['tenant_id'],
+                'branch_id' => $data['branch_id'],
                 'supplier_id' => $data['supplier_id'],
                 'user_id' => $user?->id,
                 'document_number' => $data['document_number'],
@@ -59,7 +61,7 @@ class ReceivePurchaseReceipt
 
             foreach ($data['items'] as $item) {
                 $line = $this->lineTotals($item);
-                $lot = $this->findOrCreateLot($data['tenant_id'], $item);
+                $lot = $this->findOrCreateLot($data['tenant_id'], $data['branch_id'], $item);
 
                 $receiptItem = $receipt->items()->create([
                     'tenant_id' => $data['tenant_id'],
@@ -130,10 +132,11 @@ class ReceivePurchaseReceipt
     /**
      * @param  array<string, mixed>  $item
      */
-    private function findOrCreateLot(int $tenantId, array $item): InventoryLot
+    private function findOrCreateLot(int $tenantId, int $branchId, array $item): InventoryLot
     {
         $lot = InventoryLot::firstOrCreate([
             'tenant_id' => $tenantId,
+            'branch_id' => $branchId,
             'product_id' => $item['product_id'],
             'lot_number' => $item['lot_number'],
         ], [

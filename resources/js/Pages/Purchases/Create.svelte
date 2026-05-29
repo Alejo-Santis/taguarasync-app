@@ -40,6 +40,7 @@
     };
 
     const form = useForm(() => ({
+        branch_id: options.branches[0]?.id ?? '',
         supplier_id: options.suppliers[0]?.id ?? '',
         document_number: '',
         document_date: today,
@@ -121,6 +122,19 @@
                     </div>
 
                     <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="branch-id">Sucursal destino</label>
+                            <select id="branch-id" class="form-select {form.errors.branch_id ? 'is-invalid' : ''}" bind:value={form.branch_id}>
+                                {#each options.branches as branch}
+                                    <option value={branch.id}>{branch.name}{branch.is_main ? ' (Principal)' : ''}</option>
+                                {/each}
+                            </select>
+                            {#if form.errors.branch_id}
+                                <div class="invalid-feedback">{form.errors.branch_id}</div>
+                            {/if}
+                            <div class="form-text">Sucursal que recibe los productos de esta compra.</div>
+                        </div>
+
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="supplier_id">Proveedor</label>
                             <select id="supplier_id" class:is-invalid={error('supplier_id')} class="form-select" bind:value={form.supplier_id}>

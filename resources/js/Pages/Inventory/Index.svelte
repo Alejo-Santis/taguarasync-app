@@ -19,12 +19,13 @@
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, lots, filters, stats, statuses, laboratories, laboratory_lot_counts } = $props();
+    let { auth, lots, filters, stats, statuses, laboratories, laboratory_lot_counts, branches = [] } = $props();
 
     let form = $state({
         q: '',
         status: '',
         expiry: '',
+        branch: '',
     });
     let printForm = $state({
         laboratory_id: '',
@@ -94,6 +95,7 @@
         form.q = filters.q ?? '';
         form.status = filters.status ?? '';
         form.expiry = filters.expiry ?? '';
+        form.branch = filters.branch ?? '';
     });
 
     $effect(() => {
@@ -111,7 +113,7 @@
     };
 
     const resetFilters = () => {
-        form = { q: '', status: '', expiry: '' };
+        form = { q: '', status: '', expiry: '', branch: '' };
 
         router.get('/inventory', {}, {
             preserveState: true,
@@ -263,6 +265,18 @@
                         <option value="none">Sin vencimiento</option>
                     </select>
                 </label>
+
+                {#if branches.length > 1}
+                    <label class="form-label mb-0">
+                        <span class="small fw-semibold text-secondary">Sucursal</span>
+                        <select class="form-select" bind:value={form.branch}>
+                            <option value="">Todas</option>
+                            {#each branches as branch}
+                                <option value={branch.id}>{branch.name}</option>
+                            {/each}
+                        </select>
+                    </label>
+                {/if}
 
                 <div class="d-flex align-items-end gap-2">
                     <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="submit">

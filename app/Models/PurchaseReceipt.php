@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 #[Fillable([
     'uuid',
     'tenant_id',
+    'branch_id',
     'supplier_id',
     'purchase_order_id',
     'user_id',
@@ -49,6 +50,14 @@ class PurchaseReceipt extends Model
     public function getRouteKeyName(): string
     {
         return 'uuid';
+    }
+
+    /**
+     * @return BelongsTo<Branch, $this>
+     */
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     /**

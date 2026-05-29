@@ -75,7 +75,13 @@ class PosController extends Controller
         $query = $request->string('q')->trim()->toString();
         $priceListId = $request->integer('price_list_id') ?: null;
 
-        return response()->json($getPosProducts->execute($query, $priceListId));
+        $session = CashSession::where('user_id', $request->user()->id)
+            ->where('status', CashSessionStatus::Open)
+            ->with('register')
+            ->first();
+        $branchId = $session?->register?->branch_id;
+
+        return response()->json($getPosProducts->execute($query, $priceListId, $branchId));
     }
 
     public function searchCustomers(Request $request): JsonResponse

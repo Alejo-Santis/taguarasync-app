@@ -3,9 +3,11 @@
     import { onMount } from 'svelte';
     import {
         ActivitySquare,
+        ArrowLeftRight,
         BarChart3,
         Bell,
         Boxes,
+        Building,
         Building2,
         ChevronDown,
         ChevronLeft,
@@ -119,6 +121,7 @@
             items: [
                 { label: 'Productos', href: '/products', icon: Package, section: 'products', perm: 'products.view' },
                 { label: 'Inventario', href: '/inventory', icon: Boxes, section: 'inventory', perm: 'inventory.view' },
+                { label: 'Traslados', href: '/inventory/transfers', icon: ArrowLeftRight, section: 'transfers', perm: 'inventory.transfer' },
                 { label: 'Compras', href: '/purchases', icon: ReceiptText, section: 'purchases', perm: 'purchases.view' },
                 { label: 'Proveedores', href: '/purchases/payables', icon: Truck, section: 'payables', perm: 'purchases.view' },
             ],
@@ -134,6 +137,7 @@
             items: [
                 { label: 'Auditorías', href: '/audit', icon: ActivitySquare, section: 'audit', perm: 'reports.view' },
                 { label: 'Equipo', href: '/team', icon: Users, section: 'team', perm: 'users.manage' },
+                { label: 'Sucursales', href: '/settings/branches', icon: Building, section: 'branches', perm: 'settings.manage' },
                 { label: 'Impresora', href: '/settings/printer', icon: Printer, section: 'printer', perm: 'settings.manage' },
                 { label: 'Configuracion', href: '/settings/laboratories', icon: Settings, section: 'configuracion', perm: 'settings.manage' },
             ],

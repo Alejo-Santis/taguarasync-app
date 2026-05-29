@@ -39,6 +39,7 @@
     };
 
     const form = useForm(() => ({
+        branch_id: options.branches[0]?.id ?? '',
         items: [defaultItem()],
     }));
 
@@ -431,6 +432,19 @@
                         </div>
                         <Boxes class="text-success" size={22} />
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" for="branch-id">Sucursal destino</label>
+                        <select id="branch-id" class="form-select {form.errors.branch_id ? 'is-invalid' : ''}" bind:value={form.branch_id}>
+                            {#each options.branches as branch}
+                                <option value={branch.id}>{branch.name}{branch.is_main ? ' (Principal)' : ''}</option>
+                            {/each}
+                        </select>
+                        {#if form.errors.branch_id}
+                            <div class="invalid-feedback">{form.errors.branch_id}</div>
+                        {/if}
+                        <div class="form-text">Sucursal donde se registra el inventario inicial.</div>
+                    </div>
+
                     <div class="taguara-drawer-grid">
                         <span class="taguara-drawer-label">Líneas</span>
                         <span>{form.items.length}</span>

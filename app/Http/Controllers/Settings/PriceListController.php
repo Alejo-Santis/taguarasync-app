@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Settings\GetPriceListImportTemplate;
+use App\Actions\Settings\ImportPriceListItems;
 use App\Enums\ProductStatus;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\ImportPriceListItemsRequest;
 use App\Models\PriceList;
 use App\Models\PriceListItem;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -141,5 +145,42 @@ class PriceListController extends Controller
         $item->delete();
 
         return back()->with('success', 'Precio eliminado. Se usará el precio base del producto.');
+    }
+
+    public function importForm(PriceList $priceList): Response
+    {
+        return Inertia::render('Settings/PriceLists/Import', [
+            'priceList' => [
+                'id' => $priceList->id,
+                'name' => $priceList->name,
+            ],
+        ]);
+    }
+
+    public function downloadTemplate(GetPriceListImportTemplate $action): HttpResponse
+    {
+        $csv = $action->execute();
+
+        return response($csv, 200, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="plantilla_lista_precios.csv"',
+        ]);
+    }
+
+    public function import(ImportPriceListItemsRequest $request, PriceList $priceList, ImportPriceListItems $action): RedirectResponse
+    {
+        $path = $request->file('file')->store('imports/price-lists', 'local');
+
+        $result = $action->execute($priceList, storage_path('app/'.$path));
+
+        if (! empty($result['errors'])) {
+            return back()
+                ->with('import_errors', $result['errors'])
+                ->with('error', 'El archivo tiene errores. Ningún precio fue importado.');
+        }
+
+        return redirect()
+            ->route('settings.price-lists.show', $priceList)
+            ->with('success', "{$result['upserted']} precio(s) importados correctamente en «{$priceList->name}».");
     }
 }

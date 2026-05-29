@@ -9,6 +9,7 @@ use App\Http\Controllers\Fe\FeSubmissionsController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Inventory\InventoryStockPrintController;
+use App\Http\Controllers\Inventory\InventoryTransferController;
 use App\Http\Controllers\Inventory\KardexController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Pos\CashSessionController;
@@ -32,6 +33,7 @@ use App\Http\Controllers\Sales\SaleController;
 use App\Http\Controllers\Sales\SalePaymentAttachmentController;
 use App\Http\Controllers\Settings\ActiveIngredientController;
 use App\Http\Controllers\Settings\BankAccountController;
+use App\Http\Controllers\Settings\BranchController;
 use App\Http\Controllers\Settings\CashRegisterController;
 use App\Http\Controllers\Settings\FeResolutionController;
 use App\Http\Controllers\Settings\FeSettingsController;
@@ -128,6 +130,16 @@ Route::middleware(['auth', 'permission:inventory.view'])->group(function () {
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/kardex', [KardexController::class, 'index'])->name('inventory.kardex');
     Route::get('/inventory/print/stock-by-laboratory', InventoryStockPrintController::class)->name('inventory.print.stock-by-laboratory');
+});
+
+// ── Traslados de inventario ───────────────────────────────────────────────
+Route::middleware(['auth', 'permission:inventory.transfer'])->prefix('inventory')->name('inventory.')->group(function () {
+    Route::get('transfers', [InventoryTransferController::class, 'index'])->name('transfers.index');
+    Route::get('transfers/create', [InventoryTransferController::class, 'create'])->name('transfers.create');
+    Route::post('transfers', [InventoryTransferController::class, 'store'])->name('transfers.store');
+    Route::get('transfers/{transfer}', [InventoryTransferController::class, 'show'])->name('transfers.show');
+    Route::post('transfers/{transfer}/confirm', [InventoryTransferController::class, 'confirm'])->name('transfers.confirm');
+    Route::post('transfers/{transfer}/cancel', [InventoryTransferController::class, 'cancel'])->name('transfers.cancel');
 });
 
 // ── Inventario — ajustes y carga inicial ──────────────────────────────────
@@ -254,6 +266,14 @@ Route::middleware(['auth', 'permission:users.manage'])->prefix('team')->name('te
     Route::post('{member}/reset-password', [TeamController::class, 'resetPassword'])->name('reset-password');
 });
 
+// ── Sucursales ────────────────────────────────────────────────────────────
+Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->name('settings.')->group(function () {
+    Route::get('branches', [BranchController::class, 'index'])->name('branches.index');
+    Route::post('branches', [BranchController::class, 'store'])->name('branches.store');
+    Route::put('branches/{branch}', [BranchController::class, 'update'])->name('branches.update');
+    Route::patch('branches/{branch}/toggle', [BranchController::class, 'toggle'])->name('branches.toggle');
+});
+
 // ── Configuración — catálogos ─────────────────────────────────────────────
 Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->name('settings.')->group(function () {
     Route::redirect('/', '/settings/laboratories');
@@ -301,6 +321,9 @@ Route::middleware(['auth', 'permission:settings.manage'])->prefix('settings')->n
     Route::get('price-lists/{priceList}', [PriceListController::class, 'show'])->name('price-lists.show');
     Route::post('price-lists/{priceList}/items', [PriceListController::class, 'upsertItem'])->name('price-lists.items.upsert');
     Route::delete('price-lists/{priceList}/items/{item}', [PriceListController::class, 'removeItem'])->name('price-lists.items.remove');
+    Route::get('price-lists/{priceList}/import', [PriceListController::class, 'importForm'])->name('price-lists.import');
+    Route::get('price-lists/import/template', [PriceListController::class, 'downloadTemplate'])->name('price-lists.import.template');
+    Route::post('price-lists/{priceList}/import', [PriceListController::class, 'import'])->name('price-lists.import.store');
 });
 
 // ── Impresión QZ Tray ─────────────────────────────────────────────────────

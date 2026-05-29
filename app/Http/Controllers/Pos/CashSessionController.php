@@ -20,13 +20,15 @@ class CashSessionController extends Controller
     public function open(): Response
     {
         $registers = CashRegister::where('is_active', true)
+            ->with('branch:id,name')
             ->orderBy('name')
             ->get()
-            ->map(fn (CashRegister $r) => [
-                'id' => $r->id,
-                'name' => $r->name,
-                'code' => $r->code,
-                'has_open_session' => $r->hasOpenSession(),
+            ->map(fn (CashRegister $register) => [
+                'id' => $register->id,
+                'name' => $register->name,
+                'code' => $register->code,
+                'branch_name' => $register->branch?->name ?? 'Sin sucursal',
+                'has_open_session' => $register->hasOpenSession(),
             ])
             ->values();
 

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\PurchaseReceiptStatus;
+use App\Models\Branch;
 use App\Models\PurchaseReceipt;
 use App\Models\Supplier;
 use App\Models\Tenant;
@@ -27,6 +28,7 @@ class PurchaseReceiptFactory extends Factory
         return [
             'uuid' => (string) Str::uuid(),
             'tenant_id' => $tenant,
+            'branch_id' => Branch::factory()->for($tenant),
             'supplier_id' => Supplier::factory()->for($tenant),
             'user_id' => User::factory()->for($tenant),
             'document_number' => fake()->unique()->bothify('REM-####'),

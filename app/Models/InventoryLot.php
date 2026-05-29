@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
 #[Fillable([
     'uuid',
     'tenant_id',
+    'branch_id',
     'product_id',
     'product_presentation_id',
     'lot_number',
@@ -46,6 +47,11 @@ class InventoryLot extends Model
     /**
      * @return BelongsTo<Product, $this>
      */
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

@@ -13,6 +13,7 @@ class LoadOpeningStock
     /**
      * @param  array{
      *     tenant_id: int,
+     *     branch_id: int,
      *     items: array<int, array{
      *         product_id: int,
      *         product_presentation_id?: int|null,
@@ -33,6 +34,7 @@ class LoadOpeningStock
                 $lot = InventoryLot::firstOrCreate(
                     [
                         'tenant_id' => $data['tenant_id'],
+                        'branch_id' => $data['branch_id'],
                         'product_id' => $item['product_id'],
                         'lot_number' => $item['lot_number'],
                     ],

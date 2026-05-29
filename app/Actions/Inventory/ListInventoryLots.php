@@ -15,7 +15,7 @@ class ListInventoryLots
     /**
      * @return array{
      *     lots: LengthAwarePaginator<int, array<string, mixed>>,
-     *     filters: array{q: string, status: string, expiry: string},
+     *     filters: array{q: string, status: string, expiry: string, branch: string},
      *     stats: array{lots: int, units: int, expiring: int, depleted: int},
      *     statuses: array<int, array{value: string, label: string}>,
      *     laboratories: array<int, array{id: int, name: string}>,
@@ -28,6 +28,7 @@ class ListInventoryLots
             'q' => $request->string('q')->trim()->toString(),
             'status' => $request->string('status')->toString(),
             'expiry' => $request->string('expiry')->toString(),
+            'branch' => $request->string('branch')->toString(),
         ];
 
         $lots = InventoryLot::query()
@@ -54,6 +55,7 @@ class ListInventoryLots
             ->when($filters['expiry'] === 'expired', fn (Builder $query) => $query->whereDate('expires_on', '<', today()))
             ->when($filters['expiry'] === 'soon', fn (Builder $query) => $query->whereBetween('expires_on', [today(), today()->addDays(90)]))
             ->when($filters['expiry'] === 'none', fn (Builder $query) => $query->whereNull('expires_on'))
+            ->when($filters['branch'] !== '', fn (Builder $query) => $query->where('branch_id', $filters['branch']))
             ->orderByRaw('expires_on is null')
             ->orderBy('expires_on')
             ->latest('id')
@@ -64,7 +66,7 @@ class ListInventoryLots
         return [
             'lots' => $lots,
             'filters' => $filters,
-            'stats' => $this->stats(),
+            'stats' => $this->stats($filters['branch']),
             'statuses' => $this->statuses(),
             'laboratories' => Laboratory::query()
                 ->where('is_active', true)
@@ -136,13 +138,15 @@ class ListInventoryLots
     /**
      * @return array{lots: int, units: int, expiring: int, depleted: int}
      */
-    private function stats(): array
+    private function stats(string $branchFilter = ''): array
     {
+        $base = InventoryLot::query()->when($branchFilter !== '', fn (Builder $q) => $q->where('branch_id', $branchFilter));
+
         return [
-            'lots' => InventoryLot::count(),
-            'units' => InventoryLot::sum('current_quantity'),
-            'expiring' => InventoryLot::whereBetween('expires_on', [today(), today()->addDays(90)])->count(),
-            'depleted' => InventoryLot::where('status', InventoryLotStatus::Depleted)->count(),
+            'lots' => (clone $base)->count(),
+            'units' => (clone $base)->sum('current_quantity'),
+            'expiring' => (clone $base)->whereBetween('expires_on', [today(), today()->addDays(90)])->count(),
+            'depleted' => (clone $base)->where('status', InventoryLotStatus::Depleted)->count(),
         ];
     }
 

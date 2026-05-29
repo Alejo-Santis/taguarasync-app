@@ -8,6 +8,7 @@ use App\Enums\InventoryLotStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
 use App\Models\BankAccountMovement;
+use App\Models\CashSession;
 use App\Models\InventoryLot;
 use App\Models\PaymentMethod as PaymentMethodConfig;
 use App\Models\ProductPresentation;
@@ -21,6 +22,8 @@ use InvalidArgumentException;
 
 class ProcessSale
 {
+    private ?int $branchId = null;
+
     /**
      * @param  array{
      *     customer_id?: int|null,
@@ -55,6 +58,11 @@ class ProcessSale
      */
     public function execute(array $data, User $user, ?int $cashSessionId = null): Sale
     {
+        if ($cashSessionId) {
+            $session = CashSession::with('register')->find($cashSessionId);
+            $this->branchId = $session?->register?->branch_id;
+        }
+
         $sale = DB::transaction(function () use ($data, $user, $cashSessionId): Sale {
             $totals = $this->calculateTotals($data['items']);
 
@@ -278,6 +286,7 @@ class ProcessSale
     {
         $lot = InventoryLot::query()
             ->where('product_id', $productId)
+            ->when($this->branchId !== null, fn ($q) => $q->where('branch_id', $this->branchId))
             ->where('status', InventoryLotStatus::Available)
             ->where('current_quantity', '>=', $minUnitsNeeded)
             ->orderByRaw('expires_on IS NULL, expires_on ASC')

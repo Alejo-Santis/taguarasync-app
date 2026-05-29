@@ -14,7 +14,7 @@ class GetPosProducts
     /**
      * @return list<array<string, mixed>>
      */
-    public function execute(string $query, ?int $priceListId = null): array
+    public function execute(string $query, ?int $priceListId = null, ?int $branchId = null): array
     {
         $operator = (new Product)->getConnection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
 
@@ -34,6 +34,7 @@ class GetPosProducts
             ->whereHas('inventoryLots', fn (Builder $q) => $q
                 ->where('status', InventoryLotStatus::Available)
                 ->where('current_quantity', '>', 0)
+                ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             )
             ->when($query !== '', fn (Builder $q) => $q->where(fn (Builder $q) => $q
                 ->where('commercial_name', $operator, "%{$query}%")
@@ -50,6 +51,7 @@ class GetPosProducts
         $stockByProduct = InventoryLot::query()
             ->where('status', InventoryLotStatus::Available)
             ->whereIn('product_id', $productIds)
+            ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->selectRaw('product_id, SUM(current_quantity) as total')
             ->groupBy('product_id')
             ->pluck('total', 'product_id');
@@ -60,6 +62,7 @@ class GetPosProducts
             ->where('current_quantity', '>', 0)
             ->whereNotNull('expires_on')
             ->whereIn('product_id', $productIds)
+            ->when($branchId !== null, fn (Builder $q) => $q->where('branch_id', $branchId))
             ->orderByRaw('expires_on ASC')
             ->get(['product_id', 'expires_on'])
             ->unique('product_id')

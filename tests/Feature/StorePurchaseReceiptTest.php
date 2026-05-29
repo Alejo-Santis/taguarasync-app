@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Branch;
 use App\Models\InventoryLot;
 use App\Models\InventoryMovement;
 use App\Models\Product;
@@ -21,6 +22,7 @@ uses(RefreshDatabase::class);
 function purchaseFormContext(): array
 {
     $tenant = Tenant::factory()->create();
+    $branch = Branch::factory()->for($tenant)->main()->create();
     $user = User::factory()->for($tenant)->create();
     Permission::findOrCreate('purchases.view');
     Permission::findOrCreate('purchases.create');
@@ -41,11 +43,11 @@ function purchaseFormContext(): array
         ->for($unit, 'unit')
         ->create(['name' => 'Caja x 50', 'minimum_unit_quantity' => 50]);
 
-    return [$tenant, $user, $supplier, $product, $presentation];
+    return [$tenant, $branch, $user, $supplier, $product, $presentation];
 }
 
 test('authenticated users can open the purchase receipt form', function () {
-    [, $user, $supplier, $product] = purchaseFormContext();
+    [, , $user, $supplier, $product] = purchaseFormContext();
 
     $this->actingAs($user)
         ->get('/purchases/create')
@@ -60,11 +62,12 @@ test('authenticated users can open the purchase receipt form', function () {
 });
 
 test('authenticated users can store a purchase receipt and update inventory', function () {
-    [, $user, $supplier, $product, $presentation] = purchaseFormContext();
+    [, $branch, $user, $supplier, $product, $presentation] = purchaseFormContext();
     Storage::fake();
 
     $this->actingAs($user)
         ->post('/purchases', [
+            'branch_id' => $branch->id,
             'supplier_id' => $supplier->id,
             'document_number' => 'REM-STORE-1001',
             'document_date' => '2026-05-18',
@@ -97,7 +100,7 @@ test('authenticated users can store a purchase receipt and update inventory', fu
 });
 
 test('purchase receipts cannot repeat supplier and document number', function () {
-    [$tenant, $user, $supplier, $product, $presentation] = purchaseFormContext();
+    [$tenant, $branch, $user, $supplier, $product, $presentation] = purchaseFormContext();
 
     PurchaseReceipt::factory()->for($tenant)->for($user)->for($supplier)->create([
         'document_number' => 'FAC-DUP-1001',
@@ -105,6 +108,7 @@ test('purchase receipts cannot repeat supplier and document number', function ()
 
     $this->actingAs($user)
         ->post('/purchases', [
+            'branch_id' => $branch->id,
             'supplier_id' => $supplier->id,
             'document_number' => 'FAC-DUP-1001',
             'items' => [
@@ -123,7 +127,7 @@ test('purchase receipts cannot repeat supplier and document number', function ()
 });
 
 test('purchase receipt validation keeps presentations tied to their products', function () {
-    [$tenant, $user, $supplier, $product] = purchaseFormContext();
+    [$tenant, $branch, $user, $supplier, $product] = purchaseFormContext();
     $otherProduct = Product::factory()
         ->for($tenant)
         ->for($product->minimumUnit, 'minimumUnit')
@@ -136,6 +140,7 @@ test('purchase receipt validation keeps presentations tied to their products', f
 
     $this->actingAs($user)
         ->post('/purchases', [
+            'branch_id' => $branch->id,
             'supplier_id' => $supplier->id,
             'document_number' => 'REM-BAD-1001',
             'items' => [

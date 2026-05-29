@@ -17,28 +17,35 @@ class RoleAndPermissionSeeder extends Seeder
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         $permissions = [
+            // ── En uso ────────────────────────────────────────────────────────
             'dashboard.view',
             'users.manage',
             'settings.manage',
             'products.view',
-            'products.manage',
+            'products.manage',       // gestión avanzada de catálogo (edición masiva)
             'inventory.view',
-            'inventory.adjust',
-            'inventory.transfer',
-            'suppliers.view',
-            'suppliers.manage',
-            'purchases.view',
-            'purchases.create',
-            'purchases.receive',
+            'inventory.adjust',      // ajustes manuales de stock
             'pos.sell',
             'cash.register.open',
             'cash.register.close',
+            'purchases.view',
+            'purchases.create',
             'sales.view',
             'sales.cancel',
             'billing.view',
             'billing.configure',
             'billing.resend',
             'reports.view',
+
+            // ── Reservados para roadmap (rol warehouse) ───────────────────────
+            // inventory.transfer  → traslados entre ubicaciones/bodegas (pendiente)
+            // suppliers.view      → vista independiente de proveedores sin acceso a compras
+            // suppliers.manage    → CRUD de proveedores sin acceso a compras
+            // purchases.receive   → flujo de recepción de órdenes de compra (pendiente)
+            'inventory.transfer',
+            'suppliers.view',
+            'suppliers.manage',
+            'purchases.receive',
         ];
 
         foreach ($permissions as $permission) {

@@ -52,6 +52,7 @@ class RegisterInventoryMovement
                 'uuid' => Uuid::uuid4()->toString(),
                 'server_id' => config('sync.server_id', 'cloud'),
                 'tenant_id' => $lockedLot->tenant_id,
+                'branch_id' => $lockedLot->branch_id,
                 'inventory_lot_id' => $lockedLot->id,
                 'product_id' => $lockedLot->product_id,
                 'product_presentation_id' => $lockedLot->product_presentation_id,

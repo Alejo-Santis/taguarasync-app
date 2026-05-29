@@ -3,6 +3,7 @@
 namespace App\Actions\Purchases;
 
 use App\Enums\ProductStatus;
+use App\Models\Branch;
 use App\Models\Product;
 use App\Models\ProductPresentation;
 use App\Models\Supplier;
@@ -11,6 +12,7 @@ class GetPurchaseReceiptFormOptions
 {
     /**
      * @return array{
+     *     branches: array<int, array{id: int, name: string, is_main: bool}>,
      *     suppliers: array<int, array{id: int, name: string, nit: ?string}>,
      *     products: array<int, array{
      *         id: int,
@@ -25,6 +27,13 @@ class GetPurchaseReceiptFormOptions
     public function execute(): array
     {
         return [
+            'branches' => Branch::query()
+                ->where('is_active', true)
+                ->orderByDesc('is_main')
+                ->orderBy('name')
+                ->get(['id', 'name', 'is_main'])
+                ->map(fn (Branch $b) => ['id' => $b->id, 'name' => $b->name, 'is_main' => $b->is_main])
+                ->all(),
             'suppliers' => Supplier::query()
                 ->select(['id', 'name', 'nit'])
                 ->where('is_active', true)

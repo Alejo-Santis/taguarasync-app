@@ -11,6 +11,7 @@ use App\Actions\Purchases\GetPurchaseReceiptFormOptions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Inventory\AdjustInventoryRequest;
 use App\Http\Requests\Inventory\StoreOpeningStockRequest;
+use App\Models\Branch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +23,14 @@ class InventoryController extends Controller
 {
     public function index(Request $request, ListInventoryLots $listInventoryLots): Response
     {
-        return Inertia::render('Inventory/Index', $listInventoryLots->execute($request));
+        $data = $listInventoryLots->execute($request);
+        $data['branches'] = Branch::where('is_active', true)
+            ->orderByDesc('is_main')->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($b) => ['id' => $b->id, 'name' => $b->name])
+            ->all();
+
+        return Inertia::render('Inventory/Index', $data);
     }
 
     public function adjust(AdjustInventoryRequest $request, AdjustInventory $adjustInventory): RedirectResponse
@@ -41,7 +49,13 @@ class InventoryController extends Controller
     public function openingForm(GetPurchaseReceiptFormOptions $getFormOptions): Response
     {
         return Inertia::render('Inventory/Opening', [
-            'options' => $getFormOptions->execute(),
+            'options' => array_merge($getFormOptions->execute(), [
+                'branches' => Branch::where('is_active', true)
+                    ->orderByDesc('is_main')->orderBy('name')
+                    ->get(['id', 'name', 'is_main'])
+                    ->map(fn ($b) => ['id' => $b->id, 'name' => $b->name, 'is_main' => $b->is_main])
+                    ->all(),
+            ]),
         ]);
     }
 
@@ -74,6 +88,7 @@ class InventoryController extends Controller
 
         $loadOpeningStock->execute([
             'tenant_id' => $request->user()->tenant_id,
+            'branch_id' => $request->validated()['branch_id'],
             'items' => $request->validated()['items'],
         ], $request->user());
 

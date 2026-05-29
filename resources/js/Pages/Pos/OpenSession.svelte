@@ -60,7 +60,7 @@
                                 <label class="form-label" for="register">Caja <span class="text-danger">*</span></label>
                                 <select id="register" class="form-select form-select-lg" class:is-invalid={form.errors.cash_register_id} bind:value={form.cash_register_id}>
                                     {#each availableRegisters as r}
-                                        <option value={r.id}>{r.name} — <code>{r.code}</code></option>
+                                        <option value={r.id}>{r.name} — {r.branch_name} — <code>{r.code}</code></option>
                                     {/each}
                                 </select>
                                 {#if form.errors.cash_register_id}<div class="invalid-feedback">{form.errors.cash_register_id}</div>{/if}
@@ -95,7 +95,10 @@
                         <p class="text-uppercase small fw-semibold text-secondary mb-2">Cajas con turno activo</p>
                         {#each registers.filter(r => r.has_open_session) as r}
                             <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
-                                <span class="fw-semibold">{r.name}</span>
+                                <div>
+                                    <span class="fw-semibold">{r.name}</span>
+                                    <span class="badge text-bg-light border ms-2">{r.branch_name}</span>
+                                </div>
                                 <span class="badge text-bg-success">Turno abierto</span>
                             </div>
                         {/each}

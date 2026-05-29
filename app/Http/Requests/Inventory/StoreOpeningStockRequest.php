@@ -21,6 +21,7 @@ class StoreOpeningStockRequest extends FormRequest
         $tenantId = $this->user()?->tenant_id;
 
         return [
+            'branch_id' => ['required', 'integer', Rule::exists('branches', 'id')->where('tenant_id', $tenantId)],
             'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.product_id' => [
                 'required',

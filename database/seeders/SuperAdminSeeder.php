@@ -39,7 +39,7 @@ class SuperAdminSeeder extends Seeder
             ['email' => 'superadmin@taguara.local'],
             [
                 'name' => 'Super Administrador',
-                'password' => Hash::make('SuperAdmin2024!'),
+                'password' => Hash::make('SuperAdmin2026#**'),
                 'is_super_admin' => true,
                 'tenant_id' => null,
                 'email_verified_at' => now(),

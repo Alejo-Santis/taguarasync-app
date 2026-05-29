@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\InventoryLotStatus;
+use App\Models\Branch;
 use App\Models\InventoryLot;
 use App\Models\Product;
 use App\Models\ProductPresentation;
@@ -28,6 +29,7 @@ class InventoryLotFactory extends Factory
         return [
             'uuid' => (string) Str::uuid(),
             'tenant_id' => $tenant,
+            'branch_id' => Branch::factory()->for($tenant),
             'product_id' => $product,
             'product_presentation_id' => ProductPresentation::factory()->for($tenant)->for($product),
             'lot_number' => fake()->unique()->bothify('LOT-####'),

@@ -16,6 +16,7 @@ use Illuminate\Support\Str;
 #[Fillable([
     'uuid',
     'tenant_id',
+    'branch_id',
     'inventory_lot_id',
     'product_id',
     'product_presentation_id',

@@ -29,6 +29,11 @@ class StorePurchaseReceiptRequest extends FormRequest
         $tenantId = $this->user()?->tenant_id;
 
         return [
+            'branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('branches', 'id')->where('tenant_id', $tenantId),
+            ],
             'supplier_id' => [
                 'required',
                 'integer',
@@ -75,6 +80,7 @@ class StorePurchaseReceiptRequest extends FormRequest
     public function attributes(): array
     {
         return [
+            'branch_id' => 'sucursal',
             'supplier_id' => 'proveedor',
             'document_number' => 'numero de documento',
             'document_date' => 'fecha del documento',

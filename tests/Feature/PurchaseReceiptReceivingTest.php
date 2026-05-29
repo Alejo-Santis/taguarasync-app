@@ -3,6 +3,7 @@
 use App\Actions\Purchases\ReceivePurchaseReceipt;
 use App\Enums\InventoryMovementType;
 use App\Enums\PurchaseReceiptStatus;
+use App\Models\Branch;
 use App\Models\InventoryLot;
 use App\Models\InventoryMovement;
 use App\Models\Product;
@@ -20,6 +21,7 @@ uses(RefreshDatabase::class);
 function purchaseReceptionContext(): array
 {
     $tenant = Tenant::factory()->create();
+    $branch = Branch::factory()->for($tenant)->main()->create();
     $supplier = Supplier::factory()->for($tenant)->create(['name' => 'Drogueria Mayorista']);
     $unit = ProductUnit::factory()->create(['name' => 'Unidad', 'code' => "unit-purchase-{$tenant->id}"]);
     $product = Product::factory()
@@ -33,14 +35,15 @@ function purchaseReceptionContext(): array
         ->create(['name' => 'Caja x 100', 'minimum_unit_quantity' => 100]);
     $user = User::factory()->for($tenant)->create();
 
-    return [$tenant, $supplier, $product, $presentation, $user];
+    return [$tenant, $branch, $supplier, $product, $presentation, $user];
 }
 
 test('purchase reception creates receipt items lots and inventory movements', function () {
-    [$tenant, $supplier, $product, $presentation, $user] = purchaseReceptionContext();
+    [$tenant, $branch, $supplier, $product, $presentation, $user] = purchaseReceptionContext();
 
     $receipt = app(ReceivePurchaseReceipt::class)->execute([
         'tenant_id' => $tenant->id,
+        'branch_id' => $branch->id,
         'supplier_id' => $supplier->id,
         'document_number' => 'REM-1001',
         'document_date' => '2026-05-18',
@@ -77,10 +80,11 @@ test('purchase reception creates receipt items lots and inventory movements', fu
 });
 
 test('purchase reception reuses existing lot and accumulates stock', function () {
-    [$tenant, $supplier, $product, $presentation, $user] = purchaseReceptionContext();
+    [$tenant, $branch, $supplier, $product, $presentation, $user] = purchaseReceptionContext();
 
     InventoryLot::factory()
         ->for($tenant)
+        ->for($branch)
         ->for($product)
         ->for($presentation, 'presentation')
         ->create([
@@ -92,6 +96,7 @@ test('purchase reception reuses existing lot and accumulates stock', function ()
 
     app(ReceivePurchaseReceipt::class)->execute([
         'tenant_id' => $tenant->id,
+        'branch_id' => $branch->id,
         'supplier_id' => $supplier->id,
         'document_number' => 'REM-1002',
         'items' => [
