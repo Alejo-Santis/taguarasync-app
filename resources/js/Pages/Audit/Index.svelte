@@ -3,7 +3,7 @@
     import { ActivitySquare, AlertTriangle, ArrowUpDown, CheckCircle2, FileText, RotateCcw, ShieldCheck, ShieldQuestion, XCircle } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, active_tab, fe, radian, movements } = $props();
+    let { auth, active_tab, is_super_admin, fe, radian, movements } = $props();
 
     const tabs = [
         { key: 'fe', label: 'API Facturación FE', icon: FileText },
@@ -116,6 +116,7 @@
                         <table class="taguara-table">
                             <thead>
                                 <tr>
+                                    {#if is_super_admin}<th>Empresa</th>{/if}
                                     <th>Tipo</th>
                                     <th>XML Document Key</th>
                                     <th class="text-center">Intentos</th>
@@ -128,6 +129,7 @@
                             <tbody>
                                 {#each fe.rows as row}
                                     <tr>
+                                        {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td><span class="badge text-bg-light border text-secondary">{row.document_type}</span></td>
                                         <td class="text-secondary" style="font-size:.8rem;max-width:180px">
                                             <div class="text-truncate" title={row.xml_document_key}>{row.xml_document_key ?? '—'}</div>
@@ -145,7 +147,7 @@
                                         </td>
                                     </tr>
                                 {:else}
-                                    <tr><td colspan="7">
+                                    <tr><td colspan={is_super_admin ? 8 : 7}>
                                         <div class="taguara-empty-state" style="min-height:100px">
                                             <FileText size={28} />
                                             <p class="text-secondary small mb-0">No hay envíos FE registrados.</p>
@@ -179,6 +181,7 @@
                         <table class="taguara-table">
                             <thead>
                                 <tr>
+                                    {#if is_super_admin}<th>Empresa</th>{/if}
                                     <th>Documento</th>
                                     <th>Proveedor</th>
                                     <th>CUFE</th>
@@ -190,6 +193,7 @@
                             <tbody>
                                 {#each radian.rows as row}
                                     <tr>
+                                        {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td>
                                             <a href={`/purchases/${row.uuid}`} class="text-decoration-none fw-semibold small">{row.document_number}</a>
                                         </td>
@@ -216,7 +220,7 @@
                                         </td>
                                     </tr>
                                 {:else}
-                                    <tr><td colspan="6">
+                                    <tr><td colspan={is_super_admin ? 7 : 6}>
                                         <div class="taguara-empty-state" style="min-height:100px">
                                             <ShieldQuestion size={28} />
                                             <p class="text-secondary small mb-0">No hay validaciones RADIAN registradas.</p>
@@ -251,6 +255,7 @@
                         <table class="taguara-table">
                             <thead>
                                 <tr>
+                                    {#if is_super_admin}<th>Empresa</th>{/if}
                                     <th>Fecha</th>
                                     <th>Tipo</th>
                                     <th>Producto</th>
@@ -264,6 +269,7 @@
                             <tbody>
                                 {#each movements.rows as row}
                                     <tr>
+                                        {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td class="text-secondary" style="font-size:.8rem">{row.occurred_at}</td>
                                         <td>
                                             <span class={`badge ${movementTypeClass(row.type)}`}>{movementTypeLabel(row.type)}</span>
@@ -282,7 +288,7 @@
                                         <td class="text-secondary" style="font-size:.78rem">{row.notes ?? ''}</td>
                                     </tr>
                                 {:else}
-                                    <tr><td colspan="8">
+                                    <tr><td colspan={is_super_admin ? 9 : 8}>
                                         <div class="taguara-empty-state" style="min-height:100px">
                                             <RotateCcw size={28} />
                                             <p class="text-secondary small mb-0">Sin movimientos registrados.</p>
