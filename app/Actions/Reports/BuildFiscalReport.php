@@ -206,7 +206,8 @@ class BuildFiscalReport
                 'fe_status' => $sale->fe_status?->label() ?? 'Pendiente',
                 'impact' => 'positive',
                 'sort_date' => $sale->created_at,
-            ]);
+            ])
+            ->toBase();
 
         $creditNotes = CreditNote::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
@@ -225,7 +226,8 @@ class BuildFiscalReport
                 'fe_status' => $creditNote->fe_status?->label() ?? 'Pendiente',
                 'impact' => 'negative',
                 'sort_date' => $creditNote->created_at,
-            ]);
+            ])
+            ->toBase();
 
         $purchases = PurchaseReceipt::withoutGlobalScopes()
             ->where('tenant_id', $tenantId)
@@ -245,7 +247,8 @@ class BuildFiscalReport
                 'fe_status' => 'Soporte compra',
                 'impact' => 'purchase',
                 'sort_date' => $purchase->received_at,
-            ]);
+            ])
+            ->toBase();
 
         return $sales
             ->merge($creditNotes)

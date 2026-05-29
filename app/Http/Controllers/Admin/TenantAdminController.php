@@ -7,8 +7,12 @@ use App\Enums\TenantPlan;
 use App\Enums\TenantStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Tenant;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
@@ -77,6 +81,60 @@ class TenantAdminController extends Controller
         return back()->with('success', "Tenant \"{$tenant->name}\" {$label}.");
     }
 
+    public function users(Tenant $tenant): JsonResponse
+    {
+        $users = $tenant->users()
+            ->with('roles')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (User $user) => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->roles->first()?->name ?? 'sin_rol',
+                'role_label' => $this->roleLabel($user->roles->first()?->name),
+                'email_verified_at' => $user->email_verified_at?->format('d/m/Y'),
+            ]);
+
+        return response()->json($users);
+    }
+
+    public function updateUser(Tenant $tenant, User $user, Request $request): JsonResponse
+    {
+        abort_if($user->tenant_id !== $tenant->id, 404);
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:180'],
+            'role' => ['required', 'string', Rule::in(['owner', 'admin', 'cashier', 'warehouse', 'accountant'])],
+        ]);
+
+        $user->update(['name' => $validated['name']]);
+        $user->syncRoles([$validated['role']]);
+        $user->load('roles');
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->roles->first()?->name ?? 'sin_rol',
+            'role_label' => $this->roleLabel($user->roles->first()?->name),
+            'email_verified_at' => $user->email_verified_at?->format('d/m/Y'),
+        ]);
+    }
+
+    public function resetUserPassword(Tenant $tenant, User $user): JsonResponse
+    {
+        abort_if($user->tenant_id !== $tenant->id, 404);
+
+        $newPassword = Str::random(12);
+        $user->update(['password' => Hash::make($newPassword)]);
+
+        return response()->json([
+            'password' => $newPassword,
+            'user_name' => $user->name,
+        ]);
+    }
+
     public function recordPayment(Request $request, Tenant $tenant): RedirectResponse
     {
         $validated = $request->validate([
@@ -104,5 +162,17 @@ class TenantAdminController extends Controller
         $cycleLabel = $cycle === 'annual' ? 'anual' : 'mensual';
 
         return back()->with('success', "Pago {$cycleLabel} registrado para \"{$tenant->name}\". Activo hasta {$subscribedUntil->format('d/m/Y')}.");
+    }
+
+    private function roleLabel(?string $role): string
+    {
+        return match ($role) {
+            'owner' => 'Propietario',
+            'admin' => 'Administrador',
+            'cashier' => 'Cajero',
+            'warehouse' => 'Bodeguero',
+            'accountant' => 'Contador',
+            default => 'Sin rol',
+        };
     }
 }

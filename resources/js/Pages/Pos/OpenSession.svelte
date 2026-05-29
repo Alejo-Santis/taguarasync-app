@@ -8,6 +8,7 @@
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
     const availableRegisters = $derived(registers.filter((r) => !r.has_open_session));
+    const hasActiveSessions = $derived(registers.some((r) => r.has_open_session));
 
     const form = useForm(() => ({
         cash_register_id: availableRegisters[0]?.id ?? '',
@@ -34,8 +35,8 @@
             </Link>
         </section>
 
-        <div class="row g-3 justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
+        <div class="row g-3 {hasActiveSessions ? '' : 'justify-content-center'}">
+            <div class="col-12 {hasActiveSessions ? 'col-md-7' : 'col-md-8 col-lg-6'}">
                 <div class="taguara-panel">
                     <div class="taguara-panel-header">
                         <div>
@@ -86,19 +87,21 @@
                         </form>
                     {/if}
                 </div>
+            </div>
 
-                {#if registers.some((r) => r.has_open_session)}
-                    <div class="taguara-panel mt-3">
+            {#if hasActiveSessions}
+                <div class="col-12 col-md-5">
+                    <div class="taguara-panel">
                         <p class="text-uppercase small fw-semibold text-secondary mb-2">Cajas con turno activo</p>
-                        {#each registers.filter((r) => r.has_open_session) as r}
+                        {#each registers.filter(r => r.has_open_session) as r}
                             <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
                                 <span class="fw-semibold">{r.name}</span>
                                 <span class="badge text-bg-success">Turno abierto</span>
                             </div>
                         {/each}
                     </div>
-                {/if}
-            </div>
+                </div>
+            {/if}
         </div>
     </div>
 </AppLayout>

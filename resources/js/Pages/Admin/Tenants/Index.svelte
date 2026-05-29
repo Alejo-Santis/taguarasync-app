@@ -7,16 +7,25 @@
         CheckCircle2,
         CircleDollarSign,
         Clock,
+        KeyRound,
         Lock,
+        Pencil,
         Plus,
+        RefreshCw,
         ShieldCheck,
         Unlock,
+        UserCircle,
         Users,
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
 
     let { auth, tenants, plans } = $props();
+
+    const getCsrfToken = () => {
+        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        return match ? decodeURIComponent(match[1]) : '';
+    };
 
     // ── Crear tenant ──────────────────────────────────────────────────────────
     let drawerOpen = $state(false);
@@ -74,6 +83,136 @@
                 : selectedPlanInfo.monthly_price
             : 0
     );
+
+    // ── Gestión de usuarios de un tenant ─────────────────────────────────────
+    let usersDrawerOpen = $state(false);
+    let usersDrawerTenant = $state(null);
+    let usersLoading = $state(false);
+    let usersData = $state([]);
+    let usersError = $state('');
+
+    // Edición inline
+    let editingUserId = $state(null);
+    let editName = $state('');
+    let editRole = $state('');
+    let editSaving = $state(false);
+    let editError = $state('');
+
+    // Reset de contraseña
+    let resetConfirmUserId = $state(null);
+    let resetResetting = $state(false);
+    let resetResult = $state(null); // { userId, password, userName }
+
+    const availableRoles = [
+        { name: 'owner',      label: 'Propietario' },
+        { name: 'admin',      label: 'Administrador' },
+        { name: 'cashier',    label: 'Cajero' },
+        { name: 'warehouse',  label: 'Bodeguero' },
+        { name: 'accountant', label: 'Contador' },
+    ];
+
+    const openUsersDrawer = async (tenant) => {
+        usersDrawerTenant = tenant;
+        usersDrawerOpen = true;
+        editingUserId = null;
+        resetConfirmUserId = null;
+        resetResult = null;
+        usersError = '';
+        await loadUsers(tenant);
+    };
+
+    const closeUsersDrawer = () => {
+        usersDrawerOpen = false;
+        usersDrawerTenant = null;
+        usersData = [];
+        editingUserId = null;
+        resetConfirmUserId = null;
+        resetResult = null;
+    };
+
+    const loadUsers = async (tenant) => {
+        usersLoading = true;
+        usersError = '';
+        try {
+            const res = await fetch(`/admin/tenants/${tenant.uuid}/users`);
+            if (!res.ok) { usersError = 'No se pudo cargar la lista de usuarios.'; return; }
+            usersData = await res.json();
+        } catch {
+            usersError = 'Error de red al cargar usuarios.';
+        } finally {
+            usersLoading = false;
+        }
+    };
+
+    const openEditUser = (user) => {
+        editingUserId = user.id;
+        editName = user.name;
+        editRole = user.role;
+        editError = '';
+        resetConfirmUserId = null;
+        resetResult = null;
+    };
+
+    const cancelEditUser = () => {
+        editingUserId = null;
+        editError = '';
+    };
+
+    const saveUser = async (user) => {
+        editSaving = true;
+        editError = '';
+        try {
+            const res = await fetch(`/admin/tenants/${usersDrawerTenant.uuid}/users/${user.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ name: editName, role: editRole }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                editError = data?.message ?? 'Error al guardar cambios.';
+                return;
+            }
+            usersData = usersData.map(u => u.id === user.id ? data : u);
+            editingUserId = null;
+        } catch {
+            editError = 'Error de red al guardar.';
+        } finally {
+            editSaving = false;
+        }
+    };
+
+    const confirmResetPassword = async (user) => {
+        resetResetting = true;
+        try {
+            const res = await fetch(`/admin/tenants/${usersDrawerTenant.uuid}/users/${user.id}/reset-password`, {
+                method: 'POST',
+                headers: {
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+            });
+            const data = await res.json();
+            if (!res.ok) { return; }
+            resetResult = { userId: user.id, password: data.password, userName: data.user_name };
+            resetConfirmUserId = null;
+        } catch {
+            // silent
+        } finally {
+            resetResetting = false;
+        }
+    };
+
+    const roleColor = (role) => ({
+        owner:      'text-bg-success',
+        admin:      'text-bg-primary',
+        cashier:    'text-bg-info text-dark',
+        warehouse:  'text-bg-warning text-dark',
+        accountant: 'text-bg-secondary',
+    }[role] ?? 'text-bg-light border');
 
     // ── Helpers de UI ─────────────────────────────────────────────────────────
     const statusClass = (value) => {
@@ -215,13 +354,28 @@
                                         {tenant.last_payment_at ?? '—'}
                                     </td>
                                     <td class="text-center">
-                                        <span class="badge text-bg-light border text-secondary">{tenant.users_count}</span>
+                                        <button
+                                            class="btn btn-sm btn-link p-0 text-decoration-none text-secondary"
+                                            type="button"
+                                            onclick={() => openUsersDrawer(tenant)}
+                                            title="Ver y gestionar usuarios"
+                                        >
+                                            <span class="badge text-bg-light border text-secondary">{tenant.users_count}</span>
+                                        </button>
                                     </td>
                                     <td>
                                         <span class="badge {statusClass(tenant.status.value)}">{tenant.status.label}</span>
                                     </td>
                                     <td>
                                         <div class="d-flex gap-1">
+                                            <button
+                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                                type="button"
+                                                onclick={() => openUsersDrawer(tenant)}
+                                                title="Gestionar usuarios"
+                                            >
+                                                <Users size={13} />
+                                            </button>
                                             <button
                                                 class="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1"
                                                 type="button"
@@ -262,6 +416,171 @@
             {/if}
         </section>
     </div>
+
+    <!-- Drawer: usuarios de un tenant -->
+    {#if usersDrawerOpen}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={closeUsersDrawer} role="presentation"></div>
+        <aside class="taguara-drawer" transition:fly={{ x: 480, duration: 220 }}>
+            <div class="taguara-drawer-header">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="taguara-kpi-icon text-bg-primary"><Users size={18} /></span>
+                    <div>
+                        <p class="text-uppercase small fw-semibold text-primary mb-0">Usuarios</p>
+                        <h2 class="h5 mb-0">{usersDrawerTenant?.name}</h2>
+                    </div>
+                </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={closeUsersDrawer}><X size={17} /></button>
+            </div>
+
+            <div class="taguara-drawer-body">
+                {#if usersLoading}
+                    <div class="d-flex align-items-center justify-content-center py-5 gap-2 text-secondary">
+                        <span class="spinner-border spinner-border-sm"></span>
+                        Cargando usuarios...
+                    </div>
+                {:else if usersError}
+                    <div class="alert alert-danger small py-2 d-flex gap-2">
+                        <AlertCircle size={15} class="flex-shrink-0 mt-1" />
+                        {usersError}
+                    </div>
+                {:else if usersData.length === 0}
+                    <div class="taguara-empty-state py-5">
+                        <UserCircle size={30} />
+                        <p class="text-secondary small mb-0">Sin usuarios registrados.</p>
+                    </div>
+                {:else}
+                    <!-- Resultado de reset de contraseña -->
+                    {#if resetResult}
+                        <div class="alert alert-success border mb-4">
+                            <div class="fw-semibold mb-1">Contraseña restablecida para {resetResult.userName}</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <code class="fs-6 text-success">{resetResult.password}</code>
+                            </div>
+                            <div class="small text-secondary mt-1">Comparte esta contraseña de forma segura. No se mostrará de nuevo.</div>
+                        </div>
+                    {/if}
+
+                    <div class="vstack gap-3">
+                        {#each usersData as user}
+                            <div class="border rounded p-3">
+                                {#if editingUserId === user.id}
+                                    <!-- Modo edición -->
+                                    <div class="vstack gap-2">
+                                        <div>
+                                            <label class="form-label small fw-semibold mb-1" for="edit-name-{user.id}">Nombre</label>
+                                            <input
+                                                id="edit-name-{user.id}"
+                                                class="form-control form-control-sm"
+                                                type="text"
+                                                bind:value={editName}
+                                                autocomplete="off"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="form-label small fw-semibold mb-1" for="edit-role-{user.id}">Rol</label>
+                                            <select id="edit-role-{user.id}" class="form-select form-select-sm" bind:value={editRole}>
+                                                {#each availableRoles as r}
+                                                    <option value={r.name}>{r.label}</option>
+                                                {/each}
+                                            </select>
+                                        </div>
+                                        {#if editError}
+                                            <p class="text-danger small mb-0">{editError}</p>
+                                        {/if}
+                                        <div class="d-flex gap-2 justify-content-end">
+                                            <button class="btn btn-sm btn-light border" type="button" onclick={cancelEditUser} disabled={editSaving}>
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                class="btn btn-sm btn-taguara d-inline-flex align-items-center gap-1"
+                                                type="button"
+                                                onclick={() => saveUser(user)}
+                                                disabled={editSaving}
+                                            >
+                                                {#if editSaving}
+                                                    <span class="spinner-border spinner-border-sm"></span>
+                                                {:else}
+                                                    Guardar
+                                                {/if}
+                                            </button>
+                                        </div>
+                                    </div>
+                                {:else}
+                                    <!-- Modo visualización -->
+                                    <div class="d-flex align-items-start justify-content-between gap-2">
+                                        <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0">
+                                            <span class="taguara-kpi-icon text-bg-light border flex-shrink-0" style="width:34px;height:34px;font-size:.8rem">
+                                                <UserCircle size={16} />
+                                            </span>
+                                            <div class="min-w-0">
+                                                <div class="fw-semibold text-truncate">{user.name}</div>
+                                                <div class="text-secondary small text-truncate">{user.email}</div>
+                                                <div class="mt-1">
+                                                    <span class="badge {roleColor(user.role)}">{user.role_label}</span>
+                                                    {#if user.email_verified_at}
+                                                        <span class="badge text-bg-light border text-secondary ms-1" style="font-size:.65rem">Verificado {user.email_verified_at}</span>
+                                                    {/if}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-1 flex-shrink-0">
+                                            <button
+                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                                type="button"
+                                                onclick={() => openEditUser(user)}
+                                                title="Editar usuario"
+                                            >
+                                                <Pencil size={12} />
+                                            </button>
+                                            <button
+                                                class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1"
+                                                type="button"
+                                                onclick={() => { resetConfirmUserId = user.id; resetResult = null; editingUserId = null; }}
+                                                title="Restablecer contraseña"
+                                            >
+                                                <KeyRound size={12} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Confirmación reset contraseña -->
+                                    {#if resetConfirmUserId === user.id}
+                                        <div class="mt-3 pt-3 border-top">
+                                            <p class="small mb-2 text-warning fw-semibold">¿Restablecer contraseña de {user.name}?</p>
+                                            <p class="small text-secondary mb-2">Se generará una contraseña aleatoria que deberás compartir con el usuario.</p>
+                                            <div class="d-flex gap-2">
+                                                <button
+                                                    class="btn btn-sm btn-light border"
+                                                    type="button"
+                                                    onclick={() => resetConfirmUserId = null}
+                                                    disabled={resetResetting}
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button
+                                                    class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1"
+                                                    type="button"
+                                                    onclick={() => confirmResetPassword(user)}
+                                                    disabled={resetResetting}
+                                                >
+                                                    {#if resetResetting}
+                                                        <span class="spinner-border spinner-border-sm"></span>
+                                                    {:else}
+                                                        <RefreshCw size={12} />
+                                                        Restablecer
+                                                    {/if}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {/if}
+                                {/if}
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+        </aside>
+    {/if}
 
     <!-- Drawer: registrar pago -->
     {#if paymentDrawerOpen}

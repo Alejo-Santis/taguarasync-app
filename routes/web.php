@@ -58,6 +58,9 @@ Route::middleware(['auth', EnsureSuperAdmin::class])->prefix('admin')->name('adm
     Route::post('/tenants', [TenantAdminController::class, 'store'])->name('tenants.store');
     Route::patch('/tenants/{tenant}/toggle-status', [TenantAdminController::class, 'toggleStatus'])->name('tenants.toggle-status');
     Route::post('/tenants/{tenant}/record-payment', [TenantAdminController::class, 'recordPayment'])->name('tenants.record-payment');
+    Route::get('/tenants/{tenant}/users', [TenantAdminController::class, 'users'])->name('tenants.users');
+    Route::put('/tenants/{tenant}/users/{user}', [TenantAdminController::class, 'updateUser'])->name('tenants.users.update');
+    Route::post('/tenants/{tenant}/users/{user}/reset-password', [TenantAdminController::class, 'resetUserPassword'])->name('tenants.users.reset-password');
 });
 
 // ── Acceso general (cualquier usuario autenticado) ─────────────────────────
