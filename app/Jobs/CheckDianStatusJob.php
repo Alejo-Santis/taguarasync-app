@@ -9,6 +9,7 @@ use App\Models\Tenant;
 use App\Services\Fe\NextpymeClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class CheckDianStatusJob implements ShouldQueue
@@ -34,8 +35,15 @@ class CheckDianStatusJob implements ShouldQueue
 
         try {
             $response = $client->getDocumentStatus($this->xmlDocumentKey);
-        } catch (Throwable) {
-            return;
+        } catch (Throwable $e) {
+            Log::warning('[FE] Error consultando estado DIAN, se reintentará', [
+                'document_type' => $this->documentType,
+                'document_id' => $this->documentId,
+                'xml_document_key' => $this->xmlDocumentKey,
+                'error' => $e->getMessage(),
+            ]);
+
+            throw $e;
         }
 
         FeSubmission::withoutGlobalScopes()

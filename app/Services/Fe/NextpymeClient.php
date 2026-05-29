@@ -4,6 +4,7 @@ namespace App\Services\Fe;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class NextpymeClient
@@ -108,9 +109,9 @@ class NextpymeClient
         }
 
         $response = Http::withToken($this->globalToken)
-            ->timeout(30)
-            ->connectTimeout(10)
-            ->retry(2, 1000, throw: false)
+            ->timeout(120)
+            ->connectTimeout(20)
+            ->retry(2, 3000, throw: false)
             ->post("{$this->baseUrl}{$path}", $payload);
 
         $this->assertSuccessful($response, $path);
@@ -129,7 +130,13 @@ class NextpymeClient
             $body = $response->json();
             $message = $body['message'] ?? $body['error'] ?? "Error HTTP {$response->status()} en {$path}";
 
-            throw new RuntimeException("[FE API] {$message}");
+            Log::error('[FE] NextPyme API error', [
+                'path' => $path,
+                'status' => $response->status(),
+                'body' => $body,
+            ]);
+
+            throw new RuntimeException("[FE API] HTTP {$response->status()} — {$message}");
         }
     }
 }

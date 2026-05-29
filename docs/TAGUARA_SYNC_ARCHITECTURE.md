@@ -1,242 +1,215 @@
-# Taguara Sync App - Arquitectura y Fases
+# Taguara Sync — Arquitectura y Estado del Proyecto
 
-## Vision
+**Última actualización:** Mayo 2026  
+**Estado:** Fases 0–6 completadas. Fase 7 (offline/sync) en roadmap.
 
-Taguara Sync App es un sistema web hibrido para farmacias pequenas y medianas de la region Caribe. El producto debe funcionar como SaaS multi-tenant en la nube, pero quedar preparado desde el inicio para operar con un servidor local Linux por farmacia cuando internet o energia sean inestables.
+---
 
-El sistema no sera un dispensario clinico. No gestionara pacientes, formulas medicas, EPS, IPS ni dispensacion de medicamentos de control especial. Los productos marcados como controlados se bloquearan en POS y solo serviran para advertencia operativa.
+## Visión
 
-## Stack Base
+Taguara Sync es un sistema web híbrido para farmacias pequeñas y medianas de la región Caribe colombiana. Opera como SaaS multi-tenant en la nube y puede funcionar con un servidor Linux local por farmacia cuando internet o energía sean inestables.
 
-- Backend: Laravel 13, PHP 8.3, PostgreSQL.
-- Frontend: Inertia.js con Svelte 5.
-- UI: Bootstrap 5 con tema claro, moderno y operativo.
-- Autenticacion: Laravel Fortify con vistas Svelte.
-- Permisos: Spatie Laravel Permission.
-- Testing: Pest 4.
-- Facturacion electronica: integracion por proveedor tecnologico, iniciando con estructura y jobs.
-- Offline: arquitectura preparada desde fase temprana; sincronizacion completa en fase posterior.
+El sistema no gestiona pacientes, fórmulas médicas, EPS, IPS ni dispensación clínica. Los medicamentos controlados se marcan en el catálogo como advertencia operativa pero no bloquean la venta — el cajero puede venderlos con registro del número de receta.
 
-## Principios De Codigo
+---
 
-- Controllers delgados: reciben request, autorizan si aplica, llaman Actions/Services y retornan Inertia o redirect.
-- Validacion con Form Requests; no validacion inline.
-- Lógica de negocio en Actions de un solo proposito.
-- Services para integraciones y procesos compartidos.
-- Enums para estados, tipos y valores de dominio.
-- UUID/ULID publico en modelos expuestos o sincronizables.
-- IDs internos numericos permitidos para relaciones locales y rendimiento, pero no se exponen en rutas publicas cuando pueda evitarse.
-- Transacciones de base de datos en ventas, compras, recepciones, ajustes de inventario y facturacion.
-- Jobs y eventos que dependan de datos recien creados deben ejecutarse despues del commit.
-- Idioma del codigo en ingles; textos de interfaz, validaciones y mensajes en español.
+## Stack
 
-## Multi-Tenancy
+- **Backend:** Laravel 13, PHP 8.3
+- **Frontend:** Inertia v3 + Svelte 5 (runes: `$state`, `$derived`, `$props`, `$effect`)
+- **UI:** Bootstrap 5 + sistema de diseño propio (clases `.taguara-*`)
+- **Autenticación:** Laravel Fortify v1 (headless, vistas Svelte)
+- **Permisos:** Spatie Laravel Permission
+- **Testing:** Pest v4 — 128 tests, 856 assertions
+- **Impresión:** QZ Tray (WebSocket local, ESC/POS)
+- **Facturación electrónica:** Nextpyme como intermediario DIAN
 
-La aplicacion sera multi-tenant desde el inicio. Cada farmacia es un tenant y todas las tablas de negocio deben incluir `tenant_id`.
+---
 
-Estrategia inicial recomendada:
+## Principios de código
 
-- Single database con `tenant_id` en tablas de negocio.
-- Scope global o trait local para aislar datos por tenant.
-- Usuarios asociados al tenant activo, permitiendo un super-admin global.
-- Configuracion fiscal, cajas, bodegas, permisos, productos, inventario y facturacion por tenant.
+- **Controllers delgados:** validan, autorizan y delegan a Actions. No contienen lógica de negocio.
+- **Actions de un solo propósito:** `ProcessSale`, `ReceivePurchaseReceipt`, `ConfirmInventoryTransfer`, etc.
+- **Form Requests** para toda validación. Las reglas de IDs de tenant siempre incluyen `->where('tenant_id', $tenantId)`.
+- **Enums** para estados y tipos de dominio (`InventoryMovementType`, `InventoryTransferStatus`, etc.).
+- **UUID público** en todos los modelos expuestos en rutas o sincronizables.
+- **Transacciones** en ventas, compras, ajustes, traslados y facturación.
+- **Append-only** en `inventory_movements` — nunca se editan, se compensan con movimientos inversos.
+- **Idioma:** código en inglés, interfaz y mensajes en español.
 
-Esta estrategia simplifica el futuro offline porque el servidor local de una farmacia replica solo los datos de su tenant.
+---
 
-## Productos Y Presentaciones
+## Multi-tenancy
 
-El producto representa el medicamento o articulo comercial base. La presentacion representa como se compra o vende.
+Estrategia: **single database** con `tenant_id` en todas las tablas de negocio.
 
-Ejemplos:
+- Trait `BelongsToTenant` aplica un global scope automático por tenant en todos los modelos de negocio.
+- Los 4 modelos sin el trait (`User`, `SyncCheckpoint`, `SyncConflictLog`, `TenantFeConfig`) tienen justificación explícita.
+- El super_admin puede ver todos los tenants desde `/admin/tenants`.
 
-- Acetaminofen 500mg tableta.
-  - Unidad: 1 unidad minima.
-  - Blister x 10: 10 unidades minimas.
-  - Caja x 100: 100 unidades minimas.
-- Ibuprofeno suspension 100mg/5ml.
-  - Frasco 60ml: 1 unidad minima comercial.
-  - Frasco 120ml: 1 unidad minima comercial.
+---
 
-Modelo conceptual:
+## Modelo de datos principal
 
-- `products`: datos farmaceuticos y comerciales base.
-- `product_presentations`: presentaciones de compra/venta, factor de conversion, codigo de barras opcional, precio de venta opcional.
-- `product_units`: catalogo controlado para unidad, tableta, capsula, frasco, tubo, ampolla, sobre, blister, caja.
+```
+Tenant
+  ├── Branch (sucursal)
+  │     ├── CashRegister → CashSession → Sale → SaleItem, SalePayment
+  │     └── InventoryLot → InventoryMovement
+  ├── Supplier → PurchaseReceipt (branch_id) → PurchaseReceiptItem → InventoryLot
+  │           → PurchaseOrder → PurchaseOrderItem
+  │           → SupplierReturn → SupplierReturnItem
+  │           → SupplierPayment
+  ├── Product → ProductPresentation
+  ├── PriceList → PriceListItem
+  ├── Customer (price_list_id FK nullable)
+  ├── BankAccount → BankAccountMovement
+  ├── InventoryTransfer (from/to branch) → InventoryTransferItem → InventoryLot
+  └── User (role via Spatie Permission)
+```
 
-Regla importante: el inventario se maneja en unidad minima. Las compras y ventas pueden capturarse por presentacion, pero se convierten a unidades minimas al generar movimientos.
+---
 
-## Inventario
+## Inventario — diseño clave
 
-El stock no debe tratarse como un numero editable. El saldo se deriva de movimientos de inventario.
+El stock **no es un número editable**. Se deriva de movimientos append-only.
 
-Movimientos principales:
+`inventory_lots` almacena el saldo actual (`current_quantity`) como cache. La fuente de verdad son los `inventory_movements`.
 
-- Entrada por compra.
-- Entrada por ajuste.
-- Entrada por devolucion.
-- Salida por venta.
-- Salida por ajuste.
-- Salida por vencimiento.
-- Traslado entrada/salida entre bodegas.
+**Tipos de movimiento** (`InventoryMovementType`):
 
-Cada movimiento debe ser inmutable para facilitar auditoria y sincronizacion offline. Si se necesita corregir, se crea un movimiento compensatorio.
+| Tipo | Descripción |
+|------|-------------|
+| `opening` | Carga inicial de inventario |
+| `purchase` | Entrada por recepción de compra |
+| `sale` | Salida por venta POS |
+| `sale_return` | Entrada por devolución al cliente |
+| `purchase_return` | Salida por devolución a proveedor |
+| `adjustment_in` | Ajuste manual de entrada |
+| `adjustment_out` | Ajuste manual de salida |
+| `transfer_in` | Entrada por traslado entre sucursales |
+| `transfer_out` | Salida por traslado entre sucursales |
 
-La tabla de inventario puede existir como cache o vista materializada para consultas rapidas, pero su fuente de verdad son los movimientos.
+**FEFO** (First Expired, First Out): el POS selecciona automáticamente el lote con vencimiento más próximo. Con multi-sucursal, el FEFO se aplica al stock de la sucursal de la caja activa.
 
-## Compras, Remisiones Y Facturas De Proveedor
+**Unique constraint en `inventory_lots`:** `[tenant_id, branch_id, product_id, lot_number]` — un lote puede existir en múltiples sucursales simultáneamente (después de un traslado).
 
-Las farmacias no siempre crean ordenes de compra formales. El sistema debe permitir recepcion directa.
+---
 
-Flujos soportados:
+## Multi-sucursal
 
-- Recepcion directa sin orden de compra.
-- Orden de compra y recepcion total.
-- Orden de compra y recepcion parcial.
-- Recepcion con adjunto PDF, imagen o archivo escaneado de factura/remision.
+Decisión de diseño: **1 sucursal = 1 bodega**. La tabla `branches` actúa como ambas.
 
-Modelo conceptual:
+- Cada tenant tiene una sucursal "Principal" creada automáticamente al registrarse.
+- Los lotes (`inventory_lots`) y movimientos (`inventory_movements`) tienen `branch_id`.
+- Las cajas registradoras (`cash_registers`) tienen `branch_id`.
+- Las recepciones de compra (`purchase_receipts`) tienen `branch_id`.
+- Los traslados (`inventory_transfers`) mueven stock entre sucursales con pares `transfer_out`/`transfer_in`.
 
-- `suppliers`: proveedores.
-- `purchase_orders`: ordenes opcionales.
-- `purchase_order_items`: items solicitados.
-- `supplier_documents`: factura, remision, PDF, imagen o soporte recibido.
-- `purchase_receipts`: recepcion real de mercancia.
-- `purchase_receipt_items`: lineas recibidas con lote, vencimiento, cantidad, costo y presentacion.
-- `supplier_product_aliases`: nombres/codigos del proveedor mapeados al producto interno.
+Ver detalles en [MODULO_SUCURSALES.md](MODULO_SUCURSALES.md).
 
-La confirmacion de una recepcion debe crear lotes cuando aplique y movimientos de inventario tipo entrada por compra.
+---
 
-Para el MVP, la digitalizacion sera manual con archivo adjunto. OCR o lectura asistida de PDFs queda para una fase posterior.
+## Permisos
 
-## Facturacion Electronica
+22 permisos definidos en `RoleAndPermissionSeeder`. Los siguientes están reservados para roadmap (rol `warehouse`):
 
-La facturacion electronica se incluye desde la primera fase como estructura tecnica, pero las pruebas en caliente quedan para una fase posterior.
+- `inventory.transfer` — traslados entre sucursales (**ya implementado**)
+- `suppliers.view` / `suppliers.manage` — gestión independiente de proveedores
+- `purchases.receive` — flujo de recepción separado de creación
 
-Primera fase:
+---
 
-- Configuracion por tenant del proveedor tecnologico.
-- Modelo de factura electronica y estados.
-- Payload enviado y respuesta recibida.
-- Jobs de envio y reintento.
-- Pantalla de consulta de estado.
+## Facturación electrónica
 
-Segunda fase:
+- Proveedor: **Nextpyme**
+- Endpoint base: `https://api.nextpyme.co/ubl2.1` (el prefijo `/ubl2.1` es obligatorio)
+- Flujo: POS genera venta → job async envía a Nextpyme → respuesta con CUFE se guarda
+- El recibo impreso incluye CUFE y QR nativo ESC/POS cuando hay FE
+- Notas crédito soportadas vía `/sales/{sale}/credit-notes`
+- Validación RADIAN en facturas de compra
 
-- Pruebas reales con proveedor tecnologico.
-- Manejo fino de errores.
-- Contingencia offline.
-- Reenvios manuales.
-- Validacion de resoluciones, prefijos y consecutivos.
-
-## Offline Hibrido
+---
 
-El offline es una ventaja comercial central, pero se implementara por capas.
+## Impresión térmica
 
-Desde el inicio se preparan las bases:
+- Librería: **QZ Tray** (app de escritorio que expone WebSocket en `localhost:8182`)
+- Seguridad: certificado RSA generado con `php artisan qz:keygen`; cada request se firma con SHA-512
+- Configuración: una impresora por caja en `/settings/printer`
+- Formatos soportados: ESC/POS para recibos de venta y cierres de caja (Z-report)
+- Anchos: 58mm y 80mm
 
-- UUID/ULID en entidades sincronizables.
-- `server_id` para identificar origen cloud/local.
-- Movimientos de inventario append-only.
-- Ventas, compras y ajustes como operaciones auditables.
-- Estados de sincronizacion.
-- Jobs despues de commit.
+---
 
-Arquitectura objetivo:
+## Fases de implementación
 
-- Cloud SaaS multi-tenant.
-- Mini server Linux local por farmacia.
-- PostgreSQL local con datos del tenant.
-- Misma aplicacion Laravel/Inertia/Svelte corriendo local.
-- Agente de sincronizacion bidireccional.
-- Operacion POS por LAN cuando no haya internet.
-- Reconciliacion cuando vuelva la conectividad.
+### ✅ Fase 0 — Base arquitectónica
+Stack instalado: Laravel 13, Inertia v3, Svelte 5, Bootstrap 5, Fortify, Spatie Permission.
 
-La fase inicial no debe bloquearse por construir el sync completo. Se construira el core de negocio de forma compatible con el futuro servidor local.
+### ✅ Fase 1 — Tenancy y seguridad
+Multi-tenant con `BelongsToTenant`. Roles y permisos. Login/logout Fortify + Svelte.
 
-## Fases De Implementacion
+### ✅ Fase 2 — Catálogo farmacéutico
+Laboratorios, categorías, principios activos, productos, presentaciones, unidades. Importación CSV (hasta 500 productos). Medicamentos controlados con modal de receta en POS.
 
-### Fase 0 - Base Arquitectonica
+### ✅ Fase 3 — Proveedores y compras
+Proveedores, recepciones directas, órdenes de compra (Draft→Enviada→Recibida), recepciones parciales, devoluciones a proveedor, cuentas por pagar, pagos con movimiento bancario automático. Validación RADIAN.
 
-- Confirmar dependencias compatibles con Laravel 13.
-- Instalar Inertia, Svelte 5 y Bootstrap 5.
-- Instalar Fortify y Spatie Permission.
-- Definir convenciones de carpetas para Actions, Services, Enums, Requests y Policies.
-- Preparar layout base de aplicacion.
+### ✅ Fase 4 — Inventario y lotes
+Lotes con número y vencimiento. Movimientos append-only. Ajustes manuales. Stock inicial (importación CSV). Kardex por producto. Alertas operativas de vencimiento y bajo stock.
 
-### Fase 1 - Tenancy Y Seguridad
+**Adición — Multi-sucursal (Mayo 2026):**
+- Tabla `branches` con `is_main` flag.
+- `branch_id` en lotes, movimientos, cajas y recepciones.
+- `inventory_transfers` para traslados entre sucursales.
+- FEFO filtrado por sucursal en el POS.
+- Selector de sucursal en compras y stock inicial.
 
-- Crear estructura multi-tenant.
-- Asociar usuarios a tenant.
-- Configurar roles y permisos base.
-- Login/logout con Fortify e Inertia/Svelte.
-- Middleware de tenant activo y permisos.
+### ✅ Fase 5 — POS y caja
+Apertura/cierre de caja por sucursal. Búsqueda FEFO. Múltiples pagos. Listas de precio por cliente. Descuentos por línea. Facturación electrónica integrada. Anulaciones. Impresión térmica automática.
 
-### Fase 2 - Catalogo Farmaceutico
+### ✅ Fase 6 — Facturación electrónica
+Configuración por tenant. Envío async con reintentos. CUFE y QR en recibos. Notas crédito. Contingencia manual. Resoluciones DIAN configurables.
 
-- Laboratorios.
-- Categorias.
-- Principios activos.
-- Productos.
-- Presentaciones.
-- Unidades.
-- Bloqueo informativo para productos controlados.
+**Adiciones completadas (Mayo 2026):**
+- Importación CSV en listas de precio (`codigo_interno`, `precio_especial`)
+- Configuración de impresora por caja (QZ Tray)
+- Panel de sucursales en configuración
 
-### Fase 3 - Proveedores Y Compras
+### 🔲 Fase 7 — Offline y sincronización
+Ver [GUIA_SERVIDOR_LOCAL.md](GUIA_SERVIDOR_LOCAL.md).
 
-- Proveedores.
-- Documentos de proveedor.
-- Recepcion directa con adjunto.
-- Ordenes de compra opcionales.
-- Recepciones parciales.
-- Alias de productos por proveedor.
+Bases ya preparadas:
+- UUID en todos los modelos sincronizables
+- `server_id` en `inventory_movements`
+- `InventoryMovement` con scope `pendingSync()`
+- Movimientos append-only (sin conflictos de sync)
+- FE asíncrona con queue y retry
 
-### Fase 4 - Inventario Y Lotes
+Pendiente de implementar:
+- `SyncAgent` job (Horizon, cada 5s si online)
+- `ConflictResolver` (append para ventas/movimientos, LWW para datos maestros)
+- `ConnectivityService` (ping 8.8.8.8 cada 3s)
+- Tablas `sync_checkpoints` y `sync_conflicts_log`
+- `APP_MODE=cloud|local` + `SERVER_ID` en .env
+- Docker Compose para el servidor local + Watchtower
 
-- Bodegas.
-- Lotes con vencimiento.
-- Movimientos de inventario.
-- Stock calculado/cacheado.
-- Ajustes de inventario.
-- Alertas de vencimiento y bajo stock.
+### ✅ Fase 8 — Reportes y operación
+Ventas, compras, inventario valorizado, kardex, fiscal, rentabilidad, caja, estado de cuenta por proveedor. Exportación CSV. Auditorías.
 
-### Fase 5 - POS Y Caja
+---
 
-- Apertura/cierre de caja.
-- Busqueda rapida de productos.
-- Venta por presentacion.
-- Conversion a unidad minima.
-- FEFO para seleccionar lote.
-- Bloqueo de vencidos y controlados.
-- Pagos y anulaciones.
+## Permisos faltantes en rutas (reservados para roadmap)
 
-### Fase 6 - Facturacion Electronica
+Los permisos `inventory.transfer` (implementado en Mayo 2026), `suppliers.view`, `suppliers.manage` y `purchases.receive` están seeded en el rol `warehouse` para cuando se separen los flujos de proveedores y recepción de compras del módulo general de compras.
 
-- Configuracion del proveedor tecnologico.
-- Generacion de payload.
-- Jobs de envio.
-- Estados y reintentos.
-- Consulta de facturas.
-- Preparacion para contingencia.
+---
 
-### Fase 7 - Offline Y Sync
+## Colombia — especificidades
 
-- Modo cloud/local.
-- Servidor local Linux.
-- Cola local.
-- Sync events.
-- Agente de sincronizacion.
-- Resolucion de conflictos.
-- Envio diferido de facturas.
-
-### Fase 8 - Reportes Y Operacion
-
-- Ventas por periodo.
-- Compras por proveedor.
-- Inventario valorizado.
-- Kardex por producto/lote.
-- Facturas pendientes.
-- Auditoria operativa.
-
-## Primera Decisión Operativa
-
-La siguiente tarea tecnica debe ser preparar la Fase 0: instalar y configurar el stack frontend y paquetes base. Antes de hacerlo se debe aprobar el cambio de dependencias del proyecto.
+- Moneda: COP, montos en enteros (centavos no usados)
+- Medicamentos controlados: modal de receta en POS (número de receta, cédula, nombre del paciente)
+- Registro sanitario: campos INVIMA + CUM + `health_registration`
+- Facturación: Nextpyme como intermediario DIAN, UBL 2.1
+- Impuesto: `tax_rate` en % (0–100), campo en productos y en líneas
+- RADIAN: validación de facturas de compra con Nextpyme

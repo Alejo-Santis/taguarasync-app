@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Services\Fe\InvoicePayloadBuilder;
 use App\Services\Fe\NextpymeClient;
 use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class EmitElectronicInvoice
@@ -185,6 +186,13 @@ class EmitElectronicInvoice
             }
 
             $isTransmissionFailure = $e instanceof ConnectionException || ! $isNonRecoverable;
+
+            if ($isNonRecoverable) {
+                Log::error('[FE] Error no-recuperable en emisión de factura', [
+                    'sale_id' => $sale->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
 
             $sale->update([
                 'fe_status' => $isTransmissionFailure ? FeStatus::Contingency : FeStatus::Rejected,

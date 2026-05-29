@@ -1,9 +1,13 @@
 <script>
     import { Link } from '@inertiajs/svelte';
+    import { page } from '@inertiajs/svelte';
 
     let { active } = $props();
 
-    const tabs = [
+    const perms = $derived($page.props.auth?.permissions ?? []);
+    const can = (p) => perms.includes(p);
+
+    const allTabs = [
         { label: 'Laboratorios', href: '/settings/laboratories', key: 'laboratorios' },
         { label: 'Categorias', href: '/settings/categories', key: 'categorias' },
         { label: 'Unidades', href: '/settings/units', key: 'unidades' },
@@ -12,8 +16,10 @@
         { label: 'Cajas', href: '/settings/registers', key: 'registers' },
         { label: 'Bancos', href: '/settings/banks', key: 'banks' },
         { label: 'Listas de precio', href: '/settings/price-lists', key: 'price-lists' },
-        { label: 'Facturación electrónica', href: '/settings/fe', key: 'fe' },
+        { label: 'Facturación electrónica', href: '/settings/fe', key: 'fe', perm: 'billing.configure' },
     ];
+
+    const tabs = $derived(allTabs.filter((t) => !t.perm || can(t.perm)));
 </script>
 
 <nav class="taguara-config-nav" aria-label="Configuracion">

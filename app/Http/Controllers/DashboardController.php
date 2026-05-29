@@ -97,7 +97,7 @@ class DashboardController extends Controller
             [
                 'key' => 'cash_register',
                 'label' => 'Crear caja registradora',
-                'description' => 'Necesaria para abrir el POS y registrar ventas.',
+                'description' => 'Necesaria para abrir el POS. Asígnala a una sucursal.',
                 'done' => CashRegister::where('is_active', true)->exists(),
                 'href' => '/settings/registers',
             ],
@@ -118,7 +118,7 @@ class DashboardController extends Controller
             [
                 'key' => 'first_stock',
                 'label' => 'Cargar inventario inicial',
-                'description' => 'Registra tu stock existente o recibe tu primera compra.',
+                'description' => 'Registra tu stock existente o recibe tu primera compra. Selecciona la sucursal destino.',
                 'done' => InventoryLot::where('current_quantity', '>', 0)->exists(),
                 'href' => '/inventory/opening',
             ],
@@ -130,9 +130,16 @@ class DashboardController extends Controller
                 'href' => '/pos',
             ],
             [
+                'key' => 'printer',
+                'label' => 'Configurar impresora térmica',
+                'description' => 'Conecta QZ Tray y asigna la impresora a tu caja para imprimir recibos.',
+                'done' => CashRegister::whereNotNull('printer_name')->exists(),
+                'href' => '/settings/printer',
+            ],
+            [
                 'key' => 'fe_config',
                 'label' => 'Configurar facturación electrónica',
-                'description' => 'Ingresa tus credenciales DIAN/Nextpyme para emitir FE.',
+                'description' => 'Ingresa tus credenciales DIAN/Nextpyme para emitir facturas electrónicas.',
                 'done' => TenantFeConfig::whereNotNull('api_token')->exists(),
                 'href' => '/settings/fe',
             ],

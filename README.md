@@ -1,58 +1,159 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Taguara Sync
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistema de gestión para farmacias híbridas — SaaS multi-tenant con capacidad de operación local sin internet.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ¿Qué es?
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Taguara Sync es una plataforma web para farmacias pequeñas y medianas de la región Caribe colombiana. Cubre el ciclo completo de operación: compras, inventario por lotes FEFO, punto de venta, cartera, facturación electrónica DIAN y reportes.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Está diseñado para funcionar en **modo cloud** (SaaS) y en **modo local** (servidor Linux en la farmacia), sincronizando automáticamente cuando hay internet.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Stack
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Capa | Tecnología |
+|------|-----------|
+| Backend | PHP 8.3 + Laravel 13 |
+| Frontend | Inertia v3 + Svelte 5 (runes) |
+| UI | Bootstrap 5 + sistema de diseño `taguara-*` |
+| Auth | Laravel Fortify v1 |
+| Permisos | Spatie Laravel Permission |
+| Testing | Pest v4 (128 tests) |
+| Impresión | QZ Tray (ESC/POS térmica) |
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+## Módulos implementados
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+| Módulo | Rutas | Estado |
+|--------|-------|--------|
+| Autenticación | `/login`, `/register` | ✅ Fortify |
+| Catálogo farmacéutico | `/products` | ✅ CRUD + importación CSV |
+| Inventario por lotes | `/inventory`, `/inventory/kardex` | ✅ FEFO, lotes, kardex |
+| Compras | `/purchases` | ✅ Recepción, RADIAN DIAN |
+| Órdenes de compra | `/purchases/orders` | ✅ Draft → Recibida |
+| Devoluciones a proveedor | `/purchases/returns` | ✅ Revierte stock |
+| Cuentas por pagar | `/purchases/payables` | ✅ Estado de cuenta, pagos |
+| POS | `/pos` | ✅ FEFO, múltiples pagos, FE, medicamentos controlados |
+| Ventas | `/sales` | ✅ Historial, anulación, nota crédito |
+| Clientes y cartera | `/customers`, `/sales/receivables` | ✅ Crédito, cobros |
+| Facturación electrónica | `/fe/submissions`, `/settings/fe` | ✅ Nextpyme/DIAN async |
+| Sucursales y traslados | `/settings/branches`, `/inventory/transfers` | ✅ Multi-local |
+| Impresoras térmicas | `/settings/printer` | ✅ QZ Tray por caja |
+| Listas de precio | `/settings/price-lists` | ✅ Precios especiales + importación CSV |
+| Configuración | `/settings/*` | ✅ Categorías, labs, unidades, bancos, etc. |
+| Reportes | `/reports/*` | ✅ Ventas, compras, inventario, fiscal |
+| Equipo | `/team` | ✅ Usuarios y roles por tenant |
+| Auditorías | `/audit` | ✅ Log de operaciones |
+
+---
+
+## Instalación local (desarrollo)
 
 ```bash
-composer require laravel/boost --dev
+# 1. Clonar y configurar
+cp .env.example .env
+composer install
+php artisan key:generate
 
-php artisan boost:install
+# 2. Base de datos
+php artisan migrate --seed
+
+# 3. Frontend
+npm install
+npm run dev
+
+# 4. Servidor de desarrollo (en otra terminal)
+php artisan serve
+
+# 5. (Opcional) Generar certificado para QZ Tray
+php artisan qz:keygen
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+## Configuración inicial de una farmacia nueva
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Al entrar por primera vez, el Dashboard muestra un **checklist de puesta en marcha**:
 
-## Code of Conduct
+1. **Crear caja registradora** → `/settings/registers`
+   - Asigna la caja a la sucursal correspondiente (la sucursal "Principal" se crea automáticamente).
+2. **Agregar proveedor** → `/settings/suppliers`
+3. **Cargar catálogo de productos** → `/products` (manual o importación CSV)
+4. **Cargar inventario inicial** → `/inventory/opening`
+   - Selecciona la sucursal donde entra el stock.
+5. **Realizar la primera venta** → `/pos`
+6. **Configurar facturación electrónica** → `/settings/fe`
+7. **Configurar impresora térmica** → `/settings/printer`
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## Roles de usuario
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+| Rol | Acceso |
+|-----|--------|
+| `owner` | Todo |
+| `admin` | Todo excepto configurar FE |
+| `cashier` | POS, ventas, apertura/cierre de caja |
+| `warehouse` | Inventario, compras, proveedores |
+| `accountant` | Ventas, reportes, facturación (lectura) |
+| `super_admin` | Panel de farmacias (multi-tenant) |
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Multi-sucursal
+
+Cada farmacia puede operar con múltiples sucursales. El inventario es independiente por sucursal:
+
+- Las **compras** se reciben en una sucursal específica (selector en el formulario).
+- El **POS** vende únicamente del stock de la sucursal de la caja activa (FEFO por sucursal).
+- Los **traslados** mueven lotes entre sucursales con trazabilidad completa.
+- Las **cajas registradoras** se asignan a una sucursal.
+
+Ver: [docs/MODULO_SUCURSALES.md](docs/MODULO_SUCURSALES.md)
+
+---
+
+## Impresión térmica (QZ Tray)
+
+El sistema imprime recibos y cierres de caja directamente en impresoras térmicas usando QZ Tray:
+
+1. Instalar QZ Tray en el PC cajero desde [qz.io/download](https://qz.io/download).
+2. Generar certificado en el servidor: `php artisan qz:keygen`.
+3. Configurar impresora en `/settings/printer` (una por caja).
+
+---
+
+## Facturación electrónica (DIAN)
+
+Integración con Nextpyme como proveedor tecnológico:
+
+- Endpoint: `https://api.nextpyme.co/ubl2.1` (incluir siempre el prefijo `/ubl2.1`).
+- Configuración en `/settings/fe`.
+- Envío asíncrono con reintentos automáticos.
+- Soporte para notas crédito y validación RADIAN de facturas de compra.
+
+---
+
+## Tests
+
+```bash
+php artisan test --compact
+```
+
+128 tests, cobertura de todos los flujos críticos de negocio.
+
+---
+
+## Documentación adicional
+
+| Documento | Descripción |
+|-----------|-------------|
+| [docs/TAGUARA_SYNC_ARCHITECTURE.md](docs/TAGUARA_SYNC_ARCHITECTURE.md) | Arquitectura, fases y decisiones técnicas |
+| [docs/MODULO_SUCURSALES.md](docs/MODULO_SUCURSALES.md) | Guía completa del módulo de sucursales y traslados |
+| [docs/GUIA_SERVIDOR_LOCAL.md](docs/GUIA_SERVIDOR_LOCAL.md) | Instalación del servidor local offline (Fase 7) |
+| [docs/planes-y-precios.md](docs/planes-y-precios.md) | Planes comerciales |
+| [docs/sla-acuerdo-nivel-servicio.md](docs/sla-acuerdo-nivel-servicio.md) | SLA |

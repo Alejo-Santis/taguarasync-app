@@ -41,9 +41,9 @@ class TestNextpymeConnection
 
         try {
             $response = Http::withToken($token)
-                ->timeout(15)
-                ->connectTimeout(6)
-                ->retry(1, 400, throw: false)
+                ->timeout(60)
+                ->connectTimeout(15)
+                ->retry(1, 2000, throw: false)
                 ->get($endpoint);
 
             if ($response->successful()) {
