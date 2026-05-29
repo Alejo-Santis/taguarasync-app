@@ -196,6 +196,12 @@ body {
 }
 
 /* ── Collapsed: hide labels ─── */
+.taguara-nav-label {
+    flex: 1 1 0;
+    min-width: 0;
+    overflow: hidden;
+}
+
 .taguara-sidebar--collapsed .taguara-nav-label {
     display: none;
 }
