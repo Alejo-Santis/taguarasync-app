@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['tenant_id', 'name', 'code', 'is_active'])]
+#[Fillable(['tenant_id', 'name', 'code', 'is_active', 'printer_name', 'paper_width', 'copies', 'auto_print'])]
 class CashRegister extends Model
 {
     use BelongsToTenant, HasFactory;
@@ -31,6 +31,10 @@ class CashRegister extends Model
      */
     protected function casts(): array
     {
-        return ['is_active' => 'boolean'];
+        return [
+            'is_active' => 'boolean',
+            'auto_print' => 'boolean',
+            'copies' => 'integer',
+        ];
     }
 }

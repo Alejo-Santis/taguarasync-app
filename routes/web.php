@@ -309,7 +309,7 @@ Route::get('/print/certificate', [PrintController::class, 'certificate'])->name(
 Route::middleware('auth')->post('/print/sign', [PrintController::class, 'sign'])->name('print.sign');
 Route::middleware(['auth', 'permission:settings.manage'])->group(function () {
     Route::get('/settings/printer', [PrintController::class, 'index'])->name('settings.printer.index');
-    Route::put('/settings/printer', [PrintController::class, 'update'])->name('settings.printer.update');
+    Route::put('/settings/printer/{register}', [PrintController::class, 'update'])->name('settings.printer.update');
 });
 
 // ── Sync — estado de conectividad para el frontend (modo local) ───────────

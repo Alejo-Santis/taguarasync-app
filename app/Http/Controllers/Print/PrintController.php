@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Print;
 
 use App\Http\Controllers\Controller;
-use App\Models\Tenant;
+use App\Models\CashRegister;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -59,7 +59,7 @@ class PrintController extends Controller
     }
 
     /**
-     * Renderiza la página de configuración de impresora.
+     * Lista todas las cajas del tenant con su configuración de impresora.
      * GET /settings/printer
      */
     public function index(Request $request): \Inertia\Response
@@ -67,24 +67,26 @@ class PrintController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $settings = $user->tenant?->printer_settings ?? [
-            'printer_name' => null,
-            'paper_width' => '80mm',
-            'copies' => 1,
-            'auto_print' => false,
-        ];
+        $registers = CashRegister::where('tenant_id', $user->tenant_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'code', 'is_active', 'printer_name', 'paper_width', 'copies', 'auto_print']);
 
         return Inertia::render('Settings/Printer/Index', [
-            'printerSettings' => $settings,
+            'registers' => $registers,
         ]);
     }
 
     /**
-     * Guarda la configuración de impresora del tenant.
-     * PUT /settings/printer
+     * Guarda la configuración de impresora de una caja específica.
+     * PUT /settings/printer/{register}
      */
-    public function update(Request $request): RedirectResponse
+    public function update(Request $request, CashRegister $register): RedirectResponse
     {
+        /** @var User $user */
+        $user = $request->user();
+
+        abort_unless($register->tenant_id === $user->tenant_id, 403);
+
         $validated = $request->validate([
             'printer_name' => ['nullable', 'string', 'max:255'],
             'paper_width' => ['required', 'in:58mm,80mm'],
@@ -92,13 +94,8 @@ class PrintController extends Controller
             'auto_print' => ['required', 'boolean'],
         ]);
 
-        /** @var User $user */
-        $user = $request->user();
+        $register->update($validated);
 
-        Tenant::where('id', $user->tenant_id)->update([
-            'printer_settings' => $validated,
-        ]);
-
-        return back()->with('success', 'Configuración de impresora guardada.');
+        return back()->with('success', "Impresora de {$register->name} guardada.");
     }
 }
