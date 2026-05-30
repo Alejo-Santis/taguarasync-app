@@ -144,7 +144,7 @@ class ListInventoryLots
 
         return [
             'lots' => (clone $base)->count(),
-            'units' => (clone $base)->sum('current_quantity'),
+            'units' => (int) (clone $base)->sum('current_quantity'),
             'expiring' => (clone $base)->whereBetween('expires_on', [today(), today()->addDays(90)])->count(),
             'depleted' => (clone $base)->where('status', InventoryLotStatus::Depleted)->count(),
         ];

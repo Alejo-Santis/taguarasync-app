@@ -140,7 +140,7 @@ class ListPurchaseReceipts
 
         return [
             'receipts' => PurchaseReceipt::count(),
-            'total' => PurchaseReceipt::where('status', $received)->sum('total'),
+            'total' => (int) PurchaseReceipt::where('status', $received)->sum('total'),
             'items' => (int) PurchaseReceipt::where('status', $received)
                 ->join('purchase_receipt_items', 'purchase_receipts.id', '=', 'purchase_receipt_items.purchase_receipt_id')
                 ->count('purchase_receipt_items.id'),

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Enums\InventoryLotStatus;
 use App\Enums\ProductStatus;
+use App\Models\Customer;
 use App\Models\InventoryLot;
 use App\Models\Product;
+use App\Models\PurchaseOrder;
 use App\Models\PurchaseReceipt;
 use App\Models\Sale;
+use App\Models\Supplier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -47,6 +50,27 @@ class GlobalSearchController extends Controller
             ->limit(3)
             ->get(['uuid', 'document_number', 'total']);
 
+        $customers = Customer::where(fn ($q) => $q
+            ->where('first_name', $operator, $like)
+            ->orWhere('last_name', $operator, $like)
+            ->orWhere('business_name', $operator, $like)
+            ->orWhere('identification_number', $operator, $like)
+        )
+            ->limit(4)
+            ->get(['uuid', 'first_name', 'last_name', 'business_name', 'identification_number']);
+
+        $suppliers = Supplier::where(fn ($q) => $q
+            ->where('name', $operator, $like)
+            ->orWhere('nit', $operator, $like)
+        )
+            ->limit(3)
+            ->get(['id', 'name', 'nit']);
+
+        $orders = PurchaseOrder::where('order_number', $operator, $like)
+            ->with('supplier:id,name')
+            ->limit(3)
+            ->get(['id', 'uuid', 'supplier_id', 'order_number', 'status']);
+
         $results = [];
 
         foreach ($products as $p) {
@@ -82,6 +106,33 @@ class GlobalSearchController extends Controller
                 'label' => $r->document_number,
                 'sub' => 'Compra · $'.number_format($r->total, 0, ',', '.'),
                 'href' => '/purchases',
+            ];
+        }
+
+        foreach ($customers as $c) {
+            $results[] = [
+                'type' => 'customer',
+                'label' => $c->full_name,
+                'sub' => $c->identification_number ? "Cliente · {$c->identification_number}" : 'Cliente',
+                'href' => '/customers',
+            ];
+        }
+
+        foreach ($suppliers as $s) {
+            $results[] = [
+                'type' => 'supplier',
+                'label' => $s->name,
+                'sub' => $s->nit ? "Proveedor · NIT {$s->nit}" : 'Proveedor',
+                'href' => '/settings/suppliers',
+            ];
+        }
+
+        foreach ($orders as $o) {
+            $results[] = [
+                'type' => 'order',
+                'label' => $o->order_number,
+                'sub' => 'Orden de compra · '.($o->supplier?->name ?? ''),
+                'href' => "/purchases/orders/{$o->id}",
             ];
         }
 
