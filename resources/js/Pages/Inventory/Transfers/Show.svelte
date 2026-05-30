@@ -158,7 +158,7 @@
                         {confirmAction === 'confirm' ? 'Confirmar traslado' : 'Cancelar traslado'}
                     </h2>
                 </div>
-                <button class="btn btn-light border taguara-icon-button" type="button" onclick={closeConfirm}>
+                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Cerrar" onclick={closeConfirm}>
                     <X size={17} />
                 </button>
             </div>

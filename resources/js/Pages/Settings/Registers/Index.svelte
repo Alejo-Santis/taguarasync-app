@@ -119,7 +119,7 @@
                                         <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={(e) => { e.stopPropagation(); toggle(item); }}>
                                             {#if item.is_active}<ToggleRight size={15} class="text-success" />{:else}<ToggleLeft size={15} class="text-secondary" />{/if}
                                         </button>
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" aria-label="Editar caja" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
                                     </div>
                                 </td>
                             </tr>

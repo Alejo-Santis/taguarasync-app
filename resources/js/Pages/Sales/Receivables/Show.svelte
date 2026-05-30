@@ -164,7 +164,7 @@
                         <p class="text-uppercase small fw-semibold text-success mb-1">Cobro</p>
                         <h2 class="h5 mb-0">{customer.full_name}</h2>
                     </div>
-                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDrawer}><X size={17} /></button>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" aria-label="Cerrar panel" onclick={closeDrawer}><X size={17} /></button>
                 </div>
             </div>
             <div class="taguara-drawer-body">

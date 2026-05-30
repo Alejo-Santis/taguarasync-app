@@ -368,7 +368,7 @@
                         </div>
                         <p class="text-secondary small mb-0">{selectedSale.created_at} · {selectedSale.cashier}</p>
                     </div>
-                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDetail}><X size={17} /></button>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" aria-label="Cerrar detalle" onclick={closeDetail}><X size={17} /></button>
                 </div>
             </div>
 

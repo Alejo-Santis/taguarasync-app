@@ -56,7 +56,7 @@
                     <input class="form-control" type="date" bind:value={form.to} />
                 </label>
                 <button class="btn btn-taguara" type="submit">Aplicar</button>
-                <button class="btn btn-light border taguara-icon-button" type="button" onclick={resetToMonth}><RotateCcw size={17} /></button>
+                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Reiniciar al mes actual" onclick={resetToMonth}><RotateCcw size={17} /></button>
             </form>
         </section>
 

@@ -976,17 +976,17 @@
                                 </div>
                             </div>
                             <div class="taguara-pos-cart-item-controls">
-                                <button class="taguara-pos-qty-btn" type="button" onclick={() => updateQty(index, -1)}>
+                                <button class="taguara-pos-qty-btn" type="button" aria-label="Disminuir cantidad" onclick={() => updateQty(index, -1)}>
                                     <Minus size={12} />
                                 </button>
                                 <span class="taguara-pos-qty-value">{item.quantity}</span>
-                                <button class="taguara-pos-qty-btn" type="button" onclick={() => updateQty(index, 1)} disabled={item.quantity >= item.available}>
+                                <button class="taguara-pos-qty-btn" type="button" aria-label="Aumentar cantidad" onclick={() => updateQty(index, 1)} disabled={item.quantity >= item.available}>
                                     <Plus size={12} />
                                 </button>
                             </div>
                             <div class="taguara-pos-cart-item-total">
                                 <span class="fw-semibold small">{fmt(lineTotal(item))}</span>
-                                <button class="btn btn-link p-0 text-danger" type="button" onclick={() => removeItem(index)}>
+                                <button class="btn btn-link p-0 text-danger" type="button" aria-label="Quitar producto" onclick={() => removeItem(index)}>
                                     <X size={13} />
                                 </button>
                             </div>

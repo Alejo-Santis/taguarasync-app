@@ -1,5 +1,6 @@
 <script>
     import { router, useForm } from '@inertiajs/svelte';
+    import PasswordInput from '../../Components/UI/PasswordInput.svelte';
     import { fade, fly } from 'svelte/transition';
     import {
         AlertCircle,
@@ -429,7 +430,7 @@
                         <h2 class="h5 mb-0">{usersDrawerTenant?.name}</h2>
                     </div>
                 </div>
-                <button class="btn btn-light border taguara-icon-button" type="button" onclick={closeUsersDrawer}><X size={17} /></button>
+                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Cerrar panel" onclick={closeUsersDrawer}><X size={17} /></button>
             </div>
 
             <div class="taguara-drawer-body">
@@ -594,7 +595,7 @@
                         <h2 class="h5 mb-0">Registrar pago</h2>
                     </div>
                 </div>
-                <button class="btn btn-light border taguara-icon-button" type="button" onclick={closePaymentDrawer}><X size={17} /></button>
+                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Cerrar panel" onclick={closePaymentDrawer}><X size={17} /></button>
             </div>
 
             <div class="taguara-drawer-body">
@@ -702,7 +703,7 @@
                         <h2 class="h5 mb-0">Registrar farmacia</h2>
                     </div>
                 </div>
-                <button class="btn btn-light border taguara-icon-button" type="button" onclick={closeDrawer}><X size={17} /></button>
+                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Cerrar panel" onclick={closeDrawer}><X size={17} /></button>
             </div>
 
             <div class="taguara-drawer-body">
@@ -756,27 +757,23 @@
                         {#if form.errors.email}<div class="invalid-feedback">{form.errors.email}</div>{/if}
                     </div>
                     <div class="mb-3">
-                        <label class="form-label" for="owner-password">Contraseña temporal <span class="text-danger">*</span></label>
-                        <input
+                        <PasswordInput
                             id="owner-password"
-                            class="form-control {form.errors.password ? 'is-invalid' : ''}"
-                            type="password"
+                            label="Contraseña temporal"
                             bind:value={form.password}
+                            error={form.errors.password}
                             autocomplete="new-password"
                         />
-                        {#if form.errors.password}<div class="invalid-feedback">{form.errors.password}</div>{/if}
                         <div class="form-text">Mínimo 8 caracteres. El usuario puede cambiarla desde su perfil.</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label" for="owner-password-confirm">Confirmar contraseña <span class="text-danger">*</span></label>
-                        <input
+                        <PasswordInput
                             id="owner-password-confirm"
-                            class="form-control {form.errors.password_confirmation ? 'is-invalid' : ''}"
-                            type="password"
+                            label="Confirmar contraseña"
                             bind:value={form.password_confirmation}
+                            error={form.errors.password_confirmation}
                             autocomplete="new-password"
                         />
-                        {#if form.errors.password_confirmation}<div class="invalid-feedback">{form.errors.password_confirmation}</div>{/if}
                     </div>
                 </div>
             </div>

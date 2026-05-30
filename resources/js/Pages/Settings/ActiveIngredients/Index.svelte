@@ -86,7 +86,7 @@
                 </label>
                 <div class="d-flex align-items-end gap-2">
                     <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="submit"><Search size={17} />Filtrar</button>
-                    <button class="btn btn-light border taguara-icon-button" type="button" onclick={resetFilters}><RotateCcw size={17} /></button>
+                    <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Limpiar filtros" onclick={resetFilters}><RotateCcw size={17} /></button>
                 </div>
             </form>
 
@@ -108,8 +108,8 @@
                                 <td><code class="small">{item.atc_classification ?? '—'}</code></td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-end">
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm text-danger" type="button" onclick={(e) => { e.stopPropagation(); destroy(item); }}><Trash2 size={15} /></button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" aria-label="Editar" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm text-danger" type="button" aria-label="Eliminar" onclick={(e) => { e.stopPropagation(); destroy(item); }}><Trash2 size={15} /></button>
                                     </div>
                                 </td>
                             </tr>
@@ -140,7 +140,7 @@
                         <p class="text-uppercase small fw-semibold text-success mb-1">Principio activo</p>
                         <h2 class="h5 mb-0">{editingItem ? editingItem.dci_name : 'Nuevo principio activo'}</h2>
                     </div>
-                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDrawer}><X size={17} /></button>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" aria-label="Cerrar panel" onclick={closeDrawer}><X size={17} /></button>
                 </div>
             </div>
             <div class="taguara-drawer-body">

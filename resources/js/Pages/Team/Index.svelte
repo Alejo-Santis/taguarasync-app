@@ -227,7 +227,7 @@
                         <p class="text-uppercase small fw-semibold text-success mb-1">Equipo</p>
                         <h2 class="h5 mb-0">{drawerMode === 'invite' ? 'Nuevo usuario' : editingMember?.name}</h2>
                     </div>
-                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDrawer}>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" aria-label="Cerrar panel" onclick={closeDrawer}>
                         <X size={17} />
                     </button>
                 </div>

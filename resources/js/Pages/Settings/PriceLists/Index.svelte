@@ -117,10 +117,10 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-end">
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={(e) => { e.stopPropagation(); toggle(item); }}>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" aria-label={item.is_active ? 'Desactivar' : 'Activar'} onclick={(e) => { e.stopPropagation(); toggle(item); }}>
                                             {#if item.is_active}<ToggleRight size={15} class="text-success" />{:else}<ToggleLeft size={15} class="text-secondary" />{/if}
                                         </button>
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" aria-label="Editar" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
                                     </div>
                                 </td>
                             </tr>
@@ -159,7 +159,7 @@
                         <p class="text-uppercase small fw-semibold text-success mb-1">Lista de precio</p>
                         <h2 class="h5 mb-0">{editingItem ? editingItem.name : 'Nueva lista'}</h2>
                     </div>
-                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" onclick={closeDrawer}><X size={17} /></button>
+                    <button class="btn btn-light border taguara-icon-button flex-shrink-0" type="button" aria-label="Cerrar panel" onclick={closeDrawer}><X size={17} /></button>
                 </div>
             </div>
             <div class="taguara-drawer-body">

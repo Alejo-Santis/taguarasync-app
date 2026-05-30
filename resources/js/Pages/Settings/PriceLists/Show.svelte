@@ -158,8 +158,8 @@
                                 </td>
                                 <td>
                                     <div class="d-flex gap-1 justify-content-end">
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
-                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm text-danger" type="button" onclick={(e) => { e.stopPropagation(); removeItem(item); }}><Trash2 size={15} /></button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" aria-label="Editar precio" onclick={(e) => { e.stopPropagation(); openEdit(item); }}><Pencil size={15} /></button>
+                                        <button class="btn btn-sm btn-light border taguara-icon-button-sm text-danger" type="button" aria-label="Eliminar precio" onclick={(e) => { e.stopPropagation(); removeItem(item); }}><Trash2 size={15} /></button>
                                     </div>
                                 </td>
                             </tr>
