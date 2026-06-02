@@ -43,10 +43,11 @@
     let qzPrinting = $state(false);
     let qzError    = $state('');
 
-    // ── Últimos 10 documentos ─────────────────────────────────────────────
-    let recentSales   = $state([]);
-    let recentLoading = $state(false);
+    // ── Últimos documentos ────────────────────────────────────────────────
+    let recentSales    = $state([]);
+    let recentLoading  = $state(false);
     let recentPrinting = $state(null); // uuid actualmente imprimiendo
+    let recentOpen     = $state(false);
 
     async function loadRecentSales() {
         recentLoading = true;
@@ -571,6 +572,11 @@
             return;
         }
 
+        if (recentOpen) {
+            recentOpen = false;
+            return;
+        }
+
         if (createCustomerOpen) {
             createCustomerOpen = false;
             return;
@@ -609,7 +615,7 @@
 
 <svelte:window onkeydown={handleKeyboardShortcuts} />
 
-<AppLayout title="POS" activeSection="pos" {auth}>
+<AppLayout title="POS" activeSection="pos" {auth} autoCollapse={true}>
     <!-- Session header bar -->
     <div class="taguara-pos-session-bar">
         <div class="taguara-pos-session-main">
@@ -681,6 +687,15 @@
                     <span class="taguara-pos-chip">Codigo</span>
                     <span class="taguara-pos-chip">Nombre</span>
                     <span class="taguara-pos-chip">Lote FEFO</span>
+                    <button
+                        type="button"
+                        class="taguara-pos-chip taguara-pos-chip--action"
+                        onclick={() => { recentOpen = true; loadRecentSales(); }}
+                        title="Ver últimos documentos del turno"
+                    >
+                        <History size={13} />
+                        Historial
+                    </button>
                 </div>
             </div>
 
@@ -733,8 +748,7 @@
                     <p class="text-secondary small mb-0">No se encontraron productos con stock disponible.</p>
                 </div>
             {:else if searchQuery.length === 0}
-                <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column;">
-                <div class="taguara-pos-hint" style="flex:none">
+                <div class="taguara-pos-hint">
                     <div class="taguara-pos-hint-icon"><Search size={42} /></div>
                     <p class="fw-semibold mb-1">Listo para vender</p>
                     <p class="text-secondary small mb-3">Escanea un codigo o escribe nombre, principio activo, lote o codigo interno.</p>
@@ -744,67 +758,6 @@
                         <span>Cliente rapido</span>
                     </div>
                 </div>
-
-                <!-- Últimos documentos del turno -->
-                <div class="taguara-pos-recent">
-                    <div class="taguara-pos-recent-header">
-                        <History size={15} />
-                        <span>Últimos documentos del turno</span>
-                        {#if recentLoading}
-                            <span class="spinner-border spinner-border-sm text-secondary ms-auto" style="width:12px;height:12px" role="status"></span>
-                        {/if}
-                    </div>
-                    {#if recentSales.length > 0}
-                        <div class="taguara-pos-recent-list">
-                            {#each recentSales as sale}
-                                <div class="taguara-pos-recent-item">
-                                    <div class="min-w-0 flex-grow-1">
-                                        <div class="fw-semibold" style="font-size:.8rem">{sale.document_number}</div>
-                                        <div class="taguara-table-sub">{sale.created_at} · {sale.payment_method}</div>
-                                    </div>
-                                    <span class="fw-semibold" style="font-size:.8rem;white-space:nowrap">
-                                        $ {Number(sale.total).toLocaleString('es-CO')}
-                                    </span>
-                                    <div class="d-flex gap-1 flex-shrink-0">
-                                        <a
-                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
-                                            href={`/sales/${sale.uuid}`}
-                                            title="Ver detalle"
-                                            aria-label="Ver detalle"
-                                        >
-                                            <Eye size={13} />
-                                        </a>
-                                        <a
-                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
-                                            href={`/sales/${sale.uuid}/receipt`}
-                                            target="_blank"
-                                            rel="noopener"
-                                            title="Recibo HTML"
-                                            aria-label="Recibo HTML"
-                                        >
-                                            <PrinterCheck size={13} />
-                                        </a>
-                                        {#if printerName}
-                                            <button
-                                                class="btn btn-sm btn-light border taguara-icon-button-sm"
-                                                type="button"
-                                                disabled={recentPrinting === sale.uuid}
-                                                title="Reimprimir térmica"
-                                                aria-label="Reimprimir térmica"
-                                                onclick={() => printRecentThermal(sale)}
-                                            >
-                                                <Printer size={13} />
-                                            </button>
-                                        {/if}
-                                    </div>
-                                </div>
-                            {/each}
-                        </div>
-                    {:else if !recentLoading}
-                        <p class="text-secondary small text-center py-2 mb-0">Sin ventas en este turno aún.</p>
-                    {/if}
-                </div>
-                </div><!-- /scrollable wrapper -->
             {/if}
         </div>
 
@@ -1471,6 +1424,82 @@
                         Agregar de todas formas
                     </button>
                 </div>
+            </div>
+        </div>
+    {/if}
+
+    <!-- Modal: Últimos documentos del turno -->
+    {#if recentOpen}
+        <div class="taguara-drawer-backdrop" transition:fade={{ duration: 150 }} onclick={() => recentOpen = false} role="presentation"></div>
+        <div class="taguara-pos-modal" style="max-width:520px" transition:scale={{ duration: 180, start: 0.96 }}>
+            <div class="taguara-pos-modal-header">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="taguara-kpi-icon text-bg-secondary"><History size={18} /></span>
+                    <div>
+                        <p class="text-uppercase small fw-semibold mb-1" style="color:var(--taguara-muted)">Turno activo</p>
+                        <h2 class="h5 mb-0">Últimos documentos</h2>
+                    </div>
+                </div>
+                <button class="btn btn-light border taguara-icon-button" type="button" onclick={() => recentOpen = false}><X size={17} /></button>
+            </div>
+            <div class="taguara-pos-modal-body" style="padding:0; overflow-y:auto; max-height:60vh">
+                {#if recentLoading}
+                    <div class="d-flex justify-content-center align-items-center py-5">
+                        <span class="spinner-border spinner-border-sm text-secondary me-2" role="status"></span>
+                        <span class="text-secondary small">Cargando...</span>
+                    </div>
+                {:else if recentSales.length === 0}
+                    <div class="taguara-empty-state py-5">
+                        <History size={28} class="text-secondary" />
+                        <p class="text-secondary small mb-0 mt-2">Sin ventas en este turno aún.</p>
+                    </div>
+                {:else}
+                    <div class="taguara-pos-recent-list" style="margin:0">
+                        {#each recentSales as sale}
+                            <div class="taguara-pos-recent-item">
+                                <div class="min-w-0 flex-grow-1">
+                                    <div class="fw-semibold" style="font-size:.82rem">{sale.document_number}</div>
+                                    <div class="taguara-table-sub">{sale.created_at} · {sale.payment_method}</div>
+                                </div>
+                                <span class="fw-semibold" style="font-size:.82rem;white-space:nowrap">
+                                    $ {Number(sale.total).toLocaleString('es-CO')}
+                                </span>
+                                <div class="d-flex gap-1 flex-shrink-0">
+                                    <a
+                                        class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                        href={`/sales/${sale.uuid}`}
+                                        title="Ver detalle"
+                                        aria-label="Ver detalle"
+                                    >
+                                        <Eye size={13} />
+                                    </a>
+                                    <a
+                                        class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                        href={`/sales/${sale.uuid}/receipt`}
+                                        target="_blank"
+                                        rel="noopener"
+                                        title="Recibo HTML"
+                                        aria-label="Recibo HTML"
+                                    >
+                                        <PrinterCheck size={13} />
+                                    </a>
+                                    {#if printerName}
+                                        <button
+                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                            type="button"
+                                            disabled={recentPrinting === sale.uuid}
+                                            title="Reimprimir térmica"
+                                            aria-label="Reimprimir térmica"
+                                            onclick={() => printRecentThermal(sale)}
+                                        >
+                                            <Printer size={13} />
+                                        </button>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/each}
+                    </div>
+                {/if}
             </div>
         </div>
     {/if}

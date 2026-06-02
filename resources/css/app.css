@@ -1960,6 +1960,7 @@ body {
 .taguara-pos-chip {
     display: inline-flex;
     align-items: center;
+    gap: 0.3rem;
     min-height: 28px;
     padding: 0.2rem 0.55rem;
     border: 1px solid var(--taguara-border);
@@ -1969,6 +1970,17 @@ body {
     font-size: 0.72rem;
     font-weight: 700;
     white-space: nowrap;
+}
+
+.taguara-pos-chip--action {
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.taguara-pos-chip--action:hover {
+    background: var(--taguara-bg);
+    border-color: var(--bs-success);
+    color: var(--bs-success);
 }
 
 .taguara-pos-results {

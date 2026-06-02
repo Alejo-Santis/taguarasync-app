@@ -1,6 +1,6 @@
 <script>
     import { router, useForm } from '@inertiajs/svelte';
-    import PasswordInput from '../../Components/UI/PasswordInput.svelte';
+    import PasswordInput from '../../../Components/UI/PasswordInput.svelte';
     import { fade, fly } from 'svelte/transition';
     import {
         AlertCircle,

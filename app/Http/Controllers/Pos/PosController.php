@@ -184,7 +184,7 @@ class PosController extends Controller
 
         $sales = $session->sales()
             ->latest()
-            ->limit(10)
+            ->limit(20)
             ->get(['id', 'uuid', 'document_number', 'total', 'payment_method', 'status', 'created_at'])
             ->map(fn (Sale $sale) => [
                 'uuid' => $sale->uuid,

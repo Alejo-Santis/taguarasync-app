@@ -34,12 +34,16 @@
     import { WifiOff, RefreshCw } from '@lucide/svelte';
     import { connectivity } from '../Stores/connectivity.svelte.js';
 
-    let { title = 'Panel', activeSection = 'dashboard', auth, sync, children } = $props();
+    let { title = 'Panel', activeSection = 'dashboard', auth, sync, autoCollapse = false, children } = $props();
     let isMobileNavOpen = $state(false);
 
     // Inicializar connectivity store una sola vez al montar el layout
     onMount(() => {
         connectivity.init(sync ?? { app_mode: 'cloud', server_id: 'cloud' });
+        if (autoCollapse && !isCollapsed) {
+            isCollapsed = true;
+            localStorage.setItem('sidebar-collapsed', 'true');
+        }
         return () => connectivity.destroy();
     });
     let isCollapsed = $state(localStorage.getItem('sidebar-collapsed') === 'true');
