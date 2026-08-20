@@ -30,6 +30,8 @@ use Illuminate\Support\Str;
     'notes',
     'inventory_returned_at',
     'payments_reversed_at',
+    'created_at',
+    'updated_at',
 ])]
 class CreditNote extends Model
 {

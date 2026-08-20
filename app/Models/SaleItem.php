@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'line_subtotal',
     'line_tax',
     'line_total',
+    'created_at',
+    'updated_at',
 ])]
 class SaleItem extends Model
 {

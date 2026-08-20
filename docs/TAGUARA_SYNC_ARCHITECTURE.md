@@ -176,23 +176,24 @@ Configuración por tenant. Envío async con reintentos. CUFE y QR en recibos. No
 - Configuración de impresora por caja (QZ Tray)
 - Panel de sucursales en configuración
 
-### 🔲 Fase 7 — Offline y sincronización
-Ver [GUIA_SERVIDOR_LOCAL.md](GUIA_SERVIDOR_LOCAL.md).
+### 🟡 Fase 7 — Offline y sincronización
+Ver [GUIA_SERVIDOR_LOCAL.md](GUIA_SERVIDOR_LOCAL.md). Backend y paquete de despliegue completos y probados con un `docker compose up` real (agosto 2026); falta la imagen publicada en un registro y la primera instalación de campo.
 
-Bases ya preparadas:
+Implementado y probado:
 - UUID en todos los modelos sincronizables
-- `server_id` en `inventory_movements`
-- `InventoryMovement` con scope `pendingSync()`
-- Movimientos append-only (sin conflictos de sync)
-- FE asíncrona con queue y retry
-
-Pendiente de implementar:
-- `SyncAgent` job (Horizon, cada 5s si online)
-- `ConflictResolver` (append para ventas/movimientos, LWW para datos maestros)
-- `ConnectivityService` (ping 8.8.8.8 cada 3s)
+- `server_id`/`synced_at` en `sales` e `inventory_movements`
+- `SyncAgent` job + comando `sync:agent` (loop dedicado, no Scheduler — su granularidad mínima es 1 minuto)
+- `ConflictResolver` (append para ventas/movimientos, LWW para datos maestros, cloud-wins para precios)
+- `ConnectivityService` (ping configurable, cache con TTL)
 - Tablas `sync_checkpoints` y `sync_conflicts_log`
 - `APP_MODE=cloud|local` + `SERVER_ID` en .env
-- Docker Compose para el servidor local + Watchtower
+- `docker/local/` — Dockerfile, docker-compose.yml (app, nginx, db, redis, horizon, scheduler, sync-agent, watchtower), validado con un stack local real (migraciones, HTTP 200, assets estáticos, ciclo de sync completo)
+- Horizon + predis para supervisión de colas en el servidor local
+- Banner de conectividad en el frontend (`connectivity.svelte.js` + `AppLayout.svelte`)
+
+Pendiente:
+- Pipeline de CI que construya y publique la imagen en `ghcr.io/taguara/taguara-sync-app`
+- Primera instalación de hardware real en una farmacia (hoy solo probado con `docker compose` en un equipo de desarrollo)
 
 ### ✅ Fase 8 — Reportes y operación
 Ventas, compras, inventario valorizado, kardex, fiscal, rentabilidad, caja, estado de cuenta por proveedor. Exportación CSV. Auditorías.

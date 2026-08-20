@@ -51,7 +51,7 @@ class ProcessCreditNote
                 'subtotal' => $totals['subtotal'],
                 'tax_total' => $totals['tax_total'],
                 'total' => $totals['total'],
-                'fe_status' => $feEnabled ? FeStatus::Pending : null,
+                'fe_status' => $feEnabled ? FeStatus::Pending : FeStatus::NotApplicable,
                 'notes' => $data['notes'] ?? null,
             ]);
 

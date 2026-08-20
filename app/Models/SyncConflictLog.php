@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class SyncConflictLog extends Model
 {
+    protected $table = 'sync_conflicts_log';
+
     protected function casts(): array
     {
         return [

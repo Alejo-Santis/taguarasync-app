@@ -27,3 +27,9 @@ Schedule::command('operations:alerts')
 Schedule::command('billing:check')
     ->dailyAt('08:00')
     ->withoutOverlapping();
+
+// Horizon solo corre en el servidor local (APP_MODE=local); en cloud las
+// colas siguen usando QUEUE_CONNECTION=database sin Horizon.
+if (config('sync.app_mode') === 'local') {
+    Schedule::command('horizon:snapshot')->everyFiveMinutes();
+}

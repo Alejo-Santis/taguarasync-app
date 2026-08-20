@@ -11,7 +11,9 @@
     "skills": [
         "fortify-development",
         "laravel-best-practices",
+        "configuring-horizon",
         "pest-testing",
+        "inertia-svelte-development",
         "tailwindcss-development"
     ]
 }

@@ -19,18 +19,22 @@ use Illuminate\Support\Facades\DB;
  */
 class SyncDeltaController extends Controller
 {
-    /** Tablas de datos maestros que se sincronizan al local. */
-    private const MASTER_TABLES = [
+    /** Tablas de datos maestros propias del tenant (filtradas por tenant_id). */
+    private const TENANT_TABLES = [
         'suppliers',
         'products',
         'product_presentations',
         'customers',
         'price_lists',
         'price_list_items',
-        'categories',
+        'product_categories',
         'laboratories',
+    ];
+
+    /** Catálogos globales compartidos por todos los tenants (sin tenant_id). */
+    private const GLOBAL_TABLES = [
         'active_ingredients',
-        'measurement_units',
+        'product_units',
     ];
 
     public function __invoke(Request $request): JsonResponse
@@ -51,9 +55,20 @@ class SyncDeltaController extends Controller
 
         $masterData = [];
 
-        foreach (self::MASTER_TABLES as $table) {
+        foreach (self::TENANT_TABLES as $table) {
             $rows = DB::table($table)
                 ->where('tenant_id', $tenantId)
+                ->where('updated_at', '>', $since)
+                ->get()
+                ->toArray();
+
+            if (! empty($rows)) {
+                $masterData[$table] = array_map(fn ($row) => (array) $row, $rows);
+            }
+        }
+
+        foreach (self::GLOBAL_TABLES as $table) {
+            $rows = DB::table($table)
                 ->where('updated_at', '>', $since)
                 ->get()
                 ->toArray();

@@ -41,6 +41,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'notes',
     'server_id',
     'synced_at',
+    'created_at',
+    'updated_at',
 ])]
 class Sale extends Model
 {
