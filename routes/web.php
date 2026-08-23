@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Fe\FeSubmissionsController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Inventory\InventoryController;
+use App\Http\Controllers\Inventory\InventoryStockExportController;
 use App\Http\Controllers\Inventory\InventoryStockPrintController;
 use App\Http\Controllers\Inventory\InventoryTransferController;
 use App\Http\Controllers\Inventory\KardexController;
@@ -111,6 +112,7 @@ Route::middleware(['auth', 'permission:sales.view'])->prefix('customers')->name(
 // ── Productos — consulta ──────────────────────────────────────────────────
 Route::middleware(['auth', 'permission:products.view'])->group(function () {
     Route::get('products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
     Route::get('products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
 });
 
@@ -129,7 +131,9 @@ Route::middleware(['auth', 'permission:products.manage'])->group(function () {
 Route::middleware(['auth', 'permission:inventory.view'])->group(function () {
     Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/kardex', [KardexController::class, 'index'])->name('inventory.kardex');
+    Route::get('/inventory/kardex/export', [KardexController::class, 'export'])->name('inventory.kardex.export');
     Route::get('/inventory/print/stock-by-laboratory', InventoryStockPrintController::class)->name('inventory.print.stock-by-laboratory');
+    Route::get('/inventory/export/stock-by-laboratory', InventoryStockExportController::class)->name('inventory.export.stock-by-laboratory');
 });
 
 // ── Traslados de inventario ───────────────────────────────────────────────

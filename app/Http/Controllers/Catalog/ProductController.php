@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Catalog;
 
 use App\Actions\Products\CreateProduct;
+use App\Actions\Products\ExportProductCatalog;
 use App\Actions\Products\GetProductFormData;
 use App\Actions\Products\GetProductFormOptions;
 use App\Actions\Products\GetProductImportTemplate;
@@ -95,5 +96,22 @@ class ProductController extends Controller
             'plantilla-productos.csv',
             ['Content-Type' => 'text/csv; charset=UTF-8']
         );
+    }
+
+    public function export(ExportProductCatalog $exportCatalog): StreamedResponse
+    {
+        return response()->streamDownload(function () use ($exportCatalog): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, ExportProductCatalog::columns());
+
+            $exportCatalog->query()->chunkById(500, function ($products) use ($exportCatalog, $handle): void {
+                foreach ($products as $product) {
+                    fputcsv($handle, $exportCatalog->row($product));
+                }
+            });
+
+            fclose($handle);
+        }, 'catalogo-productos-'.date('Y-m-d').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 }

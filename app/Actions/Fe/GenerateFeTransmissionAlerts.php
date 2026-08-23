@@ -88,24 +88,40 @@ class GenerateFeTransmissionAlerts
     private function alertForSale(Tenant $tenant, Sale $sale): array
     {
         $status = $sale->fe_status;
-        $severity = $status === FeStatus::Rejected ? 'critical' : 'warning';
-        $title = match ($status) {
-            FeStatus::Contingency => 'Factura en contingencia',
-            FeStatus::Rejected => 'Factura rechazada',
-            default => 'Factura pendiente',
-        };
         $filterStatus = match ($status) {
             FeStatus::Contingency => 'contingency',
             FeStatus::Rejected => 'rejected',
             default => 'pending',
         };
 
+        if ($status === FeStatus::Contingency) {
+            $hoursPending = (int) $sale->created_at->diffInHours(now());
+            $bucket = $this->contingencyBucket($hoursPending);
+
+            $maxHours = (int) config('sync.fe_contingency_max_hours', 48);
+            $severity = $bucket === 'critical' ? 'critical' : 'warning';
+            $title = $bucket === 'critical'
+                ? "Contingencia urgente: cerca del límite DIAN de {$maxHours}h"
+                : 'Factura en contingencia';
+            $body = "{$sale->document_number}: {$status->label()} · {$hoursPending}h sin transmitir (límite DIAN: {$maxHours}h)"
+                .($sale->fe_error_message ? " · {$sale->fe_error_message}" : '');
+            $alertKey = "fe:contingency:{$tenant->id}:{$sale->id}:{$bucket}";
+        } else {
+            $severity = $status === FeStatus::Rejected ? 'critical' : 'warning';
+            $title = match ($status) {
+                FeStatus::Rejected => 'Factura rechazada',
+                default => 'Factura pendiente',
+            };
+            $body = "{$sale->document_number}: {$status?->label()}".($sale->fe_error_message ? " · {$sale->fe_error_message}" : '');
+            $alertKey = "fe:{$status?->value}:{$tenant->id}:{$sale->id}";
+        }
+
         return [
-            'alert_key' => "fe:{$status?->value}:{$tenant->id}:{$sale->id}",
+            'alert_key' => $alertKey,
             'category' => 'billing',
             'severity' => $severity,
             'title' => $title,
-            'body' => "{$sale->document_number}: {$status?->label()}".($sale->fe_error_message ? " · {$sale->fe_error_message}" : ''),
+            'body' => $body,
             'href' => "/fe/submissions?status={$filterStatus}",
             'meta' => [
                 'sale_id' => $sale->id,
@@ -114,6 +130,27 @@ class GenerateFeTransmissionAlerts
                 'fe_status' => $status?->value,
             ],
         ];
+    }
+
+    /**
+     * Buckets contingency age against the DIAN regulatory deadline
+     * (Resolución 0165 de 2023 — config('sync.fe_contingency_max_hours'),
+     * 48h by default) for transmitting contingency documents. Warns at the
+     * halfway point and turns critical 8h before the deadline. Each bucket
+     * is a distinct alert key so escalation isn't swallowed by an earlier
+     * unread notification at a lower severity.
+     */
+    private function contingencyBucket(int $hoursPending): string
+    {
+        $maxHours = (int) config('sync.fe_contingency_max_hours', 48);
+        $criticalAt = max($maxHours - 8, 1);
+        $warningAt = max((int) ($maxHours / 2), 1);
+
+        return match (true) {
+            $hoursPending >= $criticalAt => 'critical',
+            $hoursPending >= $warningAt => 'warning',
+            default => 'initial',
+        };
     }
 
     private function hasUnreadAlert(User $user, string $alertKey): bool

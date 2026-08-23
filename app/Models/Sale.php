@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'cash_session_id',
     'document_number',
     'invoice_prefix',
+    'invoice_number',
+    'fe_resolution_id',
     'subtotal',
     'discount_total',
     'tax_total',
@@ -66,6 +68,14 @@ class Sale extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * @return BelongsTo<FeResolution, $this>
+     */
+    public function feResolution(): BelongsTo
+    {
+        return $this->belongsTo(FeResolution::class);
     }
 
     /**

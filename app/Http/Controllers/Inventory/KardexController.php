@@ -4,36 +4,22 @@ namespace App\Http\Controllers\Inventory;
 
 use App\Enums\InventoryMovementType;
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\InventoryMovement;
+use App\Models\Laboratory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class KardexController extends Controller
 {
     public function index(Request $request): Response
     {
-        $filters = [
-            'q' => $request->string('q')->trim()->toString(),
-            'type' => $request->string('type')->toString(),
-            'from' => $request->string('from')->toString() ?: today()->startOfMonth()->toDateString(),
-            'to' => $request->string('to')->toString() ?: today()->toDateString(),
-        ];
+        $filters = $this->filters($request);
 
-        $baseQuery = InventoryMovement::query()
-            ->with([
-                'lot:id,lot_number,expires_on',
-                'product:id,commercial_name,internal_code',
-                'presentation:id,name',
-                'user:id,name',
-            ])
-            ->whereBetween('occurred_at', [
-                "{$filters['from']} 00:00:00",
-                "{$filters['to']} 23:59:59",
-            ])
-            ->when(InventoryMovementType::tryFrom($filters['type']) !== null, fn (Builder $query) => $query->where('type', $filters['type']))
-            ->when($filters['q'] !== '', fn (Builder $query) => $this->applySearch($query, $filters['q']));
+        $baseQuery = $this->filteredQuery($filters);
 
         $movementIds = (clone $baseQuery)->select('inventory_movements.id');
 
@@ -67,7 +53,108 @@ class KardexController extends Controller
                     'label' => $this->typeLabel($type),
                 ])
                 ->all(),
+            'laboratories' => Laboratory::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Laboratory $laboratory) => ['id' => $laboratory->id, 'name' => $laboratory->name])
+                ->all(),
+            'branches' => Branch::where('is_active', true)
+                ->orderByDesc('is_main')->orderBy('name')
+                ->get(['id', 'name'])
+                ->map(fn (Branch $branch) => ['id' => $branch->id, 'name' => $branch->name])
+                ->all(),
         ]);
+    }
+
+    public function export(Request $request): StreamedResponse
+    {
+        $filters = $this->filters($request);
+
+        // chunkById requires ordering strictly by its own id column, so no
+        // additional orderBy is applied here — row order isn't significant
+        // for a CSV export the way it is for the paginated UI.
+        $movements = $this->filteredQuery($filters);
+
+        $filename = 'kardex-'.$filters['from'].'-'.$filters['to'].'.csv';
+
+        return response()->streamDownload(function () use ($movements): void {
+            $handle = fopen('php://output', 'w');
+            fwrite($handle, "\xEF\xBB\xBF");
+            fputcsv($handle, [
+                'Fecha', 'Producto', 'Codigo interno', 'Laboratorio', 'Presentacion', 'Lote', 'Vencimiento',
+                'Movimiento', 'Cantidad antes', 'Cantidad movimiento', 'Cantidad despues',
+                'Costo unitario', 'Valor movimiento', 'Referencia', 'Notas', 'Usuario', 'Sucursal',
+            ]);
+
+            $movements->chunkById(500, function ($chunk) use ($handle): void {
+                foreach ($chunk as $movement) {
+                    fputcsv($handle, [
+                        $movement->occurred_at->format('Y-m-d H:i'),
+                        $movement->product?->commercial_name,
+                        $movement->product?->internal_code,
+                        $movement->product?->laboratory?->name,
+                        $movement->presentation?->name,
+                        $movement->lot?->lot_number,
+                        $movement->lot?->expires_on?->format('Y-m-d') ?? '',
+                        $this->typeLabel($movement->type),
+                        $movement->quantity_before,
+                        $movement->quantity_delta,
+                        $movement->quantity_after,
+                        $movement->unit_cost,
+                        abs($movement->quantity_delta) * $movement->unit_cost,
+                        $movement->reference_code,
+                        $movement->notes,
+                        $movement->user?->name,
+                        $movement->branch?->name,
+                    ]);
+                }
+            });
+
+            fclose($handle);
+        }, $filename, ['Content-Type' => 'text/csv; charset=UTF-8']);
+    }
+
+    /**
+     * @return array{q: string, type: string, from: string, to: string, laboratory_id: string, branch_id: string}
+     */
+    private function filters(Request $request): array
+    {
+        return [
+            'q' => $request->string('q')->trim()->toString(),
+            'type' => $request->string('type')->toString(),
+            'from' => $request->string('from')->toString() ?: today()->startOfMonth()->toDateString(),
+            'to' => $request->string('to')->toString() ?: today()->toDateString(),
+            'laboratory_id' => $request->string('laboratory_id')->toString(),
+            'branch_id' => $request->string('branch_id')->toString(),
+        ];
+    }
+
+    /**
+     * @param  array{q: string, type: string, from: string, to: string, laboratory_id: string, branch_id: string}  $filters
+     */
+    private function filteredQuery(array $filters): Builder
+    {
+        return InventoryMovement::query()
+            ->with([
+                'lot:id,lot_number,expires_on',
+                'product:id,laboratory_id,commercial_name,internal_code',
+                'product.laboratory:id,name',
+                'presentation:id,name',
+                'user:id,name',
+                'branch:id,name',
+            ])
+            ->whereBetween('occurred_at', [
+                "{$filters['from']} 00:00:00",
+                "{$filters['to']} 23:59:59",
+            ])
+            ->when(InventoryMovementType::tryFrom($filters['type']) !== null, fn (Builder $query) => $query->where('type', $filters['type']))
+            ->when($filters['q'] !== '', fn (Builder $query) => $this->applySearch($query, $filters['q']))
+            ->when($filters['laboratory_id'] !== '', fn (Builder $query) => $query->whereHas(
+                'product',
+                fn (Builder $query) => $query->where('laboratory_id', $filters['laboratory_id'])
+            ))
+            ->when($filters['branch_id'] !== '', fn (Builder $query) => $query->where('branch_id', $filters['branch_id']));
     }
 
     private function applySearch(Builder $query, string $search): Builder

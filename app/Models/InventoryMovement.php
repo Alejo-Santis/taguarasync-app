@@ -61,6 +61,14 @@ class InventoryMovement extends Model
     }
 
     /**
+     * @return BelongsTo<Branch, $this>
+     */
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
+
+    /**
      * @return BelongsTo<Product, $this>
      */
     public function product(): BelongsTo

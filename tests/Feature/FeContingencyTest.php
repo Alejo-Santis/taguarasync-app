@@ -11,6 +11,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
 
@@ -97,8 +98,54 @@ test('fe alert generation notifies billing users about contingency invoices', fu
     expect($summary['alerts'])->toBe(1)
         ->and($summary['recipients'])->toBe(1)
         ->and($notification)->not->toBeNull()
+        ->and($notification->data['severity'])->toBe('warning')
         ->and($notification->data['title'])->toBe('Factura en contingencia')
         ->and($notification->data['href'])->toBe('/fe/submissions?status=contingency')
         ->and($notification->data['body'])->toContain('FE-9201')
         ->and($notification->data['body'])->toContain('Timeout consultando DIAN.');
+});
+
+test('fe alerts escalate to critical as a contingency invoice nears the DIAN 48h deadline', function () {
+    Config::set('sync.fe_contingency_max_hours', 48);
+
+    $tenant = Tenant::factory()->create();
+    $user = feContingencyUser($tenant, 'accountant');
+
+    feContingencySale($tenant, $user, FeStatus::Contingency, [
+        'document_number' => 'FE-9300',
+        'fe_error_message' => 'Timeout consultando DIAN.',
+        'created_at' => now()->subHours(41),
+    ]);
+
+    $summary = app(GenerateFeTransmissionAlerts::class)->execute();
+    $notification = $user->fresh()->unreadNotifications->first();
+
+    expect($summary['alerts'])->toBe(1)
+        ->and($notification->data['severity'])->toBe('critical')
+        ->and($notification->data['title'])->toContain('límite DIAN')
+        ->and($notification->data['body'])->toContain('41h sin transmitir');
+});
+
+test('fe alert escalation is not swallowed by an earlier unread warning-tier notification', function () {
+    Config::set('sync.fe_contingency_max_hours', 48);
+
+    $tenant = Tenant::factory()->create();
+    $user = feContingencyUser($tenant, 'accountant');
+
+    $sale = feContingencySale($tenant, $user, FeStatus::Contingency, [
+        'document_number' => 'FE-9301',
+        'created_at' => now()->subHours(25),
+    ]);
+
+    app(GenerateFeTransmissionAlerts::class)->execute();
+    expect($user->fresh()->unreadNotifications)->toHaveCount(1);
+
+    $sale->update(['created_at' => now()->subHours(41)]);
+
+    $summary = app(GenerateFeTransmissionAlerts::class)->execute();
+    $severities = $user->fresh()->unreadNotifications->pluck('data.severity');
+
+    expect($summary['alerts'])->toBe(1)
+        ->and($severities)->toHaveCount(2)
+        ->and($severities)->toContain('critical');
 });

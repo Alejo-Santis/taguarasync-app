@@ -3,6 +3,7 @@
     import { fly, fade } from 'svelte/transition';
     import {
         Boxes,
+        Download,
         Eye,
         Filter,
         Package,
@@ -170,6 +171,10 @@
                 <p class="text-secondary mb-0">Consulta por producto, codigo, barra o presentacion antes de conectar inventario y compras.</p>
             </div>
             <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-light border d-inline-flex align-items-center gap-2" href="/products/export">
+                    <Download size={18} />
+                    Exportar CSV
+                </a>
                 <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/products/import">
                     <Upload size={18} />
                     Importar CSV

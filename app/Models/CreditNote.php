@@ -15,6 +15,7 @@ use Illuminate\Support\Str;
     'tenant_id',
     'sale_id',
     'user_id',
+    'fe_resolution_id',
     'prefix',
     'number',
     'discrepancy_reason_code',
@@ -55,6 +56,14 @@ class CreditNote extends Model
     public function sale(): BelongsTo
     {
         return $this->belongsTo(Sale::class);
+    }
+
+    /**
+     * @return BelongsTo<FeResolution, $this>
+     */
+    public function feResolution(): BelongsTo
+    {
+        return $this->belongsTo(FeResolution::class);
     }
 
     /**

@@ -8,6 +8,7 @@
         Boxes,
         CalendarClock,
         CircleDollarSign,
+        Download,
         Eye,
         Filter,
         PackageSearch,
@@ -83,6 +84,21 @@
         const query = params.toString();
 
         return `/inventory/print/stock-by-laboratory${query ? `?${query}` : ''}`;
+    });
+    const stockExportUrl = $derived.by(() => {
+        const params = new URLSearchParams();
+
+        if (printForm.laboratory_id) {
+            params.set('laboratory_id', printForm.laboratory_id);
+        }
+
+        if (printForm.include_zero) {
+            params.set('include_zero', '1');
+        }
+
+        const query = params.toString();
+
+        return `/inventory/export/stock-by-laboratory${query ? `?${query}` : ''}`;
     });
 
     // Lotes con stock para el laboratorio seleccionado (0 = sin existencias)
@@ -318,7 +334,7 @@
                     <span class="small fw-semibold text-secondary">Incluir lotes en cero</span>
                 </label>
 
-                <div class="d-flex align-items-end">
+                <div class="d-flex align-items-end gap-2">
                     <a
                         class="btn btn-taguara d-inline-flex align-items-center gap-2"
                         href={stockPrintUrl}
@@ -329,6 +345,15 @@
                     >
                         <Printer size={17} />
                         Imprimir planilla
+                    </a>
+                    <a
+                        class="btn btn-light border d-inline-flex align-items-center gap-2"
+                        href={stockExportUrl}
+                        class:disabled={selectedLabLotCount === 0 && !printForm.include_zero}
+                        aria-disabled={selectedLabLotCount === 0 && !printForm.include_zero}
+                    >
+                        <Download size={17} />
+                        Exportar CSV
                     </a>
                 </div>
             </div>

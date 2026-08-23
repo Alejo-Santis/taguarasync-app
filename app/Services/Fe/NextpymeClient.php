@@ -2,6 +2,9 @@
 
 namespace App\Services\Fe;
 
+use Exception;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -108,10 +111,23 @@ class NextpymeClient
             throw new RuntimeException('No hay token FE configurado. Agrégalo en Configuración → Facturación electrónica o en FE_API_TOKEN del .env.');
         }
 
+        // DIAN's own webservices are known to answer slowly even when healthy,
+        // so the total timeout stays generous — cutting it short would just
+        // abandon requests that were about to succeed. connectTimeout is short
+        // because a dead/unreachable endpoint should be detected fast.
         $response = Http::withToken($this->globalToken)
             ->timeout(120)
-            ->connectTimeout(20)
-            ->retry(2, 3000, throw: false)
+            ->connectTimeout(10)
+            ->retry(2, 3000, function (Exception $exception): bool {
+                // Only retry transient failures (no connection, or a NextPyme/DIAN
+                // server error). A 4xx response is a permanent rejection of this
+                // payload and won't succeed on retry — don't waste a round trip.
+                if ($exception instanceof ConnectionException) {
+                    return true;
+                }
+
+                return $exception instanceof RequestException && $exception->response->serverError();
+            }, throw: false)
             ->post("{$this->baseUrl}{$path}", $payload);
 
         $this->assertSuccessful($response, $path);

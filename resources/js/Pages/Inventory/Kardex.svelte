@@ -1,10 +1,10 @@
 <script>
     import { Link, router } from '@inertiajs/svelte';
     import { untrack } from 'svelte';
-    import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, ClipboardList, Filter, RotateCcw, Search } from '@lucide/svelte';
+    import { ArrowLeft, ArrowDownCircle, ArrowUpCircle, ClipboardList, Download, Filter, RotateCcw, Search } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
-    let { auth, filters, movements, summary, types } = $props();
+    let { auth, filters, movements, summary, types, laboratories, branches } = $props();
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (v) => money.format(v ?? 0);
@@ -14,6 +14,8 @@
         type: filters.type ?? '',
         from: filters.from,
         to: filters.to,
+        laboratory_id: filters.laboratory_id ?? '',
+        branch_id: filters.branch_id ?? '',
     })));
 
     const submit = (event) => {
@@ -28,9 +30,20 @@
             type: '',
             from: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`,
             to: now.toISOString().slice(0, 10),
+            laboratory_id: '',
+            branch_id: '',
         };
         router.get('/inventory/kardex', form, { preserveState: true, replace: true });
     };
+
+    let exportHref = $derived.by(() => {
+        const params = new URLSearchParams();
+        for (const [key, value] of Object.entries(form)) {
+            if (value) params.set(key, value);
+        }
+        const query = params.toString();
+        return `/inventory/kardex/export${query ? `?${query}` : ''}`;
+    });
 
     const movementClass = (delta) => delta >= 0 ? 'text-success fw-semibold' : 'text-danger fw-semibold';
     const typeClass = (value) => {
@@ -88,6 +101,24 @@
                     <span class="small fw-semibold text-secondary">Hasta</span>
                     <input class="form-control" type="date" bind:value={form.to} />
                 </label>
+                <label class="form-label mb-0">
+                    <span class="small fw-semibold text-secondary">Laboratorio</span>
+                    <select class="form-select" bind:value={form.laboratory_id}>
+                        <option value="">Todos</option>
+                        {#each laboratories as laboratory}
+                            <option value={laboratory.id}>{laboratory.name}</option>
+                        {/each}
+                    </select>
+                </label>
+                <label class="form-label mb-0">
+                    <span class="small fw-semibold text-secondary">Sucursal</span>
+                    <select class="form-select" bind:value={form.branch_id}>
+                        <option value="">Todas</option>
+                        {#each branches as branch}
+                            <option value={branch.id}>{branch.name}</option>
+                        {/each}
+                    </select>
+                </label>
                 <div class="d-flex align-items-end gap-2">
                     <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="submit">
                         <Search size={17} />
@@ -96,6 +127,10 @@
                     <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Limpiar filtros" onclick={reset}>
                         <RotateCcw size={17} />
                     </button>
+                    <a class="btn btn-light border d-inline-flex align-items-center gap-2" href={exportHref}>
+                        <Download size={17} />
+                        Exportar CSV
+                    </a>
                 </div>
             </form>
         </section>

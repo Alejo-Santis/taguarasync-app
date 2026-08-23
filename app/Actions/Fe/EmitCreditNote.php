@@ -3,6 +3,7 @@
 namespace App\Actions\Fe;
 
 use App\Enums\FeStatus;
+use App\Exceptions\FeResolutionExhaustedException;
 use App\Models\CreditNote;
 use App\Models\FeResolution;
 use App\Models\Tenant;
@@ -40,20 +41,53 @@ class EmitCreditNote
 
         $feConfig = $tenant->feConfig;
 
-        $resolution = FeResolution::withoutGlobalScopes()
-            ->where('tenant_id', $tenant->id)
-            ->where('type', 'credit_note')
-            ->where('is_active', true)
-            ->where('valid_until', '>=', now()->toDateString())
-            ->where('environment', $feConfig?->environment?->value ?? 'test')
-            ->first();
+        // Reuse the number already reserved on a prior attempt (retry of the same
+        // credit note) instead of consuming a new one — see EmitElectronicInvoice
+        // for the rationale (keeps the DIAN consecutive stable across retries).
+        if ($creditNote->fe_resolution_id && $creditNote->number) {
+            $resolution = FeResolution::withoutGlobalScopes()->find($creditNote->fe_resolution_id);
+            $noteNumber = (int) $creditNote->number;
+        } else {
+            $candidates = FeResolution::withoutGlobalScopes()
+                ->where('tenant_id', $tenant->id)
+                ->where('type', 'credit_note')
+                ->where('is_active', true)
+                ->where('valid_until', '>=', now()->toDateString())
+                ->where('environment', $feConfig?->environment?->value ?? 'test')
+                ->orderBy('valid_from')
+                ->orderBy('id')
+                ->get();
 
-        $noteNumber = $resolution
-            ? $resolution->consumeNextNumber()
-            : $creditNote->id;
+            if ($candidates->isEmpty()) {
+                // No resolution configured for credit notes — fall back to the
+                // credit note's own id, matching the historical behavior.
+                $resolution = null;
+                $noteNumber = $creditNote->id;
+            } else {
+                $resolution = $candidates->first(fn (FeResolution $r): bool => $r->hasRemainingNumbers());
 
-        if ($resolution) {
-            $creditNote->update(['prefix' => $resolution->prefix, 'number' => (string) $noteNumber]);
+                if (! $resolution) {
+                    $this->markResolutionExhausted($creditNote, 'Todas las resoluciones activas de notas crédito están agotadas. Activa una nueva resolución.');
+
+                    return;
+                }
+
+                try {
+                    $noteNumber = $resolution->consumeNextNumber();
+                } catch (FeResolutionExhaustedException $e) {
+                    // Race: another process consumed the last number between our
+                    // check above and the row lock inside consumeNextNumber().
+                    $this->markResolutionExhausted($creditNote, $e->getMessage());
+
+                    return;
+                }
+
+                $creditNote->update([
+                    'prefix' => $resolution->prefix,
+                    'number' => (string) $noteNumber,
+                    'fe_resolution_id' => $resolution->id,
+                ]);
+            }
         }
 
         $creditNote->update(['fe_status' => FeStatus::Pending, 'fe_sent_at' => now()]);
@@ -146,6 +180,19 @@ class EmitCreditNote
                 throw $e;
             }
         }
+    }
+
+    private function markResolutionExhausted(CreditNote $creditNote, string $message): void
+    {
+        Log::critical('[FE] Resolución agotada al emitir nota crédito', [
+            'credit_note_id' => $creditNote->id,
+            'error' => $message,
+        ]);
+
+        $creditNote->update([
+            'fe_status' => FeStatus::Contingency,
+            'fe_error_message' => $message,
+        ]);
     }
 
     private function isRule90Error(string $message): bool

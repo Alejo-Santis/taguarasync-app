@@ -3,6 +3,7 @@
 namespace App\Actions\Fe;
 
 use App\Enums\FeStatus;
+use App\Exceptions\FeResolutionExhaustedException;
 use App\Jobs\CheckDianStatusJob;
 use App\Models\FeResolution;
 use App\Models\FeSubmission;
@@ -54,24 +55,56 @@ class EmitElectronicInvoice
 
         $feConfig = $tenant->feConfig;
 
-        $resolution = FeResolution::withoutGlobalScopes()
-            ->where('tenant_id', $tenant->id)
-            ->where('type', 'invoice')
-            ->where('is_active', true)
-            ->where('valid_until', '>=', now()->toDateString())
-            ->where('environment', $feConfig?->environment?->value ?? 'test')
-            ->first();
+        // Reuse the number already reserved on a prior attempt (retry of the same
+        // sale) instead of consuming a new one — keeps the DIAN consecutive stable
+        // across retries so a resend of an already-accepted document is caught by
+        // the Rule 90 detector below instead of producing a second accepted document.
+        if ($sale->fe_resolution_id && $sale->invoice_number) {
+            $resolution = FeResolution::withoutGlobalScopes()->find($sale->fe_resolution_id);
+            $invoiceNumber = $sale->invoice_number;
+        } else {
+            $candidates = FeResolution::withoutGlobalScopes()
+                ->where('tenant_id', $tenant->id)
+                ->where('type', 'invoice')
+                ->where('is_active', true)
+                ->where('valid_until', '>=', now()->toDateString())
+                ->where('environment', $feConfig?->environment?->value ?? 'test')
+                ->orderBy('valid_from')
+                ->orderBy('id')
+                ->get();
 
-        if (! $resolution) {
-            $sale->update(['fe_status' => FeStatus::NotApplicable]);
+            if ($candidates->isEmpty()) {
+                $sale->update(['fe_status' => FeStatus::NotApplicable]);
 
-            return;
+                return;
+            }
+
+            $resolution = $candidates->first(fn (FeResolution $r): bool => $r->hasRemainingNumbers());
+
+            if (! $resolution) {
+                $this->markResolutionExhausted($sale, 'Todas las resoluciones activas de facturación están agotadas. Activa una nueva resolución.');
+
+                return;
+            }
+
+            try {
+                $invoiceNumber = $resolution->consumeNextNumber();
+            } catch (FeResolutionExhaustedException $e) {
+                // Race: another process consumed the last number between our
+                // check above and the row lock inside consumeNextNumber().
+                $this->markResolutionExhausted($sale, $e->getMessage());
+
+                return;
+            }
+
+            $sale->update([
+                'invoice_prefix' => $resolution->prefix,
+                'invoice_number' => $invoiceNumber,
+                'fe_resolution_id' => $resolution->id,
+            ]);
         }
 
-        $invoiceNumber = $resolution->consumeNextNumber();
-
         $sale->update([
-            'invoice_prefix' => $resolution->prefix,
             'fe_status' => FeStatus::Pending,
             'fe_sent_at' => now(),
         ]);
@@ -210,6 +243,19 @@ class EmitElectronicInvoice
                 throw $e;
             }
         }
+    }
+
+    private function markResolutionExhausted(Sale $sale, string $message): void
+    {
+        Log::critical('[FE] Resolución agotada al emitir factura', [
+            'sale_id' => $sale->id,
+            'error' => $message,
+        ]);
+
+        $sale->update([
+            'fe_status' => FeStatus::Contingency,
+            'fe_error_message' => $message,
+        ]);
     }
 
     private function isRule90Error(string $message): bool
