@@ -3,7 +3,7 @@
     import { ArrowLeftRight, Plus, Search, Trash2, X } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
 
-    let { auth, branches, lots } = $props();
+    let { auth, branches } = $props();
 
     const form = useForm({
         from_branch_id: '',
@@ -14,12 +14,26 @@
 
     let searchQuery = $state('');
     let selectedItems = $state([]);
+    let lots = $state([]);
+    let loadingLots = $state(false);
 
-    // Filtered lots by from_branch and search query
+    const loadLots = async (branchId) => {
+        if (!branchId) { lots = []; return; }
+        loadingLots = true;
+        try {
+            const res = await fetch(`/inventory/transfers/lots?branch_id=${branchId}`);
+            const data = await res.json();
+            lots = data.lots ?? [];
+        } catch {
+            lots = [];
+        } finally {
+            loadingLots = false;
+        }
+    };
+
+    // Filtered lots by search query — branch scoping already happened server-side
     const availableLots = $derived(
-        lots.filter((lot) => {
-            if (form.from_branch_id && lot.branch_id !== Number(form.from_branch_id)) return false;
-            if (!searchQuery) return true;
+        !searchQuery ? lots : lots.filter((lot) => {
             const q = searchQuery.toLowerCase();
             return (
                 lot.product_name?.toLowerCase().includes(q) ||
@@ -42,6 +56,7 @@
     const onFromBranchChange = () => {
         selectedItems = [];
         searchQuery = '';
+        loadLots(form.from_branch_id);
     };
 
     const submit = () => {
@@ -123,6 +138,8 @@
 
                     {#if !form.from_branch_id}
                         <p class="text-secondary small mb-3">Selecciona la sucursal origen para ver los lotes disponibles.</p>
+                    {:else if loadingLots}
+                        <p class="text-secondary small mb-3">Cargando lotes disponibles...</p>
                     {:else}
                         <div class="taguara-filter-input mb-3">
                             <Search size={17} />

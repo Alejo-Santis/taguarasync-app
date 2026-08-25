@@ -207,3 +207,36 @@ test('transfer show returns items with lot and product details', function () {
             ->where('transfer.items.0.quantity', 30)
         );
 });
+
+test('the create form no longer preloads every lot, and the lots endpoint only returns stock for the requested branch', function () {
+    $tenant = Tenant::factory()->create();
+    $user = createOwnerUser($tenant);
+    ['origin' => $origin, 'destination' => $destination, 'lot' => $lot] = transferSetup($tenant);
+
+    $otherProduct = Product::factory()->for($tenant)->create(['commercial_name' => 'Ibuprofeno 400mg']);
+    InventoryLot::factory()->for($tenant)->for($otherProduct)->create([
+        'branch_id' => $destination->id,
+        'lot_number' => 'LOT-TRF-2',
+        'current_quantity' => 40,
+    ]);
+
+    $this->actingAs($user)
+        ->get('/inventory/transfers/create')
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Inventory/Transfers/Create')
+            ->missing('lots')
+        );
+
+    $this->actingAs($user)
+        ->getJson("/inventory/transfers/lots?branch_id={$origin->id}")
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'lots')
+        ->assertJsonPath('lots.0.lot_number', 'LOT-TRF-1');
+
+    $this->actingAs($user)
+        ->getJson("/inventory/transfers/lots?branch_id={$destination->id}")
+        ->assertSuccessful()
+        ->assertJsonCount(1, 'lots')
+        ->assertJsonPath('lots.0.lot_number', 'LOT-TRF-2');
+});

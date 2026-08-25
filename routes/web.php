@@ -140,6 +140,7 @@ Route::middleware(['auth', 'permission:inventory.view'])->group(function () {
 Route::middleware(['auth', 'permission:inventory.transfer'])->prefix('inventory')->name('inventory.')->group(function () {
     Route::get('transfers', [InventoryTransferController::class, 'index'])->name('transfers.index');
     Route::get('transfers/create', [InventoryTransferController::class, 'create'])->name('transfers.create');
+    Route::get('transfers/lots', [InventoryTransferController::class, 'lots'])->name('transfers.lots');
     Route::post('transfers', [InventoryTransferController::class, 'store'])->name('transfers.store');
     Route::get('transfers/{transfer}', [InventoryTransferController::class, 'show'])->name('transfers.show');
     Route::post('transfers/{transfer}/confirm', [InventoryTransferController::class, 'confirm'])->name('transfers.confirm');

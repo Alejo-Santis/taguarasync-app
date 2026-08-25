@@ -9,13 +9,14 @@ use App\Models\CustomerCollection;
 use App\Models\Sale;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class CustomerReceivableController extends Controller
 {
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $customers = Customer::query()
             ->where('is_active', true)
@@ -35,7 +36,8 @@ class CustomerReceivableController extends Controller
                 'total_invoiced' => (int) ($c->total_invoiced ?? 0),
                 'total_collected' => (int) ($c->total_collected ?? 0),
                 'balance' => (int) ($c->total_invoiced ?? 0) - (int) ($c->total_collected ?? 0),
-            ]);
+            ])
+            ->values();
 
         $totals = [
             'total_invoiced' => $customers->sum('total_invoiced'),
@@ -43,13 +45,23 @@ class CustomerReceivableController extends Controller
             'balance' => $customers->sum('balance'),
         ];
 
+        $perPage = 25;
+        $page = $request->integer('page', 1);
+        $paginatedCustomers = new LengthAwarePaginator(
+            $customers->forPage($page, $perPage)->values(),
+            $customers->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         return Inertia::render('Sales/Receivables/Index', [
-            'customers' => $customers->values()->all(),
+            'customers' => $paginatedCustomers,
             'totals' => $totals,
         ]);
     }
 
-    public function show(Customer $customer): Response
+    public function show(Customer $customer, Request $request): Response
     {
         $sales = Sale::query()
             ->where('customer_id', $customer->id)
@@ -85,11 +97,21 @@ class CustomerReceivableController extends Controller
                 'notes' => $c->notes,
             ]);
 
-        $movements = $sales->concat($collections)->sortByDesc('date')->values()->all();
+        $movements = $sales->concat($collections)->sortByDesc('date')->values();
 
         $totalInvoiced = $sales->sum('amount');
         $totalCollected = -$collections->sum('amount');
         $balance = $totalInvoiced - $totalCollected;
+
+        $perPage = 20;
+        $page = $request->integer('page', 1);
+        $paginatedMovements = new LengthAwarePaginator(
+            $movements->forPage($page, $perPage)->values(),
+            $movements->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $bankAccounts = BankAccount::query()
             ->where('is_active', true)
@@ -106,7 +128,7 @@ class CustomerReceivableController extends Controller
                 'email' => $customer->email,
                 'phone' => $customer->phone,
             ],
-            'movements' => $movements,
+            'movements' => $paginatedMovements,
             'summary' => [
                 'total_invoiced' => (int) $totalInvoiced,
                 'total_collected' => (int) $totalCollected,

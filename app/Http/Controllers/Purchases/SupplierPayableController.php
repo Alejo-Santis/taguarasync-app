@@ -11,6 +11,7 @@ use App\Models\SupplierPayment;
 use App\Models\SupplierReturn;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -40,7 +41,7 @@ class SupplierPayableController extends Controller
             'total_paid' => (int) ($s->total_paid ?? 0),
             'total_returned' => (int) ($s->total_returned ?? 0),
             'balance' => (int) ($s->total_purchased ?? 0) - (int) ($s->total_paid ?? 0) - (int) ($s->total_returned ?? 0),
-        ]);
+        ])->values();
 
         $totals = [
             'total_purchased' => $suppliers->sum('total_purchased'),
@@ -49,13 +50,23 @@ class SupplierPayableController extends Controller
             'balance' => $suppliers->sum('balance'),
         ];
 
+        $perPage = 25;
+        $page = $request->integer('page', 1);
+        $paginatedSuppliers = new LengthAwarePaginator(
+            $suppliers->forPage($page, $perPage)->values(),
+            $suppliers->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
         return Inertia::render('Purchases/Payables/Index', [
-            'suppliers' => $suppliers->values()->all(),
+            'suppliers' => $paginatedSuppliers,
             'totals' => $totals,
         ]);
     }
 
-    public function show(Supplier $supplier): Response
+    public function show(Supplier $supplier, Request $request): Response
     {
         $receipts = PurchaseReceipt::query()
             ->where('supplier_id', $supplier->id)
@@ -109,13 +120,22 @@ class SupplierPayableController extends Controller
             ->concat($payments)
             ->concat($returns)
             ->sortByDesc('date')
-            ->values()
-            ->all();
+            ->values();
 
         $totalPurchased = $receipts->sum('amount');
         $totalPaid = -$payments->sum('amount');
         $totalReturned = -$returns->sum('amount');
         $balance = $totalPurchased - $totalPaid - $totalReturned;
+
+        $perPage = 20;
+        $page = $request->integer('page', 1);
+        $paginatedMovements = new LengthAwarePaginator(
+            $movements->forPage($page, $perPage)->values(),
+            $movements->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         $bankAccounts = BankAccount::query()
             ->where('is_active', true)
@@ -133,7 +153,7 @@ class SupplierPayableController extends Controller
                 'contact_email' => $supplier->contact_email,
                 'contact_phone' => $supplier->contact_phone,
             ],
-            'movements' => $movements,
+            'movements' => $paginatedMovements,
             'summary' => [
                 'total_purchased' => (int) $totalPurchased,
                 'total_paid' => (int) $totalPaid,

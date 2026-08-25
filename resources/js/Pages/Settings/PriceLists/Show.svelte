@@ -5,7 +5,7 @@
     import AppLayout from '../../../Layouts/AppLayout.svelte';
     import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
 
-    let { auth, priceList, products } = $props();
+    let { auth, priceList, items, products } = $props();
 
     const money = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
     const fmt = (value) => money.format(value ?? 0);
@@ -121,7 +121,7 @@
             <div class="taguara-panel-header align-items-start">
                 <div>
                     <p class="text-uppercase small fw-semibold text-success mb-1">Precios especiales</p>
-                    <h3 class="h5 mb-0">{priceList.items.length} producto{priceList.items.length !== 1 ? 's' : ''} con precio especial</h3>
+                    <h3 class="h5 mb-0">{items.total} producto{items.total !== 1 ? 's' : ''} con precio especial</h3>
                 </div>
                 <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="button" onclick={openAdd}>
                     <Plus size={17} />
@@ -141,7 +141,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each priceList.items as item}
+                        {#each items.data as item}
                             {@const diff = discountPercent(item.base_price, item.sale_price)}
                             <tr onclick={() => openEdit(item)}>
                                 <td>
@@ -177,6 +177,15 @@
                     </tbody>
                 </table>
             </div>
+
+            {#if items.links.length > 3}
+                <nav class="taguara-pagination mt-3" aria-label="Paginacion de precios especiales">
+                    {#each items.links as link}
+                        {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                        {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                    {/each}
+                </nav>
+            {/if}
         </section>
     </div>
 

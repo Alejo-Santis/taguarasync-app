@@ -43,7 +43,7 @@ test('authenticated users can see bank accounts and movement totals', function (
             ->where('stats.difference', 0)
             ->where('items.data.0.bank_name', 'Bancolombia')
             ->has('movementStatuses', 3)
-            ->where('movements.0.status_label', 'Pendiente')
+            ->where('movements.data.0.status_label', 'Pendiente')
         );
 });
 
@@ -105,9 +105,9 @@ test('bank movement difference status is reflected in totals and filters', funct
             ->component('Settings/Banks/Index')
             ->where('filters.movement_status', 'difference')
             ->where('stats.difference', 42000)
-            ->has('movements', 1)
-            ->where('movements.0.status', 'difference')
-            ->where('movements.0.status_label', 'Con diferencia')
+            ->has('movements.data', 1)
+            ->where('movements.data.0.status', 'difference')
+            ->where('movements.data.0.status_label', 'Con diferencia')
         );
 });
 

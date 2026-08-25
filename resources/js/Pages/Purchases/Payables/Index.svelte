@@ -62,7 +62,7 @@
             <div class="taguara-panel-header align-items-start">
                 <div>
                     <p class="text-uppercase small fw-semibold text-success mb-1">Proveedores activos</p>
-                    <h3 class="h5 mb-0">{suppliers.length} proveedor{suppliers.length !== 1 ? 'es' : ''}</h3>
+                    <h3 class="h5 mb-0">{suppliers.total} proveedor{suppliers.total !== 1 ? 'es' : ''}</h3>
                 </div>
             </div>
 
@@ -79,7 +79,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each suppliers as supplier}
+                        {#each suppliers.data as supplier}
                             <tr>
                                 <td>
                                     <div class="taguara-table-name">{supplier.name}</div>
@@ -110,6 +110,15 @@
                     </tbody>
                 </table>
             </div>
+
+            {#if suppliers.links.length > 3}
+                <nav class="taguara-pagination mt-3">
+                    {#each suppliers.links as link}
+                        {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                        {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                    {/each}
+                </nav>
+            {/if}
         </section>
     </div>
 </AppLayout>

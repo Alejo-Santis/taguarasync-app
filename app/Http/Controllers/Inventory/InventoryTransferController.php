@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Branch;
 use App\Models\InventoryLot;
 use App\Models\InventoryTransfer;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -67,8 +68,25 @@ class InventoryTransferController extends Controller
             ])
             ->all();
 
+        return Inertia::render('Inventory/Transfers/Create', [
+            'branches' => $branches,
+        ]);
+    }
+
+    /**
+     * Available lots for a single source branch, fetched on demand from the
+     * transfer form — a tenant's full lot list has no natural upper bound,
+     * but a transfer always sources from one branch at a time.
+     */
+    public function lots(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'branch_id' => ['required', 'integer', Rule::exists('branches', 'id')],
+        ]);
+
         $lots = InventoryLot::query()
-            ->with(['product:id,commercial_name', 'branch:id,name'])
+            ->with(['product:id,commercial_name'])
+            ->where('branch_id', $validated['branch_id'])
             ->where('status', InventoryLotStatus::Available)
             ->where('current_quantity', '>', 0)
             ->orderBy('lot_number')
@@ -78,16 +96,11 @@ class InventoryTransferController extends Controller
                 'lot_number' => $lot->lot_number,
                 'product_name' => $lot->product?->commercial_name,
                 'branch_id' => $lot->branch_id,
-                'branch_name' => $lot->branch?->name,
                 'current_quantity' => $lot->current_quantity,
                 'expires_on' => $lot->expires_on?->toDateString(),
-            ])
-            ->all();
+            ]);
 
-        return Inertia::render('Inventory/Transfers/Create', [
-            'branches' => $branches,
-            'lots' => $lots,
-        ]);
+        return response()->json(['lots' => $lots]);
     }
 
     public function store(Request $request): RedirectResponse

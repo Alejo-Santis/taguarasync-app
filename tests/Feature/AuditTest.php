@@ -42,7 +42,7 @@ test('audit page renders and defers fe submissions scoped to the tenant', functi
             ->where('is_super_admin', false)
             ->missing('fe')
             ->loadDeferredProps(fn (Assert $reload) => $reload
-                ->has('fe.rows', 1)
+                ->has('fe.rows.data', 1)
                 ->where('fe.stats.total', 1)
             )
         );

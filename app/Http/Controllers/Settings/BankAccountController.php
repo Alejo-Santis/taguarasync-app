@@ -38,7 +38,7 @@ class BankAccountController extends Controller
             ->when($filters['status'] === 'inactive', fn (Builder $query) => $query->where('is_active', false))
             ->orderByDesc('is_default')
             ->orderBy('bank_name')
-            ->paginate(10)
+            ->paginate(10, ['*'], 'page')
             ->withQueryString()
             ->through(fn (BankAccount $account) => [
                 'id' => $account->id,
@@ -59,9 +59,9 @@ class BankAccountController extends Controller
             ->when($filters['account_id'] > 0, fn (Builder $query) => $query->where('bank_account_id', $filters['account_id']))
             ->when($this->isValidMovementStatus($filters['movement_status']), fn (Builder $query) => $query->where('status', $filters['movement_status']))
             ->latest('occurred_at')
-            ->limit(30)
-            ->get()
-            ->map(fn (BankAccountMovement $movement) => [
+            ->paginate(20, ['*'], 'movements_page')
+            ->withQueryString()
+            ->through(fn (BankAccountMovement $movement) => [
                 'id' => $movement->id,
                 'bank' => $movement->bankAccount?->bank_name,
                 'account' => $movement->bankAccount?->account_name,

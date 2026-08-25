@@ -13,6 +13,7 @@ use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -88,9 +89,23 @@ class PriceListController extends Controller
         return back();
     }
 
-    public function show(PriceList $priceList): Response
+    public function show(PriceList $priceList, Request $request): Response
     {
-        $priceList->load('items.product');
+        $items = PriceListItem::query()
+            ->where('price_list_id', $priceList->id)
+            ->with('product:id,commercial_name,sale_price')
+            ->join('products', 'price_list_items.product_id', '=', 'products.id')
+            ->orderBy('products.commercial_name')
+            ->select('price_list_items.*')
+            ->paginate(25)
+            ->withQueryString()
+            ->through(fn (PriceListItem $item) => [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'product_name' => $item->product->commercial_name,
+                'base_price' => $item->product->sale_price,
+                'sale_price' => $item->sale_price,
+            ]);
 
         $products = Product::query()
             ->select(['id', 'commercial_name', 'internal_code', 'sale_price'])
@@ -112,14 +127,8 @@ class PriceListController extends Controller
                 'description' => $priceList->description,
                 'is_default' => $priceList->is_default,
                 'is_active' => $priceList->is_active,
-                'items' => $priceList->items->map(fn (PriceListItem $item) => [
-                    'id' => $item->id,
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product->commercial_name,
-                    'base_price' => $item->product->sale_price,
-                    'sale_price' => $item->sale_price,
-                ])->values()->all(),
             ],
+            'items' => $items,
             'products' => $products,
         ]);
     }
@@ -171,7 +180,7 @@ class PriceListController extends Controller
     {
         $path = $request->file('file')->store('imports/price-lists', 'local');
 
-        $result = $action->execute($priceList, storage_path('app/'.$path));
+        $result = $action->execute($priceList, Storage::disk('local')->path($path));
 
         if (! empty($result['errors'])) {
             return back()

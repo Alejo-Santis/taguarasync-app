@@ -108,7 +108,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each movements as mov}
+                        {#each movements.data as mov}
                             <tr>
                                 <td class="text-secondary">{mov.date}</td>
                                 <td>
@@ -152,6 +152,15 @@
                     </tbody>
                 </table>
             </div>
+
+            {#if movements.links.length > 3}
+                <nav class="taguara-pagination mt-3">
+                    {#each movements.links as link}
+                        {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                        {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                    {/each}
+                </nav>
+            {/if}
         </section>
     </div>
 

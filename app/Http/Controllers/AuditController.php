@@ -20,16 +20,16 @@ class AuditController extends Controller
         return Inertia::render('Audit/Index', [
             'active_tab' => $tab,
             'is_super_admin' => $tenantId === null,
-            'fe' => Inertia::defer(fn () => $this->feSubmissions($tenantId)),
-            'radian' => Inertia::defer(fn () => $this->radianHistory($tenantId)),
-            'movements' => Inertia::defer(fn () => $this->inventoryMovements($tenantId)),
+            'fe' => Inertia::defer(fn () => $this->feSubmissions($tenantId, $request)),
+            'radian' => Inertia::defer(fn () => $this->radianHistory($tenantId, $request)),
+            'movements' => Inertia::defer(fn () => $this->inventoryMovements($tenantId, $request)),
         ]);
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function feSubmissions(?int $tenantId): array
+    private function feSubmissions(?int $tenantId, Request $request): array
     {
         $query = FeSubmission::withoutGlobalScopes();
 
@@ -40,8 +40,10 @@ class AuditController extends Controller
                 ->select('fe_submissions.*', 'tenants.name as tenant_name');
         }
 
-        $rows = $query->latest('fe_submissions.created_at')->limit(100)->get()
-            ->map(fn (FeSubmission $s) => [
+        $rows = $query->latest('fe_submissions.created_at')
+            ->paginate(30, ['*'], 'fe_page')
+            ->withQueryString()
+            ->through(fn (FeSubmission $s) => [
                 'id' => $s->id,
                 'document_type' => $s->document_type,
                 'document_id' => $s->document_id,
@@ -75,7 +77,7 @@ class AuditController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function radianHistory(?int $tenantId): array
+    private function radianHistory(?int $tenantId, Request $request): array
     {
         $query = PurchaseReceipt::withoutGlobalScopes()
             ->with('supplier:id,name')
@@ -88,8 +90,10 @@ class AuditController extends Controller
                 ->select('purchase_receipts.*', 'tenants.name as tenant_name');
         }
 
-        $rows = $query->latest('purchase_receipts.radian_checked_at')->limit(100)->get()
-            ->map(fn (PurchaseReceipt $r) => [
+        $rows = $query->latest('purchase_receipts.radian_checked_at')
+            ->paginate(30, ['*'], 'radian_page')
+            ->withQueryString()
+            ->through(fn (PurchaseReceipt $r) => [
                 'uuid' => $r->uuid,
                 'document_number' => $r->document_number,
                 'supplier' => $r->supplier?->name,
@@ -107,7 +111,7 @@ class AuditController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function inventoryMovements(?int $tenantId): array
+    private function inventoryMovements(?int $tenantId, Request $request): array
     {
         $query = InventoryMovement::withoutGlobalScopes()
             ->with(['product:id,commercial_name', 'user:id,name']);
@@ -119,8 +123,10 @@ class AuditController extends Controller
                 ->select('inventory_movements.*', 'tenants.name as tenant_name');
         }
 
-        $rows = $query->latest('inventory_movements.occurred_at')->limit(200)->get()
-            ->map(fn (InventoryMovement $m) => [
+        $rows = $query->latest('inventory_movements.occurred_at')
+            ->paginate(30, ['*'], 'movements_page')
+            ->withQueryString()
+            ->through(fn (InventoryMovement $m) => [
                 'uuid' => $m->uuid,
                 'type' => $m->type,
                 'product' => $m->product?->commercial_name,

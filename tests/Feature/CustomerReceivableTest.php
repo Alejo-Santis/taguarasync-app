@@ -77,10 +77,10 @@ test('receivables index lists only customers with credit sales or collections an
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Sales/Receivables/Index')
-            ->has('customers', 1)
-            ->where('customers.0.full_name', 'Con Credito')
-            ->where('customers.0.total_invoiced', 100000)
-            ->where('customers.0.balance', 100000)
+            ->has('customers.data', 1)
+            ->where('customers.data.0.full_name', 'Con Credito')
+            ->where('customers.data.0.total_invoiced', 100000)
+            ->where('customers.data.0.balance', 100000)
             ->where('totals.balance', 100000)
         );
 });
@@ -106,7 +106,7 @@ test('customer statement shows invoices and collections with a running balance',
         ->assertSuccessful()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Sales/Receivables/Show')
-            ->has('movements', 2)
+            ->has('movements.data', 2)
             ->where('summary.total_invoiced', 150000)
             ->where('summary.total_collected', 50000)
             ->where('summary.balance', 100000)

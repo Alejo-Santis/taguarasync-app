@@ -55,7 +55,7 @@
             <div class="taguara-panel-header align-items-start">
                 <div>
                     <p class="text-uppercase small fw-semibold text-success mb-1">Clientes con crédito</p>
-                    <h3 class="h5 mb-0">{customers.length} cliente{customers.length !== 1 ? 's' : ''}</h3>
+                    <h3 class="h5 mb-0">{customers.total} cliente{customers.total !== 1 ? 's' : ''}</h3>
                 </div>
             </div>
 
@@ -72,7 +72,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {#each customers as c}
+                        {#each customers.data as c}
                             <tr>
                                 <td><div class="taguara-table-name">{c.full_name}</div></td>
                                 <td class="text-secondary" style="font-size:.875rem">{c.identification}</td>
@@ -99,6 +99,15 @@
                     </tbody>
                 </table>
             </div>
+
+            {#if customers.links.length > 3}
+                <nav class="taguara-pagination mt-3">
+                    {#each customers.links as link}
+                        {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                        {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                    {/each}
+                </nav>
+            {/if}
         </section>
     </div>
 </AppLayout>

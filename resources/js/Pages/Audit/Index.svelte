@@ -1,5 +1,5 @@
 <script>
-    import { router } from '@inertiajs/svelte';
+    import { Link, router } from '@inertiajs/svelte';
     import { ActivitySquare, AlertTriangle, ArrowUpDown, CheckCircle2, FileText, RotateCcw, ShieldCheck, ShieldQuestion, XCircle } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
 
@@ -108,7 +108,7 @@
                     <div class="taguara-panel-header">
                         <div>
                             <p class="text-uppercase small fw-semibold text-success mb-1">Envíos API</p>
-                            <h3 class="h5 mb-0">Últimos 100 envíos a la API de FE</h3>
+                            <h3 class="h5 mb-0">Envíos a la API de FE ({fe.rows.total})</h3>
                         </div>
                         <a href="/fe/submissions" class="btn btn-sm btn-light border">Ver historial completo →</a>
                     </div>
@@ -127,7 +127,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {#each fe.rows as row}
+                                {#each fe.rows.data as row}
                                     <tr>
                                         {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td><span class="badge text-bg-light border text-secondary">{row.document_type}</span></td>
@@ -157,6 +157,15 @@
                             </tbody>
                         </table>
                     </div>
+
+                    {#if fe.rows.links.length > 3}
+                        <nav class="taguara-pagination mt-3">
+                            {#each fe.rows.links as link}
+                                {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                                {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                            {/each}
+                        </nav>
+                    {/if}
                 </section>
             {/if}
 
@@ -174,7 +183,7 @@
                     <div class="taguara-panel-header">
                         <div>
                             <p class="text-uppercase small fw-semibold text-success mb-1">RADIAN</p>
-                            <h3 class="h5 mb-0">Historial de validaciones ({radian.rows.length})</h3>
+                            <h3 class="h5 mb-0">Historial de validaciones ({radian.rows.total})</h3>
                         </div>
                     </div>
                     <div class="taguara-table-wrapper mt-3">
@@ -191,7 +200,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {#each radian.rows as row}
+                                {#each radian.rows.data as row}
                                     <tr>
                                         {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td>
@@ -230,6 +239,15 @@
                             </tbody>
                         </table>
                     </div>
+
+                    {#if radian.rows.links.length > 3}
+                        <nav class="taguara-pagination mt-3">
+                            {#each radian.rows.links as link}
+                                {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                                {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                            {/each}
+                        </nav>
+                    {/if}
                 </section>
             {/if}
 
@@ -247,7 +265,7 @@
                     <div class="taguara-panel-header">
                         <div>
                             <p class="text-uppercase small fw-semibold text-success mb-1">Inventario</p>
-                            <h3 class="h5 mb-0">Últimos 200 movimientos de inventario</h3>
+                            <h3 class="h5 mb-0">Movimientos de inventario ({movements.rows.total})</h3>
                         </div>
                         <AlertTriangle class="text-secondary" size={18} />
                     </div>
@@ -267,7 +285,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {#each movements.rows as row}
+                                {#each movements.rows.data as row}
                                     <tr>
                                         {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td class="text-secondary" style="font-size:.8rem">{row.occurred_at}</td>
@@ -298,6 +316,15 @@
                             </tbody>
                         </table>
                     </div>
+
+                    {#if movements.rows.links.length > 3}
+                        <nav class="taguara-pagination mt-3">
+                            {#each movements.rows.links as link}
+                                {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
+                                {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
+                            {/each}
+                        </nav>
+                    {/if}
                 </section>
             {/if}
         {/if}
