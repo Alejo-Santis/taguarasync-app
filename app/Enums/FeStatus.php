@@ -19,7 +19,7 @@ enum FeStatus: string
             self::Accepted => 'Aceptada',
             self::Rejected => 'Rechazada',
             self::Contingency => 'Contingencia',
-            self::NotApplicable => 'No aplica',
+            self::NotApplicable => 'No electrónica',
         };
     }
 }

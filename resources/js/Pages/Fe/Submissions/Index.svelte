@@ -46,6 +46,7 @@
             'rejected': 'text-bg-danger',
             'contingency': 'text-bg-warning text-dark',
             'pending': 'text-bg-warning text-dark',
+            'not_applicable': 'text-bg-light border text-secondary',
         };
         return map[status] ?? 'text-bg-secondary';
     };
@@ -58,6 +59,7 @@
             'rejected': 'Rechazada',
             'contingency': 'Contingencia',
             'pending': 'Pendiente',
+            'not_applicable': 'No electrónica',
         };
         return map[status] ?? status ?? '—';
     };
@@ -143,6 +145,15 @@
                     </div>
                 </div>
             </div>
+            <div class="col-6 col-md-2">
+                <div class="taguara-kpi-card">
+                    <span class="taguara-kpi-icon text-bg-light border"><ShieldOff size={18} /></span>
+                    <div>
+                        <div class="fw-bold" style="font-size:1.4rem">{stats.not_applicable.toLocaleString()}</div>
+                        <div class="text-secondary small">No electrónicas</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Tabla de transmisiones -->
@@ -165,6 +176,7 @@
                         <option value="accepted_rule90">Aceptada (Regla 90)</option>
                         <option value="rejected">Rechazada</option>
                         <option value="contingency">Contingencia</option>
+                        <option value="not_applicable">No electrónica</option>
                     </select>
                 </label>
                 <label class="form-label mb-0">

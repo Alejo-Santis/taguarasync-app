@@ -1,6 +1,6 @@
 <script>
     import { tick, untrack } from 'svelte';
-    import { router, usePage, useForm } from '@inertiajs/svelte';
+    import { Link, router, usePage, useForm } from '@inertiajs/svelte';
     import { fade, scale } from 'svelte/transition';
     import {
         AlertCircle,
@@ -20,6 +20,7 @@
         PrinterCheck,
         Search,
         ShieldAlert,
+        ShieldOff,
         ShoppingCart,
         Trash2,
         Upload,
@@ -31,7 +32,7 @@
     import PrinterStatus from '../../Components/UI/PrinterStatus.svelte';
     import QzPrinter from '../../Services/QzPrinter.js';
 
-    let { auth, activeSession, customerFormOptions, paymentOptions = { methods: [], bank_accounts: [] } } = $props();
+    let { auth, activeSession, customerFormOptions, paymentOptions = { methods: [], bank_accounts: [] }, feStatus = { enabled: false, contingency_count: 0 } } = $props();
 
     // ── Configuración de impresora (viene del tenant compartido en auth) ──
     const printerCfg = $derived(auth?.tenant?.printer_settings ?? {});
@@ -191,6 +192,10 @@
     $effect(() => {
         // Cargar últimos documentos al montar
         loadRecentSales();
+        // Autofoco en el buscador — un lector de código de barras "escribe"
+        // en el elemento que tenga el foco, así que debe quedar listo desde
+        // que se abre el POS, sin que el cajero tenga que clicar primero.
+        productSearchInput?.focus();
     });
 
     $effect(() => {
@@ -202,6 +207,8 @@
             if (autoPrint && printerName) {
                 printDirectly(completedSale);
             }
+            // Listo para el siguiente cliente: el buscador vuelve a tener el foco.
+            productSearchInput?.focus();
         }
     });
 
@@ -284,6 +291,21 @@
         searchTimeout = setTimeout(() => doSearch(q), 280);
     };
 
+    // Un lector de código de barras termina el escaneo con un Enter — lo
+    // usamos para saltar el debounce y buscar de inmediato.
+    const handleSearchKeydown = (e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        clearTimeout(searchTimeout);
+        if (searchQuery.trim().length >= 2) { doSearch(searchQuery); }
+    };
+
+    const clearSearchAndRefocus = () => {
+        searchQuery = '';
+        searchResults = [];
+        productSearchInput?.focus();
+    };
+
     const doSearch = async (q) => {
         isSearching = true;
         try {
@@ -291,7 +313,26 @@
             const params = new URLSearchParams({ q });
             if (priceListId) { params.set('price_list_id', priceListId); }
             const res = await fetch(`/pos/products?${params}`);
-            searchResults = await res.json();
+            const results = await res.json();
+
+            // Match exacto de código de barras contra un único producto con
+            // una única presentación: se agrega directo al carrito en vez de
+            // mostrar un resultado de una sola fila que el cajero tendría
+            // que clicar igual.
+            const trimmed = q.trim();
+            const [only] = results;
+            const isExactBarcodeMatch = results.length === 1
+                && only?.barcode
+                && only.barcode === trimmed
+                && only.presentations.length === 1;
+
+            if (isExactBarcodeMatch) {
+                addToCart(only, only.presentations[0]);
+                clearSearchAndRefocus();
+                return;
+            }
+
+            searchResults = results;
         } catch { searchResults = []; }
         finally { isSearching = false; }
     };
@@ -654,6 +695,24 @@
         </div>
     </div>
 
+    {#if !feStatus.enabled}
+        <div class="alert alert-secondary d-flex align-items-center gap-2 py-2 px-3 mb-2" role="status">
+            <ShieldOff size={16} class="flex-shrink-0" />
+            <span class="small">Facturación electrónica no activada — estas ventas no se transmiten a la DIAN.</span>
+        </div>
+    {:else if feStatus.contingency_count > 0}
+        <Link
+            href="/fe/submissions?status=contingency"
+            class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-2 text-decoration-none"
+            role="alert"
+        >
+            <ShieldAlert size={16} class="flex-shrink-0" />
+            <span class="small">
+                {feStatus.contingency_count} factura{feStatus.contingency_count !== 1 ? 's' : ''} sin transmitir a la DIAN (contingencia) — clic para revisar.
+            </span>
+        </Link>
+    {/if}
+
     <div class="taguara-pos-shortcuts" aria-label="Atajos del punto de venta">
         <span><kbd>F2</kbd>Producto</span>
         <span><kbd>F3</kbd>Cliente</span>
@@ -678,6 +737,7 @@
                         bind:this={productSearchInput}
                         value={searchQuery}
                         oninput={handleSearch}
+                        onkeydown={handleSearchKeydown}
                     />
                     {#if isSearching}
                         <span class="spinner-border spinner-border-sm text-secondary flex-shrink-0" role="status"></span>

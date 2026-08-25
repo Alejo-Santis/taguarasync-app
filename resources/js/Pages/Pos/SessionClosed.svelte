@@ -1,11 +1,10 @@
 <script>
     import { Link } from '@inertiajs/svelte';
-    import { ArrowLeft, CircleDollarSign, CreditCard, DollarSign, Printer, ReceiptText, ShieldAlert } from '@lucide/svelte';
+    import { ArrowRight, CheckCircle2, CircleDollarSign, CreditCard, DollarSign, Printer, ReceiptText, ShieldAlert } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
-    import ReportsNav from '../../Components/Reports/ReportsNav.svelte';
     import QzPrinter from '../../Services/QzPrinter.js';
 
-    let { auth, session, sales } = $props();
+    let { auth, session } = $props();
 
     const printerName = $derived(auth?.tenant?.printer_settings?.printer_name ?? null);
     const paperWidth  = $derived(auth?.tenant?.printer_settings?.paper_width ?? '80mm');
@@ -14,7 +13,7 @@
     let zPrinting = $state(false);
     let zError    = $state('');
 
-    async function printZReport() {
+    async function printThermal() {
         if (!printerName) return;
         zPrinting = true;
         zError    = '';
@@ -41,22 +40,25 @@
     };
 </script>
 
-<AppLayout title="Detalle de caja" activeSection="reports" {auth}>
+<AppLayout title="Turno cerrado" activeSection="pos" {auth}>
     <div class="taguara-products">
         <section class="taguara-command-band taguara-print-hide">
             <div>
-                <p class="text-uppercase small fw-semibold text-success mb-2">Caja {session.register.code}</p>
+                <p class="text-uppercase small fw-semibold text-success mb-2 d-flex align-items-center gap-2">
+                    <CheckCircle2 size={16} class="text-success" />
+                    Turno cerrado
+                </p>
                 <h2 class="h3 mb-2">{session.register.name} · {session.cashier}</h2>
-                <p class="text-secondary mb-0">Abierta {session.opened_at}{session.closed_at ? ` · Cerrada ${session.closed_at}` : ' · Turno abierto'}</p>
+                <p class="text-secondary mb-0">Abierta {session.opened_at} · Cerrada {session.closed_at}</p>
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 {#if printerName}
                     <button
                         class="btn btn-light border d-inline-flex align-items-center gap-2"
                         type="button"
-                        onclick={printZReport}
+                        onclick={printThermal}
                         disabled={zPrinting}
-                        title="Imprimir cierre de caja en térmica"
+                        title="Imprimir cierre en impresora térmica"
                     >
                         <Printer size={17} />
                         {zPrinting ? 'Imprimiendo...' : 'Imprimir (térmica)'}
@@ -71,9 +73,9 @@
                     <Printer size={17} />
                     Imprimir
                 </button>
-                <Link class="btn btn-light border d-inline-flex align-items-center gap-2" href="/reports/cash-sessions">
-                    <ArrowLeft size={18} />
-                    Volver
+                <Link class="btn btn-taguara d-inline-flex align-items-center gap-2" href="/pos">
+                    Volver al POS
+                    <ArrowRight size={18} />
                 </Link>
             </div>
             {#if zError}
@@ -87,15 +89,11 @@
                     <p class="text-uppercase small fw-semibold text-success mb-1">Taguara Sync</p>
                     <h1 class="h4 mb-1">Cierre de caja</h1>
                     <p class="text-secondary mb-0">{session.register.name} · {session.cashier}</p>
-                    <p class="text-secondary mb-0">Abierta {session.opened_at}{session.closed_at ? ` · Cerrada ${session.closed_at}` : ' · Turno abierto'}</p>
+                    <p class="text-secondary mb-0">Abierta {session.opened_at} · Cerrada {session.closed_at}</p>
                 </div>
                 <ReceiptText size={28} class="text-secondary" />
             </div>
         </section>
-
-        <div class="taguara-print-hide">
-            <ReportsNav active="cash-sessions" />
-        </div>
 
         <section class="row g-3">
             <div class="col-12 col-md-3">
@@ -134,7 +132,7 @@
                     <div>
                         <p class="text-secondary small mb-1">Diferencia</p>
                         <p class={`h3 mb-1 ${differenceClass(session.difference)}`}>{session.difference === null ? '—' : fmt(session.difference)}</p>
-                        <p class="small text-secondary mb-0">{session.closed_by ? `Cerro ${session.closed_by}` : 'Sin cierre registrado'}</p>
+                        <p class="small text-secondary mb-0">{session.closed_by ? `Cerró ${session.closed_by}` : ''}</p>
                     </div>
                 </article>
             </div>
@@ -170,7 +168,7 @@
                     <div class="taguara-panel-header">
                         <div>
                             <p class="text-uppercase small fw-semibold text-success mb-1">Ventas</p>
-                            <h3 class="h5 mb-0">Distribucion por metodo</h3>
+                            <h3 class="h5 mb-0">Distribución por método</h3>
                         </div>
                         <ReceiptText class="text-secondary" size={20} />
                     </div>
@@ -188,65 +186,6 @@
                     </div>
                 </div>
             </div>
-        </section>
-
-        <section class="taguara-panel">
-            <div class="taguara-panel-header">
-                <div>
-                    <p class="text-uppercase small fw-semibold text-success mb-1">Documentos</p>
-                    <h3 class="h5 mb-0">Ventas asociadas al turno</h3>
-                </div>
-                <span class="badge text-bg-light border text-secondary">{sales.total} ventas</span>
-            </div>
-
-            <div class="taguara-table-wrapper">
-                <table class="taguara-table">
-                    <thead>
-                        <tr>
-                            <th>Documento</th>
-                            <th>Cliente</th>
-                            <th>Fecha</th>
-                            <th>Metodo</th>
-                            <th class="text-end">Subtotal</th>
-                            <th class="text-end">IVA</th>
-                            <th class="text-end">Total</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {#each sales.data as sale}
-                            <tr>
-                                <td class="fw-semibold">{sale.document_number}</td>
-                                <td>{sale.customer}</td>
-                                <td class="small text-secondary">{sale.created_at}</td>
-                                <td>{sale.payment_method}</td>
-                                <td class="text-end">{fmt(sale.subtotal)}</td>
-                                <td class="text-end">{fmt(sale.tax_total)}</td>
-                                <td class="text-end fw-semibold">{fmt(sale.total)}</td>
-                                <td><span class="badge text-bg-light border text-secondary">{sale.status}</span></td>
-                            </tr>
-                        {:else}
-                            <tr>
-                                <td colspan="8">
-                                    <div class="taguara-empty-state" style="min-height:120px">
-                                        <ReceiptText size={28} />
-                                        <p class="text-secondary small mb-0">Este turno no tiene ventas asociadas.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        {/each}
-                    </tbody>
-                </table>
-            </div>
-
-            {#if sales.links.length > 3}
-                <nav class="taguara-pagination mt-3">
-                    {#each sales.links as link}
-                        {#if link.url}<Link class={`btn btn-sm ${link.active ? 'btn-taguara' : 'btn-light border'}`} href={link.url}>{@html link.label}</Link>
-                        {:else}<span class="btn btn-sm btn-light border disabled">{@html link.label}</span>{/if}
-                    {/each}
-                </nav>
-            {/if}
         </section>
     </div>
 </AppLayout>

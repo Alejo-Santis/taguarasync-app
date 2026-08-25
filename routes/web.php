@@ -99,6 +99,7 @@ Route::middleware(['auth', 'permission:cash.register.open'])->prefix('pos')->nam
 Route::middleware(['auth', 'permission:cash.register.close'])->prefix('pos')->name('pos.')->group(function () {
     Route::get('session/{session}/close', [CashSessionController::class, 'close'])->name('session.close');
     Route::post('session/{session}/close', [CashSessionController::class, 'update'])->name('session.update');
+    Route::get('session/{session}/closed', [CashSessionController::class, 'closed'])->name('session.closed');
 });
 
 // ── Clientes (ventas y cajeros los necesitan para FE) ─────────────────────

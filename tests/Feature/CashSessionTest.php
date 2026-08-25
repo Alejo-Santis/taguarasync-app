@@ -7,6 +7,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
 
 uses(RefreshDatabase::class);
 
@@ -111,7 +112,7 @@ test('user can close an open session with actual amount', function () {
         ->post("/pos/session/{$session->uuid}/close", [
             'actual_closing_amount' => 95000,
         ])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('pos.session.closed', $session));
 
     $closed = $session->fresh();
 
@@ -119,6 +120,54 @@ test('user can close an open session with actual amount', function () {
         ->and($closed->actual_closing_amount)->toBe(95000)
         ->and($closed->difference)->toBe(-5000) // 95000 - 100000 = -5000
         ->and($closed->closed_at)->not->toBeNull();
+});
+
+test('the post-close summary page shows the session totals and is reachable after closing', function () {
+    $tenant = Tenant::factory()->create();
+    $user = cashierForTenant($tenant);
+    $register = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-01', 'is_active' => true]);
+
+    $session = CashSession::create([
+        'tenant_id' => $tenant->id,
+        'cash_register_id' => $register->id,
+        'user_id' => $user->id,
+        'opening_amount' => 100000,
+        'status' => CashSessionStatus::Open,
+        'opened_at' => now(),
+    ]);
+
+    $this->actingAs($user)->post("/pos/session/{$session->uuid}/close", [
+        'actual_closing_amount' => 95000,
+    ]);
+
+    $this->actingAs($user)
+        ->get("/pos/session/{$session->uuid}/closed")
+        ->assertSuccessful()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('Pos/SessionClosed')
+            ->where('session.opening_amount', 100000)
+            ->where('session.actual_closing_amount', 95000)
+            ->where('session.difference', -5000)
+        );
+});
+
+test('the post-close summary page redirects back to the pos if the session is still open', function () {
+    $tenant = Tenant::factory()->create();
+    $user = cashierForTenant($tenant);
+    $register = CashRegister::factory()->for($tenant)->create(['code' => 'CJ-01', 'is_active' => true]);
+
+    $session = CashSession::create([
+        'tenant_id' => $tenant->id,
+        'cash_register_id' => $register->id,
+        'user_id' => $user->id,
+        'opening_amount' => 100000,
+        'status' => CashSessionStatus::Open,
+        'opened_at' => now(),
+    ]);
+
+    $this->actingAs($user)
+        ->get("/pos/session/{$session->uuid}/closed")
+        ->assertRedirect(route('pos.index'));
 });
 
 test('closing a session calculates expected amount including cash sales', function () {

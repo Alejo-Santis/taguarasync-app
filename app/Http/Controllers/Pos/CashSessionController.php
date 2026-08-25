@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Pos;
 
 use App\Actions\Pos\CloseCashSession;
 use App\Actions\Pos\OpenCashSession;
+use App\Actions\Pos\TransformCashSessionSummary;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\CloseCashSessionRequest;
 use App\Http\Requests\Pos\OpenCashSessionRequest;
@@ -106,6 +107,17 @@ class CashSessionController extends Controller
             ? 'Caja cuadrada sin diferencia.'
             : ($diff > 0 ? 'Sobrante: $'.number_format($diff, 0, ',', '.') : 'Faltante: $'.number_format(abs($diff), 0, ',', '.'));
 
-        return to_route('dashboard')->with('success', "Turno cerrado. {$diffMsg}");
+        return to_route('pos.session.closed', $closed)->with('success', "Turno cerrado. {$diffMsg}");
+    }
+
+    public function closed(CashSession $session, TransformCashSessionSummary $transformSummary): Response|RedirectResponse
+    {
+        if ($session->isOpen()) {
+            return to_route('pos.index');
+        }
+
+        return Inertia::render('Pos/SessionClosed', [
+            'session' => $transformSummary->execute($session),
+        ]);
     }
 }

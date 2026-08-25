@@ -85,6 +85,7 @@ class GetPosProducts
                 'pharmaceutical_form' => $product->pharmaceutical_form,
                 'concentration' => $product->concentration,
                 'internal_code' => $product->internal_code,
+                'barcode' => $product->barcode,
                 'sale_price' => $basePrice,
                 'regulated_price' => $product->regulated_price,
                 'tax_rate' => $product->tax_rate,

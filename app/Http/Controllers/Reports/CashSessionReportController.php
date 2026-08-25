@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Reports;
 
+use App\Actions\Pos\TransformCashSessionSummary;
 use App\Enums\CashSessionStatus;
 use App\Enums\PaymentMethod;
 use App\Http\Controllers\Controller;
@@ -16,6 +17,8 @@ use Inertia\Response;
 
 class CashSessionReportController extends Controller
 {
+    public function __construct(private readonly TransformCashSessionSummary $transformSummary) {}
+
     public function index(Request $request): Response
     {
         $filters = [
@@ -51,7 +54,7 @@ class CashSessionReportController extends Controller
             ->latest('opened_at')
             ->paginate(15)
             ->withQueryString()
-            ->through(fn (CashSession $session) => $this->transformSession($session));
+            ->through(fn (CashSession $session) => $this->transformSummary->execute($session));
 
         return Inertia::render('Reports/CashSessions', [
             'filters' => $filters,
@@ -98,45 +101,8 @@ class CashSessionReportController extends Controller
             ]);
 
         return Inertia::render('Reports/CashSessionShow', [
-            'session' => $this->transformSession($session),
+            'session' => $this->transformSummary->execute($session),
             'sales' => $sales,
         ]);
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function transformSession(CashSession $session): array
-    {
-        $cashSales = (int) ($session->cash_sales_total ?? $session->cashSalesTotal());
-        $cardSales = (int) ($session->card_sales_total ?? $session->sales()->where('payment_method', PaymentMethod::Card->value)->sum('total'));
-        $transferSales = (int) ($session->transfer_sales_total ?? $session->sales()->where('payment_method', PaymentMethod::Transfer->value)->sum('total'));
-        $expected = $session->opening_amount + $cashSales;
-
-        return [
-            'uuid' => $session->uuid,
-            'status' => [
-                'value' => $session->status->value,
-                'label' => $session->status->label(),
-            ],
-            'register' => [
-                'name' => $session->register?->name,
-                'code' => $session->register?->code,
-            ],
-            'cashier' => $session->user?->name,
-            'closed_by' => $session->closedBy?->name,
-            'opening_amount' => $session->opening_amount,
-            'expected_closing' => $expected,
-            'actual_closing_amount' => $session->actual_closing_amount,
-            'difference' => $session->difference,
-            'sales_count' => (int) ($session->sales_count ?? $session->sales()->count()),
-            'sales_total' => (int) ($session->sales_total ?? $session->salesTotal()),
-            'cash_sales_total' => $cashSales,
-            'card_sales_total' => $cardSales,
-            'transfer_sales_total' => $transferSales,
-            'notes' => $session->notes,
-            'opened_at' => $session->opened_at?->format('d/m/Y H:i'),
-            'closed_at' => $session->closed_at?->format('d/m/Y H:i'),
-        ];
     }
 }

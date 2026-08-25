@@ -446,6 +446,9 @@
                             {:else if selectedSale.fe.status === 'contingency'}
                                 <AlertCircle size={16} class="text-warning" />
                                 <span class="badge text-bg-warning text-dark">{selectedSale.fe.status_label}</span>
+                            {:else if selectedSale.fe.status === 'not_applicable'}
+                                <ShieldOff size={16} class="text-secondary" />
+                                <span class="badge text-bg-light border text-secondary">{selectedSale.fe.status_label}</span>
                             {:else}
                                 <span class="badge text-bg-warning text-dark">{selectedSale.fe.status_label}</span>
                             {/if}

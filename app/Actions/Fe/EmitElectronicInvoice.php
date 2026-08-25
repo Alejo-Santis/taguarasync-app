@@ -75,6 +75,7 @@ class EmitElectronicInvoice
 
             if ($candidates->isEmpty()) {
                 $sale->update(['fe_status' => FeStatus::NotApplicable]);
+                $this->recordNotApplicable($sale, 'No hay una resolución DIAN activa configurada para facturas.');
 
                 return;
             }
@@ -301,6 +302,22 @@ class EmitElectronicInvoice
             'attempts' => 0,
             'request_payload' => $payload,
             'submitted_at' => now(),
+        ]);
+    }
+
+    /**
+     * Leaves an auditable trail for a sale that was never actually
+     * transmitted, so it doesn't disappear silently from /fe/submissions.
+     */
+    private function recordNotApplicable(Sale $sale, string $reason): void
+    {
+        $sale->tenant->feSubmissions()->create([
+            'document_type' => 'invoice',
+            'document_id' => $sale->id,
+            'attempts' => 0,
+            'response_status' => 'not_applicable',
+            'response_payload' => ['error' => $reason],
+            'responded_at' => now(),
         ]);
     }
 }

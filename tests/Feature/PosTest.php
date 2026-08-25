@@ -1,11 +1,13 @@
 <?php
 
 use App\Enums\CashSessionStatus;
+use App\Enums\FeStatus;
 use App\Enums\ProductStatus;
 use App\Models\BankAccount;
 use App\Models\BankAccountMovement;
 use App\Models\CashRegister;
 use App\Models\CashSession;
+use App\Models\FeSubmission;
 use App\Models\InventoryLot;
 use App\Models\PaymentMethod as PaymentMethodConfig;
 use App\Models\Product;
@@ -106,6 +108,18 @@ test('POS product search returns products with available stock', function () {
         ->and($response->json('0.available_units'))->toBe(100);
 });
 
+test('POS product search includes barcode so the frontend can auto-add exact scanner matches', function () {
+    ['tenant' => $tenant, 'user' => $user, 'product' => $product] = posSetup();
+    $product->update(['barcode' => '7701234567890']);
+
+    $response = $this->actingAs($user)
+        ->getJson('/pos/products?q=7701234567890')
+        ->assertOk();
+
+    expect($response->json())->toHaveCount(1)
+        ->and($response->json('0.barcode'))->toBe('7701234567890');
+});
+
 test('POS product search excludes products with no stock', function () {
     ['tenant' => $tenant, 'user' => $user, 'lot' => $lot] = posSetup();
 
@@ -138,6 +152,38 @@ test('valid sale creates sale record and reduces inventory', function () {
 
     expect(Sale::count())->toBe(1);
     expect($lot->fresh()->current_quantity)->toBe(97);
+});
+
+test('a sale made with electronic invoicing disabled is marked not applicable and leaves an auditable trail', function () {
+    ['tenant' => $tenant, 'user' => $user, 'product' => $product, 'presentation' => $presentation] = posSetup();
+
+    $this->actingAs($user)
+        ->post('/pos/sales', [
+            'payment_method' => 'cash',
+            'amount_tendered' => 2000,
+            'items' => [[
+                'product_id' => $product->id,
+                'product_presentation_id' => $presentation->id,
+                'description' => 'Dolex 500mg',
+                'quantity' => 3,
+                'unit_price' => 350,
+                'tax_rate' => 0,
+            ]],
+        ])
+        ->assertRedirect(route('pos.index'));
+
+    $sale = Sale::withoutGlobalScopes()->firstOrFail();
+
+    expect($sale->fe_status)->toBe(FeStatus::NotApplicable);
+
+    $submission = FeSubmission::withoutGlobalScopes()
+        ->where('document_type', 'invoice')
+        ->where('document_id', $sale->id)
+        ->first();
+
+    expect($submission)->not->toBeNull()
+        ->and($submission->response_status)->toBe('not_applicable')
+        ->and($submission->response_payload['error'] ?? null)->not->toBeNull();
 });
 
 test('sale with insufficient stock returns error', function () {

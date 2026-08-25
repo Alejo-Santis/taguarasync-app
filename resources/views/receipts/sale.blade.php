@@ -258,6 +258,9 @@
         <p class="fe-cufe">CUFE: {{ $sale->fe_cufe }}</p>
         <p class="small center" style="margin-top:2px">Consulte en: https://catalogo-vpfe.dian.gov.co</p>
     </div>
+    @else
+    <div class="separator"></div>
+    <p class="small center" style="margin:4px 0">*** Comprobante de venta — no es factura electrónica DIAN ***</p>
     @endif
 
     <div class="separator-solid"></div>

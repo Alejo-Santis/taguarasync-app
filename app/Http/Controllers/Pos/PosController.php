@@ -6,6 +6,7 @@ use App\Actions\Payments\EnsureDefaultPaymentMethods;
 use App\Actions\Pos\GetPosProducts;
 use App\Actions\Pos\ProcessSale;
 use App\Enums\CashSessionStatus;
+use App\Enums\FeStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pos\ProcessSaleRequest;
 use App\Models\BankAccount;
@@ -14,6 +15,7 @@ use App\Models\Customer;
 use App\Models\DianIdentificationType;
 use App\Models\DianRegimeType;
 use App\Models\Sale;
+use App\Support\Sanitize;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -36,7 +38,16 @@ class PosController extends Controller
 
         $paymentMethods = $ensureDefaultPaymentMethods->execute($request->user()->tenant_id);
 
+        $feEnabled = (bool) (config('fe.enabled') && $request->user()->tenant?->feConfig?->electronic_invoicing_enabled);
+        $feContingencyCount = $feEnabled
+            ? Sale::where('fe_status', FeStatus::Contingency)->where('created_at', '>=', now()->subDay())->count()
+            : 0;
+
         return Inertia::render('Pos/Index', [
+            'feStatus' => [
+                'enabled' => $feEnabled,
+                'contingency_count' => $feContingencyCount,
+            ],
             'activeSession' => [
                 'uuid' => $session->uuid,
                 'register_name' => $session->register->name,
@@ -143,6 +154,8 @@ class PosController extends Controller
     public function quickStoreCustomer(Request $request): JsonResponse
     {
         $tenantId = $request->user()->tenant_id;
+
+        $request->merge(['identification_number' => Sanitize::identification($request->input('identification_number'))]);
 
         $validated = $request->validate([
             'identification_type_code' => ['required', 'string', Rule::exists('dian_identification_types', 'code')],

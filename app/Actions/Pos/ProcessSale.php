@@ -9,6 +9,7 @@ use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
 use App\Models\BankAccountMovement;
 use App\Models\CashSession;
+use App\Models\FeSubmission;
 use App\Models\InventoryLot;
 use App\Models\PaymentMethod as PaymentMethodConfig;
 use App\Models\ProductPresentation;
@@ -93,7 +94,7 @@ class ProcessSale
                 'amount_tendered' => $amountTendered,
                 'change_amount' => $change,
                 'status' => SaleStatus::Completed,
-                'fe_status' => $feEnabled ? FeStatus::Pending : null,
+                'fe_status' => $feEnabled ? FeStatus::Pending : FeStatus::NotApplicable,
                 'notes' => $data['notes'] ?? null,
             ]);
 
@@ -165,6 +166,23 @@ class ProcessSale
         if (config('fe.enabled') && $sale->fe_status === FeStatus::Pending) {
             EmitElectronicInvoiceJob::dispatch($sale->id, $user->tenant_id)
                 ->afterCommit();
+        } elseif ($sale->fe_status === FeStatus::NotApplicable) {
+            // Leaves an auditable trail in the same panel used for real
+            // transmissions (/fe/submissions), so a sale nobody ever tried
+            // to send doesn't disappear silently from that view.
+            $reason = ! config('fe.enabled')
+                ? 'Facturación electrónica desactivada globalmente.'
+                : 'Facturación electrónica no activada para esta empresa.';
+
+            FeSubmission::create([
+                'tenant_id' => $user->tenant_id,
+                'document_type' => 'invoice',
+                'document_id' => $sale->id,
+                'attempts' => 0,
+                'response_status' => 'not_applicable',
+                'response_payload' => ['error' => $reason],
+                'responded_at' => now(),
+            ]);
         }
 
         return $sale;

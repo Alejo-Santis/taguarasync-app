@@ -84,6 +84,7 @@
         if (v === 'accepted') return 'text-bg-success';
         if (v === 'rejected') return 'text-bg-danger';
         if (v === 'contingency' || v === 'pending') return 'text-bg-warning text-dark';
+        if (v === 'not_applicable') return 'text-bg-light border text-secondary';
         return 'text-bg-secondary';
     };
 
@@ -91,6 +92,7 @@
         if (v === 'accepted') return ShieldCheck;
         if (v === 'rejected') return ShieldOff;
         if (v === 'pending' || v === 'contingency') return AlertCircle;
+        if (v === 'not_applicable') return ShieldOff;
         return ShieldQuestion;
     };
 
