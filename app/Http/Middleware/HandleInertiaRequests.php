@@ -94,6 +94,9 @@ class HandleInertiaRequests extends Middleware
                 'message' => fn () => $request->session()->get('message'),
             ],
             'completedSale' => fn () => $request->session()->get('completedSale'),
+            'push' => [
+                'vapidPublicKey' => config('webpush.vapid.public_key'),
+            ],
             'sync' => [
                 'app_mode' => config('sync.app_mode', 'cloud'),
                 'server_id' => config('sync.server_id', 'cloud'),

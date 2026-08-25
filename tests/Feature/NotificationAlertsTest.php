@@ -9,6 +9,7 @@ use App\Notifications\InventoryAlertNotification;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
+use NotificationChannels\WebPush\WebPushChannel;
 
 uses(RefreshDatabase::class);
 
@@ -95,4 +96,35 @@ test('users can mark only their own notifications as read', function () {
         ->assertRedirect();
 
     expect($notification->fresh()->read_at)->not->toBeNull();
+});
+
+test('inventory alerts are sent through the web push channel', function () {
+    $notification = new InventoryAlertNotification([
+        'alert_key' => 'inventory:test',
+        'title' => 'Stock bajo',
+        'body' => 'Producto de prueba',
+        'href' => '/inventory',
+    ]);
+
+    expect($notification->via((object) []))->toContain(WebPushChannel::class);
+
+    $message = $notification->toWebPush((object) [], $notification)->toArray();
+
+    expect($message['title'])->toBe('Stock bajo')
+        ->and($message['body'])->toBe('Producto de prueba')
+        ->and($message['data'])->toBe(['url' => '/inventory']);
+});
+
+test('a user with no push subscriptions does not fail when notified', function () {
+    $tenant = Tenant::factory()->create();
+    $user = notificationUser($tenant);
+
+    $user->notify(new InventoryAlertNotification([
+        'alert_key' => 'inventory:test',
+        'title' => 'Stock bajo',
+        'body' => 'Producto de prueba',
+        'href' => '/inventory',
+    ]));
+
+    expect($user->fresh()->unreadNotifications)->toHaveCount(1);
 });

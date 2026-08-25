@@ -5,6 +5,8 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
+use NotificationChannels\WebPush\WebPushMessage;
 
 class FeTransmissionAlertNotification extends Notification
 {
@@ -25,13 +27,24 @@ class FeTransmissionAlertNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        $channels = ['database'];
+        $channels = ['database', WebPushChannel::class];
 
         if ($this->sendEmail || config('taguara.notifications.fe_alerts_email')) {
             $channels[] = 'mail';
         }
 
         return $channels;
+    }
+
+    /**
+     * Get the web push representation of the notification.
+     */
+    public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
+    {
+        return (new WebPushMessage)
+            ->title($this->alert['title'])
+            ->body($this->alert['body'])
+            ->data(['url' => $this->alert['href'] ?? '/fe/submissions']);
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Models\Laboratory;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\ProductUnit;
+use App\Support\PresentationQuantity;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -246,6 +247,12 @@ class ImportProducts
 
             if (! is_numeric($presQty) || (int) $presQty < 1) {
                 $rowErrors[] = ['row' => $rowNumber, 'message' => 'La cantidad de presentacion debe ser un entero mayor o igual a 1.'];
+            } else {
+                $expectedPresQty = PresentationQuantity::expectedFromName($row['presentacion_nombre']);
+
+                if ($expectedPresQty !== null && (int) $presQty !== $expectedPresQty) {
+                    $rowErrors[] = ['row' => $rowNumber, 'message' => "La cantidad de presentacion ({$presQty}) no coincide con lo que indica el nombre \"{$row['presentacion_nombre']}\" (se esperaba {$expectedPresQty})."];
+                }
             }
 
             if ($presSalePrice !== '' && (! is_numeric($presSalePrice) || (int) $presSalePrice < 0)) {

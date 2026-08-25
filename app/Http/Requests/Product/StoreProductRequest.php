@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Support\PresentationQuantity;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -102,6 +103,24 @@ class StoreProductRequest extends FormRequest
 
                 if ($defaultPresentations !== 1) {
                     $validator->errors()->add('presentations', 'Debe existir exactamente una presentacion principal.');
+                }
+
+                foreach ($this->input('presentations', []) as $index => $presentation) {
+                    $name = $presentation['name'] ?? '';
+                    $quantity = $presentation['minimum_unit_quantity'] ?? null;
+
+                    if ($name === '' || ! is_numeric($quantity)) {
+                        continue;
+                    }
+
+                    $expected = PresentationQuantity::expectedFromName($name);
+
+                    if ($expected !== null && (int) $quantity !== $expected) {
+                        $validator->errors()->add(
+                            "presentations.{$index}.minimum_unit_quantity",
+                            "La cantidad minima ({$quantity}) no coincide con lo que indica el nombre \"{$name}\" (se esperaba {$expected})."
+                        );
+                    }
                 }
             },
         ];

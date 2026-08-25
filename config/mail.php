@@ -115,4 +115,16 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Server Error Alert Address
+    |--------------------------------------------------------------------------
+    |
+    | Destination for the automatic email sent when an unhandled server error
+    | (5xx) occurs. See app/Exceptions and bootstrap/app.php withExceptions().
+    |
+    */
+
+    'error_alert_address' => env('ERROR_ALERT_EMAIL', 'superadmin@taguara.local'),
+
 ];

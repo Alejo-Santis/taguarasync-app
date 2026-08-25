@@ -203,6 +203,26 @@ test('csv with invalid status returns row error', function () {
         );
 });
 
+test('csv with presentation quantity not matching its name returns row error', function () {
+    $tenant = Tenant::factory()->create();
+    ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);
+    Laboratory::factory()->for($tenant)->create(['name' => 'Genfar', 'is_active' => true]);
+    ProductCategory::factory()->for($tenant)->create(['name' => 'Analgesicos', 'is_active' => true]);
+    $user = createAdminUser($tenant);
+
+    $file = makeCsv([defaultRow(['presentacion_nombre' => 'Caja x 20', 'presentacion_cantidad' => '10'])]);
+
+    $this->actingAs($user)
+        ->post('/products/import', ['file' => $file])
+        ->assertSuccessful()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Products/Import')
+            ->where('importErrors.0.row', 2)
+        );
+
+    $this->assertDatabaseMissing('products', ['commercial_name' => 'Acetaminofen 500mg']);
+});
+
 test('importing resolves active ingredient by dci name when it exists', function () {
     $tenant = Tenant::factory()->create();
     ProductUnit::factory()->create(['code' => 'und', 'is_active' => true]);

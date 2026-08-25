@@ -221,9 +221,9 @@
                     {/if}
 
                     <!-- Ventas recientes -->
-                    {#if recentSales.length > 0}
-                        <div class="taguara-recent-sales mt-3">
-                            <p class="text-uppercase small fw-semibold text-secondary mb-2">Ultimas ventas</p>
+                    <div class="taguara-recent-sales mt-3">
+                        <p class="text-uppercase small fw-semibold text-secondary mb-2">Ultimas ventas</p>
+                        {#if recentSales.length > 0}
                             {#each recentSales as sale}
                                 <div class="taguara-recent-sale-row">
                                     <span class="fw-semibold small">{sale.document_number}</span>
@@ -232,8 +232,13 @@
                                     <span class="fw-semibold small">{fmt(sale.total)}</span>
                                 </div>
                             {/each}
-                        </div>
-                    {/if}
+                        {:else}
+                            <div class="taguara-empty-state" style="min-height:100px">
+                                <ReceiptText size={24} />
+                                <p class="text-secondary small mb-0">Aun no hay ventas registradas.</p>
+                            </div>
+                        {/if}
+                    </div>
                 </div>
             </div>
 

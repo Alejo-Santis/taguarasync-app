@@ -1,5 +1,5 @@
 <script>
-    import { Link, router } from '@inertiajs/svelte';
+    import { Link, page, router } from '@inertiajs/svelte';
     import { onMount } from 'svelte';
     import {
         ActivitySquare,
@@ -31,11 +31,14 @@
     import FlashMessages from '../Components/UI/FlashMessages.svelte';
     import LogoMark from '../Components/UI/LogoMark.svelte';
     import SearchModal from '../Components/UI/SearchModal.svelte';
-    import { WifiOff, RefreshCw } from '@lucide/svelte';
+    import { WifiOff, RefreshCw, BellRing, BellOff } from '@lucide/svelte';
     import { connectivity } from '../Stores/connectivity.svelte.js';
+    import { isPushSupported, getCurrentPushSubscription, subscribeToPush, unsubscribeFromPush } from '../Support/webPush.js';
 
     let { title = 'Panel', activeSection = 'dashboard', auth, sync, autoCollapse = false, children } = $props();
     let isMobileNavOpen = $state(false);
+    let pushSubscribed = $state(false);
+    let pushBusy = $state(false);
 
     // Inicializar connectivity store una sola vez al montar el layout
     onMount(() => {
@@ -44,8 +47,34 @@
             isCollapsed = true;
             localStorage.setItem('sidebar-collapsed', 'true');
         }
+
+        if (isPushSupported()) {
+            getCurrentPushSubscription().then((subscription) => {
+                pushSubscribed = Boolean(subscription);
+            });
+        }
+
         return () => connectivity.destroy();
     });
+
+    const togglePushSubscription = async () => {
+        if (pushBusy) return;
+        pushBusy = true;
+
+        try {
+            if (pushSubscribed) {
+                await unsubscribeFromPush();
+                pushSubscribed = false;
+            } else {
+                await subscribeToPush(page.props.push?.vapidPublicKey);
+                pushSubscribed = true;
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            pushBusy = false;
+        }
+    };
     let isCollapsed = $state(localStorage.getItem('sidebar-collapsed') === 'true');
 
     const toggleSidebar = () => {
@@ -343,11 +372,28 @@
                                 <p class="mb-0 fw-semibold">Notificaciones</p>
                                 <span>{notifications.unread_count} pendiente{notifications.unread_count === 1 ? '' : 's'}</span>
                             </div>
-                            {#if notifications.unread_count > 0}
-                                <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={markNotificationsRead} title="Marcar todas como leídas">
-                                    <CheckCheck size={15} />
-                                </button>
-                            {/if}
+                            <div class="d-flex gap-2">
+                                {#if isPushSupported()}
+                                    <button
+                                        class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                        type="button"
+                                        onclick={togglePushSubscription}
+                                        disabled={pushBusy}
+                                        title={pushSubscribed ? 'Desactivar notificaciones push' : 'Activar notificaciones push'}
+                                    >
+                                        {#if pushSubscribed}
+                                            <BellRing size={15} />
+                                        {:else}
+                                            <BellOff size={15} />
+                                        {/if}
+                                    </button>
+                                {/if}
+                                {#if notifications.unread_count > 0}
+                                    <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={markNotificationsRead} title="Marcar todas como leídas">
+                                        <CheckCheck size={15} />
+                                    </button>
+                                {/if}
+                            </div>
                         </div>
                         <div class="taguara-notification-list">
                             {#each notifications.items as item}

@@ -3,6 +3,7 @@
     import { Toaster, toast } from 'svelte-sonner';
 
     let lastSignature = $state('');
+    let lastErrorSignature = $state('');
 
     $effect(() => {
         const flash = page.props.flash ?? {};
@@ -28,6 +29,31 @@
         }
         if (flash.message) {
             toast(flash.message);
+        }
+    });
+
+    // Belt-and-suspenders: guarantees a visible error even when a page fails
+    // to render a specific `form.errors` key inline (e.g. a nested/array
+    // field the page forgot to bind), since every validation failure lands
+    // in this shared `page.props.errors` regardless of what each page shows.
+    $effect(() => {
+        const errors = page.props.errors ?? {};
+        const errorSignature = JSON.stringify(errors);
+
+        if (!errorSignature || errorSignature === '{}' || errorSignature === lastErrorSignature) {
+            return;
+        }
+
+        lastErrorSignature = errorSignature;
+
+        const messages = Object.values(errors).flat().filter(Boolean);
+
+        if (messages.length === 1) {
+            toast.error(messages[0]);
+        } else if (messages.length > 1) {
+            toast.error(`Revisa los campos marcados: ${messages[0]}`, {
+                description: `y ${messages.length - 1} error(es) mas.`,
+            });
         }
     });
 </script>
