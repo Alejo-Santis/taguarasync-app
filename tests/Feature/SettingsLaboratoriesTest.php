@@ -45,6 +45,7 @@ test('authenticated users can create a laboratory', function () {
     $this->assertDatabaseHas('laboratories', [
         'name' => 'Bayer Colombia',
         'tenant_id' => $tenant->id,
+        'nit' => '8600156963',
     ]);
 });
 
@@ -80,7 +81,8 @@ test('authenticated users can update a laboratory', function () {
         ->put("/settings/laboratories/{$lab->id}", ['name' => 'Genfar S.A.', 'nit' => '800099953-1'])
         ->assertRedirect();
 
-    expect($lab->fresh()->name)->toBe('Genfar S.A.');
+    expect($lab->fresh()->name)->toBe('Genfar S.A.')
+        ->and($lab->fresh()->nit)->toBe('8000999531');
 });
 
 test('toggle changes laboratory active status', function () {

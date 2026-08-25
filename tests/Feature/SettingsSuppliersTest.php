@@ -44,6 +44,7 @@ test('authenticated users can create a proveedor', function () {
     $this->assertDatabaseHas('suppliers', [
         'name' => 'Distribuidora XYZ S.A.S.',
         'tenant_id' => $tenant->id,
+        'nit' => '9001112223',
     ]);
 });
 

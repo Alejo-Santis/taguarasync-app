@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Settings;
 
+use App\Support\Sanitize;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,6 +11,13 @@ class UpdateFeSettingsRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user() !== null;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('nit')) {
+            $this->merge(['nit' => Sanitize::identification($this->input('nit'))]);
+        }
     }
 
     /**

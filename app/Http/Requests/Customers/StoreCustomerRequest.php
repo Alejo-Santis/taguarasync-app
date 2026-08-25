@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Customers;
 
+use App\Support\Sanitize;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -10,6 +11,13 @@ class StoreCustomerRequest extends FormRequest
     public function authorize(): bool
     {
         return $this->user() !== null;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('identification_number')) {
+            $this->merge(['identification_number' => Sanitize::identification($this->input('identification_number'))]);
+        }
     }
 
     /**
