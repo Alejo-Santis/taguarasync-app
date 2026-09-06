@@ -8,6 +8,7 @@
         CheckCircle2,
         CircleDollarSign,
         CreditCard,
+        FileText,
         Paperclip,
         Printer,
         PrinterCheck,
@@ -19,6 +20,7 @@
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import CopyButton from '../../Components/UI/CopyButton.svelte';
     import QzPrinter from '../../Services/QzPrinter.js';
 
     let { auth, sale } = $props();
@@ -31,7 +33,9 @@
     let thermalError    = $state('');
 
     const thermalSaleData = $derived({
-        document_number: sale.document_number,
+        document_number: sale.invoice_prefix
+            ? `${sale.invoice_prefix}${sale.invoice_number ?? sale.document_number}`
+            : sale.document_number,
         total:           sale.total,
         subtotal:        sale.subtotal,
         tax_total:       sale.tax_total,
@@ -51,7 +55,7 @@
             line_total:     i.line_total,
         })),
         fe_cufe:   sale.fe?.cufe ?? null,
-        fe_qr_url: sale.fe?.qr_code?.startsWith?.('http') ? sale.fe.qr_code : null,
+        fe_qr_data: sale.fe?.qr_code ?? null,
     });
 
     async function printThermal() {
@@ -97,6 +101,17 @@
     };
 
     let confirmVoid = $state(false);
+
+    // Una venta ya aceptada por la DIAN no se puede anular directamente (el CUFE
+    // quedaría vigente sin reversión) — se redirige a crear la Nota Crédito, que
+    // es la que de verdad devuelve el inventario y avisa a la DIAN.
+    const onClickAnular = () => {
+        if (sale.fe?.status === 'accepted') {
+            router.visit(`/sales/${sale.uuid}/credit-notes/create`);
+            return;
+        }
+        confirmVoid = true;
+    };
 
     const doVoid = () => {
         router.post(`/sales/${sale.uuid}/void`, {}, {
@@ -145,6 +160,16 @@
                     <PrinterCheck size={17} />
                     Imprimir recibo
                 </a>
+                <a
+                    class="btn btn-light border d-inline-flex align-items-center gap-2"
+                    href={`/sales/${sale.uuid}/invoice`}
+                    target="_blank"
+                    rel="noopener"
+                    title="Factura en tamaño carta para impresora multifuncional/USB"
+                >
+                    <FileText size={17} />
+                    Factura completa
+                </a>
                 {#if printerName}
                     <button
                         class="btn btn-light border d-inline-flex align-items-center gap-2"
@@ -174,7 +199,12 @@
                         <ShieldOff size={17} />
                         Nota crédito
                     </Link>
-                    <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={() => confirmVoid = true}>
+                    <button
+                        class="btn btn-outline-danger d-inline-flex align-items-center gap-2"
+                        type="button"
+                        onclick={onClickAnular}
+                        title={sale.fe?.status === 'accepted' ? 'Esta venta ya tiene CUFE ante la DIAN — se revierte con una Nota Crédito' : ''}
+                    >
                         <Ban size={17} />
                         Anular
                     </button>
@@ -343,8 +373,11 @@
                             <div class="taguara-drawer-grid">
                                 {#if sale.fe.cufe}
                                     <span class="taguara-drawer-label">CUFE</span>
-                                    <span class="font-monospace text-truncate" style="font-size:.7rem" title={sale.fe.cufe}>
-                                        {sale.fe.cufe.slice(0, 24)}…
+                                    <span class="d-flex align-items-center gap-1">
+                                        <span class="font-monospace text-truncate" style="font-size:.7rem" title={sale.fe.cufe}>
+                                            {sale.fe.cufe.slice(0, 24)}…
+                                        </span>
+                                        <CopyButton text={sale.fe.cufe} label="Copiar CUFE" />
                                     </span>
                                 {/if}
                                 {#if sale.fe.sent_at}
@@ -357,9 +390,9 @@
                                 {/if}
                             </div>
                         {/if}
-                        {#if sale.fe.qr_code}
+                        {#if sale.fe.qr_svg}
                             <div class="text-center mt-3">
-                                <img src={sale.fe.qr_code} alt="QR DIAN" style="width:120px;height:120px" />
+                                {@html sale.fe.qr_svg}
                             </div>
                         {/if}
                         {#if sale.fe.error_message}

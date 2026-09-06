@@ -87,27 +87,29 @@
         display: inline-flex;
         align-items: center;
         gap: 0.4rem;
-        padding: 0.3rem 0.6rem;
-        border-radius: 6px;
+        padding: 0.4rem 0.7rem;
+        border-radius: 999px;
         border: 1px solid var(--taguara-border);
-        background: transparent;
+        background: #fff;
         font-size: 0.75rem;
-        font-weight: 500;
+        font-weight: 600;
         color: var(--taguara-muted);
         cursor: pointer;
         transition: all 0.15s ease;
         white-space: nowrap;
     }
 
-    .taguara-printer-status:hover { background: #f1f5f9; }
+    .taguara-printer-status:hover { background: var(--taguara-soft-green); color: var(--taguara-text); }
 
-    .taguara-printer-status.connected  { color: #16a34a; border-color: #bbf7d0; background: #f0fdf4; }
-    .taguara-printer-status.error      { color: #dc2626; border-color: #fecaca; background: #fef2f2; }
-    .taguara-printer-status.connecting { color: #d97706; border-color: #fde68a; background: #fffbeb; }
+    .taguara-printer-status.connected  { color: var(--taguara-primary-dark); border-color: var(--taguara-primary); background: var(--taguara-soft-green); }
+    .taguara-printer-status.error      { color: #a8402f; border-color: #f0c9bf; background: #faeee9; }
+    .taguara-printer-status.connecting { color: #a8672a; border-color: #f0ddb9; background: #faf3e5; }
 
     .taguara-printer-status.compact {
-        padding: 0.25rem;
-        border-radius: 5px;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        justify-content: center;
     }
 
     :global(.spin) {

@@ -48,7 +48,7 @@
 
 <AppLayout title="Panel operativo" activeSection="dashboard" {auth}>
     <div class="taguara-dashboard">
-        <section class="taguara-command-band">
+        <section class="taguara-command-band taguara-command-band--hero">
             <div class="d-flex align-items-center gap-3">
                 <LogoMark size={52} />
                 <div>

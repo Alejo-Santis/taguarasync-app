@@ -21,6 +21,7 @@
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import CopyButton from '../../Components/UI/CopyButton.svelte';
     import QzPrinter from '../../Services/QzPrinter.js';
 
     let { auth, sales, filters, stats, paymentMethods, statuses } = $props();
@@ -456,8 +457,11 @@
                         {#if selectedSale.fe.cufe}
                             <div class="taguara-drawer-grid">
                                 <span class="taguara-drawer-label">CUFE</span>
-                                <span class="font-monospace text-truncate" style="font-size:.7rem" title={selectedSale.fe.cufe}>
-                                    {selectedSale.fe.cufe.slice(0, 20)}…
+                                <span class="d-flex align-items-center gap-1">
+                                    <span class="font-monospace text-truncate" style="font-size:.7rem" title={selectedSale.fe.cufe}>
+                                        {selectedSale.fe.cufe.slice(0, 20)}…
+                                    </span>
+                                    <CopyButton text={selectedSale.fe.cufe} label="Copiar CUFE" />
                                 </span>
                             </div>
                         {/if}

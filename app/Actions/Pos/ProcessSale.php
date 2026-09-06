@@ -7,6 +7,7 @@ use App\Enums\FeStatus;
 use App\Enums\InventoryLotStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\SaleStatus;
+use App\Jobs\EmitElectronicInvoiceJob;
 use App\Models\BankAccountMovement;
 use App\Models\CashSession;
 use App\Models\FeSubmission;

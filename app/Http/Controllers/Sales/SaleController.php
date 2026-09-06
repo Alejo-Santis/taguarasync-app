@@ -9,6 +9,7 @@ use App\Enums\SaleStatus;
 use App\Http\Controllers\Controller;
 use App\Jobs\EmitElectronicInvoiceJob;
 use App\Models\Sale;
+use App\Services\Fe\QrCodeRenderer;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -95,6 +96,7 @@ class SaleController extends Controller
                 'uuid' => $sale->uuid,
                 'document_number' => $sale->document_number,
                 'invoice_prefix' => $sale->invoice_prefix,
+                'invoice_number' => $sale->invoice_number,
                 'status' => ['value' => $sale->status->value, 'label' => $sale->status->label()],
                 'payment_method' => $sale->payment_method->label(),
                 'payment_form' => $sale->payment_form?->label(),
@@ -117,6 +119,7 @@ class SaleController extends Controller
                     'status_label' => $sale->fe_status?->label(),
                     'cufe' => $sale->fe_cufe,
                     'qr_code' => $sale->fe_qr_code,
+                    'qr_svg' => $sale->fe_qr_code ? QrCodeRenderer::toSvg($sale->fe_qr_code, 120) : null,
                     'sent_at' => $sale->fe_sent_at?->format('d/m/Y H:i:s'),
                     'accepted_at' => $sale->fe_accepted_at?->format('d/m/Y H:i:s'),
                     'error_message' => $sale->fe_error_message,
@@ -149,8 +152,24 @@ class SaleController extends Controller
         $sale->load(['items.presentation', 'user', 'cashSession.register', 'customer', 'payments.paymentMethod']);
 
         $tenantName = $request->user()?->tenant?->name ?? 'Farmacia';
+        $feQrSvg = $sale->fe_qr_code ? QrCodeRenderer::toSvg($sale->fe_qr_code) : null;
 
-        return view('receipts.sale', compact('sale', 'tenantName'));
+        return view('receipts.sale', compact('sale', 'tenantName', 'feQrSvg'));
+    }
+
+    /**
+     * Representación de la factura en tamaño carta, pensada para imprimirse en
+     * una impresora multifuncional/USB normal (no térmica) usando el diálogo
+     * de impresión nativo del navegador — no requiere QZ Tray.
+     */
+    public function invoice(Sale $sale, Request $request): View
+    {
+        $sale->load(['items.presentation', 'user', 'cashSession.register', 'customer', 'payments.paymentMethod', 'feResolution', 'tenant']);
+
+        $tenant = $request->user()?->tenant ?? $sale->tenant;
+        $feQrSvg = $sale->fe_qr_code ? QrCodeRenderer::toSvg($sale->fe_qr_code, 220) : null;
+
+        return view('receipts.invoice', compact('sale', 'tenant', 'feQrSvg'));
     }
 
     public function retryFe(Sale $sale, Request $request): RedirectResponse

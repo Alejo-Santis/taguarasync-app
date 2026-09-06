@@ -33,11 +33,6 @@ class InvoicePayloadBuilder
             'tax_totals' => $this->buildTaxTotals($sale),
             'payment_form' => $this->buildPaymentForm($sale),
             'legal_monetary_totals' => $this->buildMonetaryTotals($sale),
-            'allowance_charges' => [],
-            'operation_mode' => [
-                'company' => "{$tenant->legal_name} - NIT: {$tenant->nit}-{$tenant->verification_digit}",
-                'software' => 'Taguara Sync',
-            ],
         ];
     }
 
@@ -56,19 +51,16 @@ class InvoicePayloadBuilder
             ?? 0;
 
         if (! $customer) {
+            // Payload minimo exacto del ejemplo oficial "Factura Consumidor Final" de
+            // Nextpyme: solo estas 3 llaves, con identification_number como numero
+            // (no string). Enviar los demas campos (type_*, municipality_id, address,
+            // dv) provoca "customer.* es invalido" porque Nextpyme no los espera para
+            // el identificador generico 222222222222. Confirmado con una factura real
+            // aceptada por la DIAN (StatusCode 00) usando este payload exacto.
             return [
-                'identification_number' => '222222222222',
-                'dv' => null,
+                'identification_number' => 222222222222,
                 'name' => 'Consumidor Final',
-                'email' => null,
-                'phone' => null,
-                'address' => $tenant->address,
-                'municipality_id' => $tenantMunicipalityId,
-                'merchant_registration' => $tenant->merchant_registration ?? '0000000-00',
-                'type_document_identification_id' => 3,
-                'type_organization_id' => 2,
-                'type_liability_id' => $liabilityMap['no_responsible'],
-                'type_regime_id' => 2,
+                'merchant_registration' => '0000000-00',
             ];
         }
 
@@ -80,8 +72,8 @@ class InvoicePayloadBuilder
             ? $liabilityMap['responsible']
             : $liabilityMap['no_responsible'];
 
-        return [
-            'identification_number' => $customer->identification_number,
+        return $this->withoutNulls([
+            'identification_number' => (int) $customer->identification_number,
             'dv' => $customer->verification_digit,
             'name' => $customer->full_name,
             'email' => $customer->email,
@@ -93,7 +85,19 @@ class InvoicePayloadBuilder
             'type_organization_id' => $orgTypeMap[$customer->organization_type_code] ?? 2,
             'type_liability_id' => $liabilityId,
             'type_regime_id' => $regimeMap[$regimeCode] ?? 2,
-        ];
+        ]);
+    }
+
+    /**
+     * Nextpyme rechaza campos opcionales enviados como `null` (ej. email, dv)
+     * en vez de simplemente omitir la llave — se quitan antes de enviar.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function withoutNulls(array $data): array
+    {
+        return array_filter($data, fn ($value) => $value !== null);
     }
 
     /** @return list<array<string, mixed>> */
@@ -101,11 +105,11 @@ class InvoicePayloadBuilder
     {
         return $sale->items->map(function ($item): array {
             $taxRate = (float) $item->tax_rate;
-            $gross = ($item->quantity * $item->unit_price) / 100;
-            $discountAmount = $item->discount_amount / 100;
-            $subtotal = $item->line_subtotal / 100;
-            $taxAmount = $item->line_tax / 100;
-            $unitPrice = $item->unit_price / 100;
+            $gross = $item->quantity * $item->unit_price;
+            $discountAmount = $item->discount_amount;
+            $subtotal = $item->line_subtotal;
+            $taxAmount = $item->line_tax;
+            $unitPrice = $item->unit_price;
             $qty = (string) $item->quantity;
 
             $allowanceCharges = [];
@@ -118,10 +122,13 @@ class InvoicePayloadBuilder
                 ];
             }
 
-            return [
+            // DIAN rechaza la factura ("Base Imponible es diferente") si una linea
+            // no trae tax_totals — incluso cuando la tarifa es 0% (productos exentos,
+            // comunes en farmacia). allowance_charges y notes vacios/nulos SI deben
+            // omitirse (Nextpyme responde 500 si se envian como [] o null).
+            return array_filter([
                 'code' => (string) $item->product_id,
                 'description' => $item->description,
-                'notes' => null,
                 'unit_measure_id' => $item->dian_unit_measure_code
                     ? (int) $item->dian_unit_measure_code
                     : config('fe.map.unit_measure_default'),
@@ -132,15 +139,15 @@ class InvoicePayloadBuilder
                 'free_of_charge_indicator' => false,
                 'allowance_charges' => $allowanceCharges,
                 'type_item_identification_id' => config('fe.map.item_identification_default'),
-                'tax_totals' => $taxRate > 0 ? [
+                'tax_totals' => [
                     [
                         'tax_id' => config('fe.map.iva_tax_id'),
                         'percent' => number_format($taxRate, 2, '.', ''),
                         'taxable_amount' => number_format($subtotal, 2, '.', ''),
                         'tax_amount' => number_format($taxAmount, 3, '.', ''),
                     ],
-                ] : [],
-            ];
+                ],
+            ], fn ($value) => ! (is_null($value) || $value === []));
         })->values()->all();
     }
 
@@ -154,8 +161,8 @@ class InvoicePayloadBuilder
             if ((float) $rate === 0.0) {
                 continue;
             }
-            $taxable = $items->sum('line_subtotal') / 100;
-            $tax = $items->sum('line_tax') / 100;
+            $taxable = $items->sum('line_subtotal');
+            $tax = $items->sum('line_tax');
 
             $totals[] = [
                 'tax_id' => config('fe.map.iva_tax_id'),
@@ -166,7 +173,7 @@ class InvoicePayloadBuilder
         }
 
         if ($sale->items->where('tax_rate', 0)->isNotEmpty()) {
-            $taxable = $sale->items->where('tax_rate', 0)->sum('line_subtotal') / 100;
+            $taxable = $sale->items->where('tax_rate', 0)->sum('line_subtotal');
             $totals[] = [
                 'tax_id' => config('fe.map.iva_tax_id'),
                 'percent' => '0.00',
@@ -199,10 +206,10 @@ class InvoicePayloadBuilder
     /** @return array<string, mixed> */
     private function buildMonetaryTotals(Sale $sale): array
     {
-        $gross = $sale->items->sum(fn ($i) => $i->quantity * $i->unit_price) / 100;
-        $discountTotal = ($sale->discount_total ?? 0) / 100;
-        $subtotal = $sale->subtotal / 100;
-        $total = $sale->total / 100;
+        $gross = $sale->items->sum(fn ($i) => $i->quantity * $i->unit_price);
+        $discountTotal = $sale->discount_total ?? 0;
+        $subtotal = $sale->subtotal;
+        $total = $sale->total;
 
         return [
             'line_extension_amount' => number_format($gross, 2, '.', ''),

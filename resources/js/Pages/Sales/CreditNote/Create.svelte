@@ -95,7 +95,7 @@
                 <p class="text-uppercase small fw-semibold text-success mb-2">Nota crédito</p>
                 <h2 class="h3 mb-1">Devolución / ajuste</h2>
                 <p class="text-secondary mb-0">
-                    Venta: <strong>{sale.invoice_prefix ?? ''}{sale.document_number}</strong>
+                    Venta: <strong>{sale.invoice_prefix ?? ''}{sale.invoice_number ?? sale.document_number}</strong>
                     · {sale.customer_name} · {sale.created_at}
                 </p>
             </div>

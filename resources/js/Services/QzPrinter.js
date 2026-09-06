@@ -78,7 +78,16 @@ const QzPrinter = {
         return () => { _listeners = _listeners.filter(l => l !== fn); };
     },
 
-    /** Conecta al WebSocket de QZ Tray. Idempotente. */
+    /**
+     * Conecta al WebSocket de QZ Tray. Idempotente.
+     *
+     * qz-tray puede quedarse colgado indefinidamente (nunca resuelve ni rechaza)
+     * cuando el sitio corre en HTTPS y el certificado autofirmado de QZ Tray para
+     * su puerto seguro (wss://) nunca fue aceptado en el navegador — un problema
+     * conocido de QZ Tray, no de esta app. Sin un timeout propio, el botón se
+     * queda en "Conectando..." para siempre y no hay forma de reintentar sin
+     * recargar la página. Este timeout garantiza que siempre se resuelva.
+     */
     async connect() {
         if (_connected || _connecting) return;
         _connecting = true;
@@ -95,15 +104,26 @@ const QzPrinter = {
             _emit({ connected: false, error: err?.message ?? 'Error QZ' });
         });
 
+        const CONNECT_TIMEOUT_MS = 8000;
+        const timeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('timeout')), CONNECT_TIMEOUT_MS);
+        });
+
         try {
-            await qz.websocket.connect({ retries: 2, delay: 1 });
+            await Promise.race([qz.websocket.connect({ retries: 2, delay: 1 }), timeout]);
             _connected  = true;
             _connecting = false;
             _emit({ connected: true });
         } catch (err) {
             _connected  = false;
             _connecting = false;
-            _emit({ connected: false, error: 'No se pudo conectar a QZ Tray. ¿Está instalado y corriendo?' });
+            const timedOut = err?.message === 'timeout';
+            _emit({
+                connected: false,
+                error: timedOut
+                    ? 'QZ Tray no respondió a tiempo. Si es la primera vez, abre https://localhost:8181 en una pestaña y acepta el certificado, luego vuelve a intentar.'
+                    : 'No se pudo conectar a QZ Tray. ¿Está instalado y corriendo?',
+            });
             throw err;
         }
     },
@@ -148,7 +168,7 @@ const QzPrinter = {
     /**
      * Imprime el recibo de una venta en formato ESC/POS.
      * @param {string} printerName
-     * @param {object} sale  - sale.fe_cufe y sale.fe_qr_url opcionales para QR FE
+     * @param {object} sale  - sale.fe_cufe y sale.fe_qr_data opcionales para QR FE
      * @param {object} opts  - { paperWidth: '80mm'|'58mm', copies: 1 }
      */
     async printReceipt(printerName, sale, opts = {}) {
@@ -234,7 +254,7 @@ function buildQrEscPos(url) {
  *   payment_form ('1'|'2'), payment_method, payment_due_date, change_amount,
  *   customer_name, cashier_name, created_at, status,
  *   items[]: { description, quantity, unit_price, discount_rate, discount_amount, line_total }
- *   fe_cufe (optional), fe_qr_url (optional - URL a codificar en QR nativo)
+ *   fe_cufe (optional), fe_qr_data (optional - contenido de texto plano del QR DIAN)
  */
 function buildReceiptEscPos(sale, paperWidth = '80mm') {
     const W    = col(paperWidth);
@@ -326,10 +346,10 @@ function buildReceiptEscPos(sale, paperWidth = '80mm') {
         for (let i = 0; i < cufe.length; i += W) {
             p(cufe.slice(i, i + W) + '\n');
         }
-        // QR nativo si disponemos de una URL
-        if (sale.fe_qr_url && sale.fe_qr_url.startsWith('http')) {
+        // QR nativo con el contenido QR que devuelve la DIAN (texto plano, no una URL)
+        if (sale.fe_qr_data) {
             p(CMD.ALIGN_CENTER);
-            cmds.push(buildQrEscPos(sale.fe_qr_url));
+            cmds.push(buildQrEscPos(sale.fe_qr_data));
         }
     }
 

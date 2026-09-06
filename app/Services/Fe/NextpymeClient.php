@@ -116,6 +116,7 @@ class NextpymeClient
         // abandon requests that were about to succeed. connectTimeout is short
         // because a dead/unreachable endpoint should be detected fast.
         $response = Http::withToken($this->globalToken)
+            ->acceptJson()
             ->timeout(120)
             ->connectTimeout(10)
             ->retry(2, 3000, function (Exception $exception): bool {

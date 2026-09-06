@@ -3,6 +3,7 @@
 namespace App\Actions\Sales;
 
 use App\Actions\Inventory\RegisterInventoryMovement;
+use App\Enums\FeStatus;
 use App\Enums\SaleStatus;
 use App\Models\InventoryLot;
 use App\Models\Sale;
@@ -16,6 +17,17 @@ class VoidSale
     {
         if ($sale->status !== SaleStatus::Completed) {
             throw new InvalidArgumentException('Solo se pueden anular ventas con estado Completada.');
+        }
+
+        // Una venta ya facturada electrónicamente ante la DIAN no se puede anular
+        // directamente: el CUFE quedaría vigente en la DIAN sin ninguna reversión.
+        // La única forma legal de revertirla es una Nota Crédito, que además
+        // consume su propio consecutivo (nunca reutiliza el de la factura).
+        if ($sale->fe_status === FeStatus::Accepted) {
+            throw new InvalidArgumentException(
+                'Esta venta ya fue facturada electrónicamente ante la DIAN (CUFE registrado). '.
+                'No se puede anular directamente — crea una Nota Crédito para revertirla.'
+            );
         }
 
         return DB::transaction(function () use ($sale, $user): Sale {

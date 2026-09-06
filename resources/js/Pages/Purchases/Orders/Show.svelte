@@ -5,6 +5,9 @@
 
     let { auth, order } = $props();
 
+    let isSending = $state(false);
+    let isCancelling = $state(false);
+
     const money = new Intl.NumberFormat('es-CO', {
         style: 'currency',
         currency: 'COP',
@@ -20,12 +23,20 @@
     };
 
     const sendOrder = () => {
-        router.post(`/purchases/orders/${order.uuid}/send`, {}, { preserveScroll: true });
+        isSending = true;
+        router.post(`/purchases/orders/${order.uuid}/send`, {}, {
+            preserveScroll: true,
+            onFinish: () => { isSending = false; },
+        });
     };
 
     const cancelOrder = () => {
         if (!confirm('¿Seguro que deseas cancelar esta orden?')) { return; }
-        router.post(`/purchases/orders/${order.uuid}/cancel`, {}, { preserveScroll: true });
+        isCancelling = true;
+        router.post(`/purchases/orders/${order.uuid}/cancel`, {}, {
+            preserveScroll: true,
+            onFinish: () => { isCancelling = false; },
+        });
     };
 </script>
 
@@ -46,17 +57,29 @@
             <div class="d-flex align-items-center gap-2 flex-wrap">
                 <span class="badge fs-6 {statusClass(order.status)}">{order.status_label}</span>
                 {#if order.status === 'draft'}
-                    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="button" onclick={sendOrder}>
-                        <Send size={16} />
+                    <button class="btn btn-primary d-inline-flex align-items-center gap-2" type="button" onclick={sendOrder} disabled={isSending || isCancelling}>
+                        {#if isSending}
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                        {:else}
+                            <Send size={16} />
+                        {/if}
                         Marcar como enviada
                     </button>
-                    <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={cancelOrder}>
-                        <X size={16} />
+                    <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={cancelOrder} disabled={isSending || isCancelling}>
+                        {#if isCancelling}
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                        {:else}
+                            <X size={16} />
+                        {/if}
                         Cancelar orden
                     </button>
                 {:else if order.status === 'sent'}
-                    <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={cancelOrder}>
-                        <X size={16} />
+                    <button class="btn btn-outline-danger d-inline-flex align-items-center gap-2" type="button" onclick={cancelOrder} disabled={isCancelling}>
+                        {#if isCancelling}
+                            <span class="spinner-border spinner-border-sm" role="status"></span>
+                        {:else}
+                            <X size={16} />
+                        {/if}
                         Cancelar orden
                     </button>
                 {/if}

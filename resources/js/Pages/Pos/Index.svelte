@@ -10,6 +10,7 @@
         CreditCard,
         DollarSign,
         Eye,
+        FileText,
         History,
         Lock,
         Minus,
@@ -1423,6 +1424,19 @@
                             Imprimir recibo
                         </a>
                     {/if}
+                </div>
+
+                <div class="d-flex gap-2 mb-2">
+                    <a
+                        class="btn btn-light border flex-fill d-inline-flex align-items-center justify-content-center gap-2"
+                        href={receipt?.uuid ? `/sales/${receipt.uuid}/invoice` : '#'}
+                        target="_blank"
+                        rel="noopener"
+                        title="Factura en tamaño carta para impresora multifuncional/USB"
+                    >
+                        <FileText size={16} />
+                        Factura completa
+                    </a>
                 </div>
 
                 <div class="d-flex gap-2">

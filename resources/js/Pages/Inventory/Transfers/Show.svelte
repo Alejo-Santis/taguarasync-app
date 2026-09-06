@@ -7,6 +7,7 @@
     let { auth, transfer } = $props();
 
     let confirmAction = $state(null); // 'confirm' | 'cancel'
+    let isProcessing = $state(false);
 
     const statusClass = (value) => {
         if (value === 'confirmed') return 'text-bg-success';
@@ -20,9 +21,11 @@
     const executeAction = () => {
         if (!confirmAction) return;
         const url = `/inventory/transfers/${transfer.uuid}/${confirmAction}`;
+        isProcessing = true;
         router.post(url, {}, {
             onSuccess: closeConfirm,
             preserveScroll: true,
+            onFinish: () => { isProcessing = false; },
         });
     };
 
@@ -158,7 +161,7 @@
                         {confirmAction === 'confirm' ? 'Confirmar traslado' : 'Cancelar traslado'}
                     </h2>
                 </div>
-                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Cerrar" onclick={closeConfirm}>
+                <button class="btn btn-light border taguara-icon-button" type="button" aria-label="Cerrar" onclick={closeConfirm} disabled={isProcessing}>
                     <X size={17} />
                 </button>
             </div>
@@ -170,9 +173,13 @@
                         <strong>{transfer.to_branch.name}</strong>. Esta accion no se puede deshacer.
                     </p>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-light border flex-fill" type="button" onclick={closeConfirm}>Cancelar</button>
-                        <button class="btn btn-taguara flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={executeAction}>
-                            <CheckCircle size={16} />
+                        <button class="btn btn-light border flex-fill" type="button" onclick={closeConfirm} disabled={isProcessing}>Cancelar</button>
+                        <button class="btn btn-taguara flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={executeAction} disabled={isProcessing}>
+                            {#if isProcessing}
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                            {:else}
+                                <CheckCircle size={16} />
+                            {/if}
                             Confirmar traslado
                         </button>
                     </div>
@@ -181,9 +188,13 @@
                         El traslado quedara cancelado y no se podra reactivar. Los lotes no se modificaran.
                     </p>
                     <div class="d-flex gap-2">
-                        <button class="btn btn-light border flex-fill" type="button" onclick={closeConfirm}>Volver</button>
-                        <button class="btn btn-danger flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={executeAction}>
-                            <XCircle size={16} />
+                        <button class="btn btn-light border flex-fill" type="button" onclick={closeConfirm} disabled={isProcessing}>Volver</button>
+                        <button class="btn btn-danger flex-fill d-inline-flex align-items-center justify-content-center gap-2" type="button" onclick={executeAction} disabled={isProcessing}>
+                            {#if isProcessing}
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                            {:else}
+                                <XCircle size={16} />
+                            {/if}
                             Cancelar traslado
                         </button>
                     </div>

@@ -12,6 +12,7 @@
         X,
     } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import CopyButton from '../../Components/UI/CopyButton.svelte';
 
     let { auth, receipt, errors = {} } = $props();
 
@@ -261,6 +262,7 @@
                         <div class="d-flex align-items-center gap-2">
                             {#if receipt.supplier_cufe}
                                 <code class="small text-secondary text-break flex-grow-1">{receipt.supplier_cufe}</code>
+                                <CopyButton text={receipt.supplier_cufe} label="Copiar CUFE" />
                             {:else}
                                 <span class="small text-secondary fst-italic flex-grow-1">Sin CUFE — ingresa el del documento del proveedor</span>
                             {/if}

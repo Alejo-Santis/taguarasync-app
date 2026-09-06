@@ -1,28 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Karla:wght@400;500;600;700&display=swap');
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
 :root {
-    --taguara-primary: #146c43;
-    --taguara-primary-dark: #0f5132;
-    --taguara-accent: #0d6efd;
-    --taguara-surface: #f7f9fb;
-    --taguara-border: #dbe3ea;
-    --taguara-text: #1f2933;
-    --taguara-muted: #64748b;
-    --taguara-sidebar: #fafcfb;
-    --taguara-soft-green: #e8f4ee;
-    --taguara-soft-blue: #eaf2ff;
-    --taguara-soft-amber: #fff6df;
-    --taguara-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 4px 16px rgba(15, 23, 42, 0.05);
-    --taguara-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08), 0 16px 40px rgba(15, 23, 42, 0.07);
-    --taguara-radius: 10px;
+    --taguara-primary: #5c7a5f;
+    --taguara-primary-dark: #46614a;
+    --taguara-primary-rgb: 92, 122, 95;
+    --taguara-accent: #c96f4a;
+    --taguara-accent-dark: #a85835;
+    --taguara-surface: #faf5ec;
+    --taguara-border: #ece0d0;
+    --taguara-text: #3a2e26;
+    --taguara-muted: #6b5c4f;
+    --taguara-sidebar: #fffdf9;
+    --taguara-soft-green: #e5ede6;
+    --taguara-soft-blue: #eaeef6;
+    --taguara-soft-amber: #f7ecd9;
+    --taguara-shadow-sm: 0 2px 8px -2px rgba(92, 122, 95, 0.14), 0 6px 20px -6px rgba(92, 122, 95, 0.12);
+    --taguara-shadow-md: 0 10px 24px -8px rgba(92, 122, 95, 0.22), 0 4px 10px -4px rgba(92, 122, 95, 0.14);
+    --taguara-radius: 18px;
     --taguara-transition: 0.15s ease;
+
+    /* Reasignar la paleta de Bootstrap para que btn/badge/alert/border
+       utilities (text-bg-success, bg-warning, etc.) usados en decenas de
+       paginas hereden la nueva identidad en vez del azul/verde por defecto. */
+    --bs-primary: #5b6f9e;
+    --bs-primary-rgb: 91, 111, 158;
+    --bs-secondary: #8a7a6b;
+    --bs-secondary-rgb: 138, 122, 107;
+    --bs-success: #5c7a5f;
+    --bs-success-rgb: 92, 122, 95;
+    --bs-info: #c96f4a;
+    --bs-info-rgb: 201, 111, 74;
+    --bs-warning: #c98a2c;
+    --bs-warning-rgb: 201, 138, 44;
+    --bs-danger: #b8543a;
+    --bs-danger-rgb: 184, 84, 58;
+    --bs-light: #f2e9dd;
+    --bs-light-rgb: 242, 233, 221;
+    --bs-dark: #3a2e26;
+    --bs-dark-rgb: 58, 46, 38;
+    --bs-border-radius: 0.75rem;
+    --bs-border-radius-sm: 0.5rem;
+    --bs-border-radius-lg: 1rem;
+    --bs-border-radius-xl: 1.25rem;
+    --bs-body-font-family: "Karla", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --bs-body-bg: #faf5ec;
+    --bs-body-color: #3a2e26;
+    --bs-border-color: #ece0d0;
+    --bs-link-color: #c96f4a;
+    --bs-link-color-rgb: 201, 111, 74;
+    --bs-link-hover-color: #a85835;
+    --bs-link-hover-color-rgb: 168, 88, 53;
 }
 
 body {
     min-height: 100vh;
     background: var(--taguara-surface);
     color: var(--taguara-text);
-    font-family: "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-family: "Karla", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: "Spectral", Georgia, serif;
 }
 
 /* ── Auth split-screen ─────────────────────────────────────────── */
@@ -192,7 +231,7 @@ body {
 .taguara-collapse-btn:hover {
     background: var(--taguara-soft-green);
     color: var(--taguara-primary-dark);
-    border-color: rgba(20, 108, 67, 0.3);
+    border-color: rgba(92, 122, 95, 0.3);
 }
 
 /* ── Collapsed: hide labels ─── */
@@ -278,8 +317,8 @@ body {
     align-items: center;
     gap: 0.75rem;
     min-height: 42px;
-    padding: 0.625rem 0.75rem;
-    border-radius: 8px;
+    padding: 0.625rem 0.9rem;
+    border-radius: 999px;
     color: var(--taguara-muted);
     font-weight: 600;
     font-size: 0.9375rem;
@@ -291,13 +330,13 @@ body {
 
 .taguara-nav-link:hover {
     background: var(--taguara-soft-green);
-    color: var(--taguara-primary-dark);
+    color: var(--taguara-text);
 }
 
 .taguara-nav-link.active {
-    background: var(--taguara-soft-green);
-    color: var(--taguara-primary-dark);
-    box-shadow: inset 3px 0 0 var(--taguara-primary);
+    background: var(--taguara-primary);
+    color: #fff;
+    box-shadow: none;
     font-weight: 700;
 }
 
@@ -315,7 +354,7 @@ body {
 }
 
 .taguara-sidebar--collapsed .taguara-nav-link.active {
-    box-shadow: inset 3px 0 0 var(--taguara-primary);
+    box-shadow: none;
 }
 
 /* Tooltip rendered via JS action with position: fixed */
@@ -345,9 +384,9 @@ body {
     font-size: 0.65rem;
     font-weight: 700;
     padding: 1px 6px;
-    border-radius: 4px;
+    border-radius: 999px;
     background: var(--taguara-soft-blue);
-    color: #084298;
+    color: #3d4d70;
     letter-spacing: 0.03em;
 }
 
@@ -404,7 +443,7 @@ body {
     flex: 0 0 auto;
     width: 32px;
     height: 32px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--taguara-primary);
     color: #fff;
     font-size: 0.8125rem;
@@ -433,7 +472,7 @@ body {
     min-height: 76px;
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--taguara-border);
-    background: rgba(247, 249, 251, 0.92);
+    background: rgba(250, 245, 236, 0.92);
     backdrop-filter: blur(14px);
 }
 
@@ -452,6 +491,36 @@ body {
     padding: 0;
 }
 
+.taguara-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--taguara-muted);
+    cursor: pointer;
+    transition: background var(--taguara-transition), color var(--taguara-transition);
+}
+
+.taguara-copy-btn:hover:not(:disabled) {
+    background: var(--taguara-soft-blue);
+    color: var(--taguara-primary);
+}
+
+.taguara-copy-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.taguara-copy-btn--copied {
+    color: var(--taguara-success, #198754);
+}
+
 /* ── Search trigger button ─── */
 .taguara-search-trigger {
     display: inline-flex;
@@ -460,7 +529,7 @@ body {
     height: 38px;
     padding: 0 0.625rem 0 0.75rem;
     border: 1px solid var(--taguara-border);
-    border-radius: 9px;
+    border-radius: 999px;
     background: #fff;
     color: var(--taguara-muted);
     cursor: pointer;
@@ -470,7 +539,7 @@ body {
 }
 
 .taguara-search-trigger:hover {
-    border-color: rgba(20, 108, 67, 0.4);
+    border-color: rgba(92, 122, 95, 0.4);
     box-shadow: var(--taguara-shadow-sm);
     color: var(--taguara-text);
 }
@@ -661,6 +730,15 @@ body {
 .tsm-empty span { font-size: 0.8125rem; }
 .tsm-empty--hint { padding: 1.5rem; }
 
+.tsm-quick-actions-label {
+    margin: 0.75rem 1rem 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--taguara-muted);
+}
+
 .tsm-footer {
     display: flex;
     align-items: center;
@@ -694,7 +772,7 @@ body {
     gap: 0.5rem;
     padding: 0 0.625rem;
     height: 32px;
-    border: 1px solid rgba(20, 108, 67, 0.15);
+    border: 1px solid rgba(92, 122, 95, 0.15);
     border-radius: 20px;
     background: var(--taguara-soft-green);
 }
@@ -742,7 +820,7 @@ body {
     width: 40px;
     height: 40px;
     border: 1px solid var(--taguara-border);
-    border-radius: 10px;
+    border-radius: 999px;
     background: #fff;
     color: var(--taguara-text);
     cursor: pointer;
@@ -751,7 +829,7 @@ body {
 
 .taguara-bell-btn:hover,
 .taguara-bell-btn[aria-expanded="true"] {
-    border-color: rgba(20, 108, 67, 0.3);
+    border-color: rgba(92, 122, 95, 0.3);
     background: var(--taguara-soft-green);
     box-shadow: var(--taguara-shadow-sm);
 }
@@ -878,7 +956,7 @@ body {
     height: 40px;
     padding: 0 0.625rem 0 0.375rem;
     border: 1px solid var(--taguara-border);
-    border-radius: 10px;
+    border-radius: 999px;
     background: #fff;
     cursor: pointer;
     transition: border-color var(--taguara-transition), background var(--taguara-transition), box-shadow var(--taguara-transition);
@@ -886,7 +964,7 @@ body {
 
 .taguara-user-btn:hover,
 .taguara-user-btn[aria-expanded="true"] {
-    border-color: rgba(20, 108, 67, 0.3);
+    border-color: rgba(92, 122, 95, 0.3);
     background: var(--taguara-soft-green);
     box-shadow: var(--taguara-shadow-sm);
 }
@@ -898,7 +976,7 @@ body {
     flex-shrink: 0;
     width: 30px;
     height: 30px;
-    border-radius: 8px;
+    border-radius: 999px;
     background: linear-gradient(135deg, var(--taguara-primary), var(--taguara-primary-dark));
     color: #fff;
     font-size: 0.75rem;
@@ -909,7 +987,7 @@ body {
 .taguara-user-avatar--lg {
     width: 38px;
     height: 38px;
-    border-radius: 10px;
+    border-radius: 999px;
     font-size: 0.875rem;
     flex-shrink: 0;
 }
@@ -1006,6 +1084,45 @@ body {
     padding: 1.25rem;
 }
 
+/* Variante "hero" — solo para la banda de bienvenida del Dashboard */
+.taguara-command-band--hero {
+    background: var(--taguara-primary);
+    border-color: var(--taguara-primary);
+}
+
+.taguara-command-band--hero h2,
+.taguara-command-band--hero p {
+    color: #fff;
+}
+
+.taguara-command-band--hero .text-success {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.taguara-command-band--hero .text-secondary {
+    color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.taguara-command-band--hero .btn-taguara {
+    --bs-btn-bg: var(--taguara-accent);
+    --bs-btn-border-color: var(--taguara-accent);
+    --bs-btn-hover-bg: var(--taguara-accent-dark);
+    --bs-btn-hover-border-color: var(--taguara-accent-dark);
+    --bs-btn-active-bg: var(--taguara-accent-dark);
+    --bs-btn-active-border-color: var(--taguara-accent-dark);
+}
+
+.taguara-command-band--hero .btn-light {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    color: #fff;
+}
+
+.taguara-command-band--hero .btn-light:hover {
+    background: rgba(255, 255, 255, 0.22);
+    color: #fff;
+}
+
 .taguara-kpi-card {
     display: flex;
     align-items: flex-start;
@@ -1095,7 +1212,7 @@ body {
     display: block;
     width: 100%;
     border-radius: 6px 6px 2px 2px;
-    background: linear-gradient(180deg, #146c43, #78c29a);
+    background: linear-gradient(180deg, #5c7a5f, #a9c0ab);
     min-height: 4px;
     transition: height 0.3s ease;
 }
@@ -1147,7 +1264,7 @@ body {
     display: block;
     min-height: 24px;
     border-radius: 8px 8px 4px 4px;
-    background: linear-gradient(180deg, #146c43, #78c29a);
+    background: linear-gradient(180deg, #5c7a5f, #a9c0ab);
 }
 
 .taguara-alert-row,
@@ -1169,7 +1286,7 @@ body {
     justify-content: center;
     min-width: 34px;
     height: 34px;
-    border-radius: 8px;
+    border-radius: 999px;
     background: var(--taguara-soft-amber);
     color: #8a5a00;
     font-weight: 800;
@@ -1197,7 +1314,7 @@ body {
 }
 
 .taguara-action-button:hover {
-    border-color: rgba(20, 108, 67, 0.35);
+    border-color: rgba(92, 122, 95, 0.35);
     background: var(--taguara-soft-green);
     box-shadow: var(--taguara-shadow-md);
     transform: translateY(-2px);
@@ -1227,9 +1344,9 @@ body {
     justify-content: center;
     flex: 0 0 86px;
     min-height: 34px;
-    border-radius: 8px;
+    border-radius: 999px;
     background: var(--taguara-soft-blue);
-    color: #084298;
+    color: #3d4d70;
     font-size: 0.8125rem;
     font-weight: 800;
 }
@@ -1358,8 +1475,8 @@ body {
 }
 
 .form-control:focus {
-    border-color: rgba(20, 108, 67, 0.55);
-    box-shadow: 0 0 0 0.25rem rgba(20, 108, 67, 0.12);
+    border-color: rgba(92, 122, 95, 0.55);
+    box-shadow: 0 0 0 0.25rem rgba(92, 122, 95, 0.12);
 }
 
 .taguara-input-icon {
@@ -1458,7 +1575,7 @@ body {
 }
 
 .taguara-product-row:hover {
-    border-color: rgba(20, 108, 67, 0.25);
+    border-color: rgba(92, 122, 95, 0.25);
     box-shadow: var(--taguara-shadow-md);
 }
 
@@ -1559,7 +1676,7 @@ body {
 }
 
 .taguara-presentation-pill.default {
-    border-color: rgba(20, 108, 67, 0.22);
+    border-color: rgba(92, 122, 95, 0.22);
     background: var(--taguara-soft-green);
     color: var(--taguara-primary-dark);
 }
@@ -1586,6 +1703,31 @@ body {
     border-radius: 8px;
     color: var(--taguara-muted);
     text-align: center;
+}
+
+/* ── Skeleton loaders ─────────────────────────────────────────── */
+.taguara-skeleton {
+    display: inline-block;
+    background: linear-gradient(90deg, var(--taguara-border) 25%, #f3ead9 37%, var(--taguara-border) 63%);
+    background-size: 400% 100%;
+    animation: taguara-skeleton-pulse 1.4s ease infinite;
+}
+
+@keyframes taguara-skeleton-pulse {
+    0% { background-position: 100% 50%; }
+    100% { background-position: 0 50%; }
+}
+
+.taguara-skeleton-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--taguara-border);
+}
+
+.taguara-skeleton-row:last-child {
+    border-bottom: 0;
 }
 
 .taguara-table-shell {
@@ -1780,7 +1922,7 @@ body {
 }
 
 .taguara-presentation-drawer-row.default {
-    border-color: rgba(20, 108, 67, 0.22);
+    border-color: rgba(92, 122, 95, 0.22);
     background: var(--taguara-soft-green);
 }
 
@@ -1810,7 +1952,7 @@ body {
 }
 
 .taguara-upload-zone.has-file {
-    border-color: rgba(20, 108, 67, 0.4);
+    border-color: rgba(92, 122, 95, 0.4);
     background: var(--taguara-soft-green);
 }
 
@@ -1859,7 +2001,7 @@ body {
     overflow: hidden;
     padding: 0.875rem 1.25rem 1.25rem;
     background:
-        linear-gradient(180deg, rgba(20, 108, 67, 0.055), transparent 280px),
+        linear-gradient(180deg, rgba(92, 122, 95, 0.055), transparent 280px),
         #f4f7f9;
 }
 
@@ -1931,15 +2073,15 @@ body {
     gap: 0.8rem;
     min-height: 58px;
     padding: 0 1rem;
-    border: 1px solid rgba(20, 108, 67, 0.22);
+    border: 1px solid rgba(92, 122, 95, 0.22);
     border-radius: 10px;
     background: #fff;
-    box-shadow: inset 0 0 0 1px rgba(20, 108, 67, 0.03);
+    box-shadow: inset 0 0 0 1px rgba(92, 122, 95, 0.03);
 }
 
 .taguara-pos-search-input:focus-within {
-    border-color: rgba(20, 108, 67, 0.52);
-    box-shadow: 0 0 0 4px rgba(20, 108, 67, 0.08);
+    border-color: rgba(92, 122, 95, 0.52);
+    box-shadow: 0 0 0 4px rgba(92, 122, 95, 0.08);
 }
 
 .taguara-pos-search-input input {
@@ -2001,7 +2143,7 @@ body {
     padding: 3rem 2rem;
     color: var(--taguara-muted);
     background:
-        radial-gradient(circle at center, rgba(20, 108, 67, 0.07), transparent 240px),
+        radial-gradient(circle at center, rgba(92, 122, 95, 0.07), transparent 240px),
         #fff;
 }
 
@@ -2012,7 +2154,7 @@ body {
     justify-self: center;
     width: 86px;
     height: 86px;
-    border: 1px solid rgba(20, 108, 67, 0.18);
+    border: 1px solid rgba(92, 122, 95, 0.18);
     border-radius: 16px;
     background: var(--taguara-soft-green);
     color: var(--taguara-primary);
@@ -2081,7 +2223,7 @@ body {
 }
 
 .taguara-pos-product-card:hover {
-    border-color: rgba(20, 108, 67, 0.32);
+    border-color: rgba(92, 122, 95, 0.32);
     box-shadow: var(--taguara-shadow-sm);
     transform: translateY(-1px);
 }
@@ -2111,7 +2253,7 @@ body {
     min-height: 30px;
     padding: 0.25rem 0.55rem;
     border-radius: 7px;
-    border: 1px solid rgba(20, 108, 67, 0.18);
+    border: 1px solid rgba(92, 122, 95, 0.18);
     background: var(--taguara-soft-green);
     color: var(--taguara-primary-dark);
     font-size: 0.76rem;
@@ -2141,12 +2283,12 @@ body {
 }
 
 .taguara-pos-pres-btn:hover:not(:disabled) {
-    border-color: rgba(20, 108, 67, 0.4);
+    border-color: rgba(92, 122, 95, 0.4);
     background: var(--taguara-soft-green);
 }
 
 .taguara-pos-pres-btn.default {
-    border-color: rgba(20, 108, 67, 0.25);
+    border-color: rgba(92, 122, 95, 0.25);
     background: var(--taguara-soft-green);
 }
 
@@ -2187,8 +2329,8 @@ body {
 }
 
 .taguara-pos-customer-search:focus-within {
-    border-color: rgba(20, 108, 67, 0.42);
-    box-shadow: 0 0 0 3px rgba(20, 108, 67, 0.08);
+    border-color: rgba(92, 122, 95, 0.42);
+    box-shadow: 0 0 0 3px rgba(92, 122, 95, 0.08);
 }
 
 .taguara-pos-customer-search svg {
@@ -2254,7 +2396,7 @@ body {
 
 .taguara-pos-qty-btn:hover:not(:disabled) {
     background: var(--taguara-soft-green);
-    border-color: rgba(20, 108, 67, 0.4);
+    border-color: rgba(92, 122, 95, 0.4);
 }
 
 .taguara-pos-qty-btn:disabled {
@@ -2293,12 +2435,12 @@ body {
     gap: 0.875rem;
     padding: 0.875rem 1.25rem;
     margin: 0 1.25rem;
-    border: 1px solid rgba(20, 108, 67, 0.2);
+    border: 1px solid rgba(92, 122, 95, 0.2);
     border-radius: 10px;
     background:
         linear-gradient(135deg, #10613b, #168453 55%, #0e5b65);
     color: #fff;
-    box-shadow: 0 8px 24px rgba(20, 108, 67, 0.14);
+    box-shadow: 0 8px 24px rgba(92, 122, 95, 0.14);
 }
 
 .taguara-pos-session-main {
@@ -2461,7 +2603,7 @@ body {
     gap: 0.625rem;
     min-height: 42px;
     padding: 0.5rem 0.75rem;
-    border: 1px dashed rgba(20, 108, 67, 0.45);
+    border: 1px dashed rgba(92, 122, 95, 0.45);
     border-radius: 8px;
     background: #fff;
     color: var(--taguara-primary-dark);
@@ -2478,7 +2620,7 @@ body {
 }
 
 .taguara-pos-method-btn:hover {
-    border-color: rgba(20, 108, 67, 0.4);
+    border-color: rgba(92, 122, 95, 0.4);
     background: var(--taguara-soft-green);
     color: var(--taguara-primary-dark);
 }
@@ -2496,7 +2638,7 @@ body {
     padding: 1rem 1.25rem;
     border-radius: 10px;
     background: var(--taguara-soft-green);
-    border: 1px solid rgba(20, 108, 67, 0.2);
+    border: 1px solid rgba(92, 122, 95, 0.2);
 }
 
 .taguara-pos-cash-suggestions {
@@ -2517,7 +2659,7 @@ body {
 }
 
 .taguara-pos-cash-suggestions button:hover {
-    border-color: rgba(20, 108, 67, 0.35);
+    border-color: rgba(92, 122, 95, 0.35);
     background: var(--taguara-soft-green);
     color: var(--taguara-primary-dark);
 }
@@ -2543,7 +2685,7 @@ body {
 }
 
 .taguara-fe-connection-icon.is-ok {
-    border-color: rgba(20, 108, 67, 0.22);
+    border-color: rgba(92, 122, 95, 0.22);
     background: var(--taguara-soft-green);
     color: var(--taguara-primary);
 }

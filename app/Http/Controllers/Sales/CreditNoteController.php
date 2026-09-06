@@ -22,6 +22,7 @@ class CreditNoteController extends Controller
                 'uuid' => $sale->uuid,
                 'document_number' => $sale->document_number,
                 'invoice_prefix' => $sale->invoice_prefix,
+                'invoice_number' => $sale->invoice_number,
                 'fe_cufe' => $sale->fe_cufe,
                 'subtotal' => $sale->subtotal,
                 'tax_total' => $sale->tax_total,

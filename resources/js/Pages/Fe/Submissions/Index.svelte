@@ -15,6 +15,7 @@
         XCircle,
     } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
+    import CopyButton from '../../../Components/UI/CopyButton.svelte';
 
     let { auth, submissions, filters, stats } = $props();
 
@@ -23,6 +24,7 @@
 
     let filterStatus = $state(untrack(() => filters.status ?? ''));
     let filterDocType = $state(untrack(() => filters.doc_type ?? ''));
+    let retryingId = $state(null);
 
     const applyFilters = () => {
         router.get('/fe/submissions', { status: filterStatus, doc_type: filterDocType }, { preserveState: true, replace: true });
@@ -35,7 +37,11 @@
     };
 
     const retrySubmission = (id) => {
-        router.post(`/fe/submissions/${id}/retry`, {}, { preserveScroll: true });
+        retryingId = id;
+        router.post(`/fe/submissions/${id}/retry`, {}, {
+            preserveScroll: true,
+            onFinish: () => { retryingId = null; },
+        });
     };
 
     const statusBadge = (status) => {
@@ -243,9 +249,12 @@
                                 </td>
                                 <td>
                                     {#if item.xml_document_key}
-                                        <span class="font-monospace" style="font-size:.7rem" title={item.xml_document_key}>
-                                            {item.xml_document_key.slice(0, 16)}…
-                                        </span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            <span class="font-monospace" style="font-size:.7rem" title={item.xml_document_key}>
+                                                {item.xml_document_key.slice(0, 16)}…
+                                            </span>
+                                            <CopyButton text={item.xml_document_key} label="Copiar CUFE" />
+                                        </div>
                                     {:else}
                                         <span class="text-secondary">—</span>
                                     {/if}
@@ -259,8 +268,13 @@
                                             type="button"
                                             title="Reintentar envío"
                                             onclick={() => retrySubmission(item.id)}
+                                            disabled={retryingId === item.id}
                                         >
-                                            <RefreshCw size={13} />
+                                            {#if retryingId === item.id}
+                                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                                            {:else}
+                                                <RefreshCw size={13} />
+                                            {/if}
                                             Reintentar
                                         </button>
                                     {/if}

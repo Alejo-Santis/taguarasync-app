@@ -64,7 +64,7 @@
         .fe-section .fe-title { font-weight: bold; font-size: 10px; letter-spacing: 1px; margin-bottom: 2px; }
         .fe-cufe { font-size: 8px; word-break: break-all; color: #333; line-height: 1.3; }
         .fe-qr { text-align: center; margin: 4px 0; }
-        .fe-qr img { width: 28mm; height: 28mm; }
+        .fe-qr svg { width: 28mm; height: 28mm; }
 
         @media print {
             body { width: 80mm; }
@@ -89,7 +89,7 @@
             <td>Comprobante</td>
             <td class="bold">
                 @if($sale->invoice_prefix)
-                    {{ $sale->invoice_prefix }}{{ $sale->document_number }}
+                    {{ $sale->invoice_prefix }}{{ $sale->invoice_number ?? $sale->document_number }}
                 @else
                     {{ $sale->document_number }}
                 @endif
@@ -250,9 +250,9 @@
     <div class="separator"></div>
     <div class="fe-section">
         <p class="fe-title center">FACTURA ELECTRONICA DIAN</p>
-        @if($sale->fe_qr_code)
+        @if($feQrSvg)
         <div class="fe-qr">
-            <img src="{{ $sale->fe_qr_code }}" alt="QR DIAN" />
+            {!! $feQrSvg !!}
         </div>
         @endif
         <p class="fe-cufe">CUFE: {{ $sale->fe_cufe }}</p>

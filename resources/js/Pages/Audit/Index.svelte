@@ -2,6 +2,8 @@
     import { Link, router } from '@inertiajs/svelte';
     import { ActivitySquare, AlertTriangle, ArrowUpDown, CheckCircle2, FileText, RotateCcw, ShieldCheck, ShieldQuestion, XCircle } from '@lucide/svelte';
     import AppLayout from '../../Layouts/AppLayout.svelte';
+    import Skeleton from '../../Components/UI/Skeleton.svelte';
+    import CopyButton from '../../Components/UI/CopyButton.svelte';
 
     let { auth, active_tab, is_super_admin, fe, radian, movements } = $props();
 
@@ -74,12 +76,42 @@
         <!-- ── Tab: API FE ─────────────────────────────────────────── -->
         {#if active_tab === 'fe'}
             {#if !fe}
-                <div class="taguara-panel">
-                    <div class="taguara-empty-state" style="min-height:120px">
-                        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-                        <p class="text-secondary small mb-0">Cargando envíos FE...</p>
+                <section class="row g-3" aria-busy="true" aria-label="Cargando envíos FE">
+                    <div class="col-12 col-sm-4">
+                        <div class="taguara-kpi-card">
+                            <Skeleton width="44px" height="44px" radius="var(--taguara-radius)" />
+                            <div class="flex-grow-1">
+                                <Skeleton width="60%" height="0.8rem" />
+                                <div class="mt-2"><Skeleton width="40%" height="1.3rem" /></div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                    <div class="col-12 col-sm-4">
+                        <div class="taguara-kpi-card">
+                            <Skeleton width="44px" height="44px" radius="var(--taguara-radius)" />
+                            <div class="flex-grow-1">
+                                <Skeleton width="60%" height="0.8rem" />
+                                <div class="mt-2"><Skeleton width="40%" height="1.3rem" /></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="taguara-panel">
+                            <Skeleton width="30%" height="1.1rem" />
+                            <div class="mt-3">
+                                {#each Array(5) as _}
+                                    <div class="taguara-skeleton-row">
+                                        <Skeleton width="18%" height="0.9rem" />
+                                        <Skeleton width="30%" height="0.9rem" />
+                                        <Skeleton width="12%" height="0.9rem" />
+                                        <Skeleton width="15%" height="0.9rem" />
+                                        <Skeleton width="20%" height="0.9rem" />
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+                    </div>
+                </section>
             {:else}
                 <section class="row g-3">
                     <div class="col-12 col-sm-4">
@@ -132,7 +164,14 @@
                                         {#if is_super_admin}<td class="fw-semibold" style="font-size:.85rem">{row.tenant ?? '—'}</td>{/if}
                                         <td><span class="badge text-bg-light border text-secondary">{row.document_type}</span></td>
                                         <td class="text-secondary" style="font-size:.8rem;max-width:180px">
-                                            <div class="text-truncate" title={row.xml_document_key}>{row.xml_document_key ?? '—'}</div>
+                                            {#if row.xml_document_key}
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <div class="text-truncate" title={row.xml_document_key}>{row.xml_document_key}</div>
+                                                    <CopyButton text={row.xml_document_key} label="Copiar CUFE" />
+                                                </div>
+                                            {:else}
+                                                —
+                                            {/if}
                                         </td>
                                         <td class="text-center">{row.attempts}</td>
                                         <td>
@@ -172,12 +211,20 @@
         <!-- ── Tab: RADIAN ────────────────────────────────────────── -->
         {:else if active_tab === 'radian'}
             {#if !radian}
-                <div class="taguara-panel">
-                    <div class="taguara-empty-state" style="min-height:120px">
-                        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-                        <p class="text-secondary small mb-0">Cargando historial RADIAN...</p>
+                <section class="taguara-panel" aria-busy="true" aria-label="Cargando historial RADIAN">
+                    <Skeleton width="25%" height="1.1rem" />
+                    <div class="mt-3">
+                        {#each Array(6) as _}
+                            <div class="taguara-skeleton-row">
+                                <Skeleton width="20%" height="0.9rem" />
+                                <Skeleton width="22%" height="0.9rem" />
+                                <Skeleton width="18%" height="0.9rem" />
+                                <Skeleton width="14%" height="0.9rem" />
+                                <Skeleton width="14%" height="0.9rem" />
+                            </div>
+                        {/each}
                     </div>
-                </div>
+                </section>
             {:else}
                 <section class="taguara-panel">
                     <div class="taguara-panel-header">
@@ -209,7 +256,10 @@
                                         <td class="text-secondary" style="font-size:.875rem">{row.supplier ?? '—'}</td>
                                         <td style="font-size:.75rem;max-width:160px">
                                             {#if row.supplier_cufe}
-                                                <code class="text-secondary text-truncate d-block" title={row.supplier_cufe}>{row.supplier_cufe.slice(0, 20)}…</code>
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <code class="text-secondary text-truncate d-block" title={row.supplier_cufe}>{row.supplier_cufe.slice(0, 20)}…</code>
+                                                    <CopyButton text={row.supplier_cufe} label="Copiar CUFE" />
+                                                </div>
                                             {:else}
                                                 <span class="text-secondary fst-italic">Sin CUFE</span>
                                             {/if}
@@ -254,12 +304,21 @@
         <!-- ── Tab: Movimientos ───────────────────────────────────── -->
         {:else if active_tab === 'movements'}
             {#if !movements}
-                <div class="taguara-panel">
-                    <div class="taguara-empty-state" style="min-height:120px">
-                        <div class="spinner-border spinner-border-sm text-secondary" role="status"></div>
-                        <p class="text-secondary small mb-0">Cargando movimientos...</p>
+                <section class="taguara-panel" aria-busy="true" aria-label="Cargando movimientos de inventario">
+                    <Skeleton width="28%" height="1.1rem" />
+                    <div class="mt-3">
+                        {#each Array(7) as _}
+                            <div class="taguara-skeleton-row">
+                                <Skeleton width="12%" height="0.9rem" />
+                                <Skeleton width="14%" height="0.9rem" />
+                                <Skeleton width="22%" height="0.9rem" />
+                                <Skeleton width="10%" height="0.9rem" />
+                                <Skeleton width="16%" height="0.9rem" />
+                                <Skeleton width="16%" height="0.9rem" />
+                            </div>
+                        {/each}
                     </div>
-                </div>
+                </section>
             {:else}
                 <section class="taguara-panel">
                     <div class="taguara-panel-header">

@@ -22,6 +22,7 @@
 
     let form = $state({ q: '', status: '', radian_status: '' });
     let selectedReceipt = $state(null);
+    let validatingRadianUuid = $state(null);
 
     const money = new Intl.NumberFormat('es-CO', {
         style: 'currency',
@@ -74,7 +75,11 @@
     };
 
     const validateRadian = (receipt) => {
-        router.post(`/purchases/${receipt.uuid}/validate-radian`, {}, { preserveScroll: true });
+        validatingRadianUuid = receipt.uuid;
+        router.post(`/purchases/${receipt.uuid}/validate-radian`, {}, {
+            preserveScroll: true,
+            onFinish: () => { validatingRadianUuid = null; },
+        });
     };
 </script>
 
@@ -358,8 +363,13 @@
                             class="btn btn-sm btn-light border d-inline-flex align-items-center gap-2"
                             type="button"
                             onclick={() => validateRadian(selectedReceipt)}
+                            disabled={validatingRadianUuid === selectedReceipt.uuid}
                         >
-                            <ShieldCheck size={15} />
+                            {#if validatingRadianUuid === selectedReceipt.uuid}
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                            {:else}
+                                <ShieldCheck size={15} />
+                            {/if}
                             Validar
                         </button>
                     </div>

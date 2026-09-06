@@ -309,7 +309,7 @@ class EmitCreditNote
             'discrepancyresponsedescription' => $this->discrepancyLabel($creditNote->discrepancy_reason_code),
             'billing_reference' => [
                 'uuid' => $sale->fe_cufe,
-                'number' => ($sale->invoice_prefix ?? '').$sale->document_number,
+                'number' => ($sale->invoice_prefix ?? '').($sale->invoice_number ?? $sale->document_number),
                 'issue_date' => $sale->created_at->format('Y-m-d'),
             ],
             'legal_monetary_totals' => [

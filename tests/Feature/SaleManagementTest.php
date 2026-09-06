@@ -170,7 +170,7 @@ test('sale show returns items and fe details', function () {
 test('voiding a completed sale restores inventory and marks it voided', function () {
     $tenant = Tenant::factory()->create();
     $user = saleManagementUser($tenant);
-    ['sale' => $sale, 'lot' => $lot] = saleWithLotAndItem($tenant, $user);
+    ['sale' => $sale, 'lot' => $lot] = saleWithLotAndItem($tenant, $user, FeStatus::NotApplicable);
 
     $this->actingAs($user)
         ->post("/sales/{$sale->uuid}/void")
@@ -190,6 +190,22 @@ test('a sale cannot be voided twice', function () {
         ->assertSessionHasErrors('void');
 
     expect($sale->fresh()->status)->toBe(SaleStatus::Voided);
+});
+
+test('a sale already accepted by the DIAN cannot be voided directly', function () {
+    $tenant = Tenant::factory()->create();
+    $user = saleManagementUser($tenant);
+    ['sale' => $sale, 'lot' => $lot] = saleWithLotAndItem($tenant, $user, saleOverrides: [
+        'fe_status' => FeStatus::Accepted,
+        'fe_cufe' => 'abc123',
+    ]);
+
+    $this->actingAs($user)
+        ->post("/sales/{$sale->uuid}/void")
+        ->assertSessionHasErrors('void');
+
+    expect($sale->fresh()->status)->toBe(SaleStatus::Completed)
+        ->and($lot->fresh()->current_quantity)->toBe(90);
 });
 
 test('users without sales.cancel permission cannot void a sale', function () {

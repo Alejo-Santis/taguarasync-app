@@ -21,6 +21,7 @@ use App\Http\Controllers\Purchases\PurchaseOrderController;
 use App\Http\Controllers\Purchases\PurchaseReceiptController;
 use App\Http\Controllers\Purchases\SupplierPayableController;
 use App\Http\Controllers\Purchases\SupplierReturnController;
+use App\Http\Controllers\PushSubscriptionController;
 use App\Http\Controllers\Reports\CashSessionReportController;
 use App\Http\Controllers\Reports\ExportReportController;
 use App\Http\Controllers\Reports\FiscalReportController;
@@ -71,6 +72,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::patch('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::post('/push-subscriptions', [PushSubscriptionController::class, 'store'])->name('push-subscriptions.store');
+    Route::delete('/push-subscriptions', [PushSubscriptionController::class, 'destroy'])->name('push-subscriptions.destroy');
 });
 
 // ── Dashboard y búsqueda ───────────────────────────────────────────────────
@@ -225,6 +228,7 @@ Route::middleware(['auth', 'permission:sales.view'])->prefix('sales')->name('sal
     Route::get('payments/{salePayment}/attachment', [SalePaymentAttachmentController::class, 'show'])->name('payments.attachment');
     Route::get('{sale}', [SaleController::class, 'show'])->name('show');
     Route::get('{sale}/receipt', [SaleController::class, 'receipt'])->name('receipt');
+    Route::get('{sale}/invoice', [SaleController::class, 'invoice'])->name('invoice');
 });
 
 // ── Ventas — anulación ────────────────────────────────────────────────────

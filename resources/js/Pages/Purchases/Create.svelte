@@ -148,7 +148,7 @@
 
                         <div class="col-12 col-md-6">
                             <label class="form-label" for="document_number">Numero de documento</label>
-                            <input id="document_number" class:is-invalid={error('document_number')} class="form-control" type="text" bind:value={form.document_number} placeholder="REM-1001">
+                            <input id="document_number" class:is-invalid={error('document_number')} class="form-control" type="text" bind:value={form.document_number} placeholder="Ej: REM-1001">
                             {#if error('document_number')}<div class="invalid-feedback">{error('document_number')}</div>{/if}
                         </div>
 
@@ -276,7 +276,7 @@
                                     </select>
                                 </td>
                                 <td style="min-width: 120px">
-                                    <input class:is-invalid={error(`items.${index}.lot_number`)} class="form-control form-control-sm" type="text" bind:value={item.lot_number} placeholder="LOT-001">
+                                    <input class:is-invalid={error(`items.${index}.lot_number`)} class="form-control form-control-sm" type="text" bind:value={item.lot_number} placeholder="Ej: LOT-001">
                                 </td>
                                 <td style="min-width: 140px">
                                     <input class:is-invalid={error(`items.${index}.expires_on`)} class="form-control form-control-sm" type="date" bind:value={item.expires_on}>

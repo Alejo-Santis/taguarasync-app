@@ -21,6 +21,7 @@
     } from '@lucide/svelte';
     import AppLayout from '../../../Layouts/AppLayout.svelte';
     import SettingsNav from '../../../Components/Settings/SettingsNav.svelte';
+    import CopyButton from '../../../Components/UI/CopyButton.svelte';
 
     let { auth, tenant, fe_config, resolutions, options } = $props();
     // ── Algoritmo DV colombiano (DIAN) ─────────────────────────────────────────
@@ -470,14 +471,17 @@
                                             Origen: {fe_config.api_token_source === 'tenant' ? 'configuración de la farmacia' : 'token global del servidor'}
                                         </p>
                                     </div>
-                                    <button
-                                        class="btn btn-sm btn-light border taguara-icon-button-sm"
-                                        type="button"
-                                        aria-label={showStoredToken ? 'Ocultar token actual' : 'Ver token actual'}
-                                        onclick={() => showStoredToken = !showStoredToken}
-                                    >
-                                        {#if showStoredToken}<EyeOff size={15} />{:else}<Eye size={15} />{/if}
-                                    </button>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <CopyButton text={fe_config.api_token_value} label="Copiar token" />
+                                        <button
+                                            class="btn btn-sm btn-light border taguara-icon-button-sm"
+                                            type="button"
+                                            aria-label={showStoredToken ? 'Ocultar token actual' : 'Ver token actual'}
+                                            onclick={() => showStoredToken = !showStoredToken}
+                                        >
+                                            {#if showStoredToken}<EyeOff size={15} />{:else}<Eye size={15} />{/if}
+                                        </button>
+                                    </div>
                                 </div>
                                 <input
                                     class="form-control font-monospace"
@@ -659,6 +663,7 @@
                                             <span class="badge text-bg-light border fw-semibold" style="font-size:.8rem">{item.prefix}</span>
                                         {/if}
                                         <span class="text-secondary" style="font-size:.875rem">{item.resolution_number}</span>
+                                        <CopyButton text={item.resolution_number} label="Copiar número de resolución" />
                                     </div>
                                     <div class="taguara-table-sub">{item.resolution_date}</div>
                                 </td>

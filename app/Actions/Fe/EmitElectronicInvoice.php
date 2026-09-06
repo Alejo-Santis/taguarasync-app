@@ -134,6 +134,7 @@ class EmitElectronicInvoice
                     'fe_cufe' => $cufe,
                     'fe_qr_code' => $qr,
                     'fe_status' => FeStatus::Accepted,
+                    'fe_error_message' => null,
                     'fe_sent_at' => now(),
                     'fe_accepted_at' => now(),
                 ]);
@@ -157,6 +158,7 @@ class EmitElectronicInvoice
                         'fe_cufe' => $cufe,
                         'fe_qr_code' => $qr,
                         'fe_status' => FeStatus::Accepted,
+                        'fe_error_message' => null,
                         'fe_sent_at' => now(),
                         'fe_accepted_at' => now(),
                     ]);
@@ -205,6 +207,7 @@ class EmitElectronicInvoice
 
                 $sale->update([
                     'fe_status' => FeStatus::Accepted,
+                    'fe_error_message' => null,
                     'fe_accepted_at' => now(),
                     'fe_cufe' => $cufe,
                 ]);
