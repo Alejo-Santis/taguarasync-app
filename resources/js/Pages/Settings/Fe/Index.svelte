@@ -235,6 +235,36 @@
 
         <SettingsNav active="fe" />
 
+        <!-- Estado: activar/desactivar FE para esta farmacia -->
+        <section class="taguara-panel">
+            <div class="taguara-panel-header align-items-start">
+                <div>
+                    <p class="text-uppercase small fw-semibold text-success mb-1">Estado</p>
+                    <h3 class="h5 mb-1">Facturación electrónica</h3>
+                    <p class="text-secondary small mb-0">
+                        Al activarla, cada venta completada en el POS se envía automáticamente a la DIAN a través de Nextpyme.
+                        Desactivada, las ventas quedan como comprobantes internos sin transmitir.
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    class={`btn btn-sm d-inline-flex align-items-center gap-2 flex-shrink-0 ${fiscalForm.electronic_invoicing_enabled ? 'btn-taguara' : 'btn-light border'}`}
+                    onclick={() => (fiscalForm.electronic_invoicing_enabled = !fiscalForm.electronic_invoicing_enabled)}
+                >
+                    {#if fiscalForm.electronic_invoicing_enabled}
+                        <ToggleRight size={16} /> Activada
+                    {:else}
+                        <ToggleLeft size={16} /> Desactivada
+                    {/if}
+                </button>
+            </div>
+            {#if fiscalForm.electronic_invoicing_enabled !== (fe_config.electronic_invoicing_enabled ?? false)}
+                <p class="text-warning small mb-0 mt-2">
+                    <AlertCircle size={13} class="me-1" />Tienes un cambio sin guardar — pulsa "Guardar configuración" para aplicarlo.
+                </p>
+            {/if}
+        </section>
+
         <!-- Datos de la empresa -->
         <section class="taguara-panel">
                 <div class="taguara-panel-header align-items-start">
