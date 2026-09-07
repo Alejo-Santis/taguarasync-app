@@ -353,6 +353,7 @@ Route::middleware(['auth', 'permission:billing.configure'])->prefix('settings')-
     Route::get('fe', [FeSettingsController::class, 'index'])->name('fe.index');
     Route::put('fe', [FeSettingsController::class, 'update'])->name('fe.update');
     Route::post('fe/test-connection', [FeSettingsController::class, 'testConnection'])->name('fe.test-connection');
+    Route::get('fe/resolutions/nextpyme', [FeResolutionController::class, 'fetchFromNextpyme'])->name('fe.resolutions.nextpyme');
     Route::post('fe/resolutions', [FeResolutionController::class, 'store'])->name('fe.resolutions.store');
     Route::put('fe/resolutions/{feResolution}', [FeResolutionController::class, 'update'])->name('fe.resolutions.update');
     Route::patch('fe/resolutions/{feResolution}/toggle', [FeResolutionController::class, 'toggle'])->name('fe.resolutions.toggle');

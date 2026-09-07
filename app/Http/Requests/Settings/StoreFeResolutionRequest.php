@@ -28,7 +28,9 @@ class StoreFeResolutionRequest extends FormRequest
             'prefix' => ['nullable', 'string', 'max:10'],
             'resolution_number' => ['required', 'string', 'max:40'],
             'resolution_date' => ['required', 'date'],
-            'technical_key' => ['required', 'string'],
+            // Solo la factura de venta lleva clave técnica (numeración autorizada
+            // DIAN). Notas crédito/débito no la generan.
+            'technical_key' => ['nullable', 'string', 'required_if:type,invoice'],
             'from_number' => ['required', 'integer', 'min:1'],
             'to_number' => ['required', 'integer', 'gt:from_number'],
             'next_document_number' => ['nullable', 'integer', 'gte:from_number', 'lte:to_number'],

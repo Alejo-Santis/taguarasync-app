@@ -141,6 +141,58 @@
     // ── Resoluciones DIAN ─────────────────────────────────────────────────────
     let drawerOpen = $state(false);
     let editingResolution = $state(null);
+    let nextpymePanelOpen = $state(false);
+    let nextpymeLoading = $state(false);
+    let nextpymeError = $state(null);
+    let nextpymeResolutions = $state([]);
+
+    const fetchNextpymeResolutions = async () => {
+        nextpymePanelOpen = true;
+        nextpymeLoading = true;
+        nextpymeError = null;
+
+        try {
+            const response = await fetch(options.routes?.fetch_nextpyme_resolutions ?? '/settings/fe/resolutions/nextpyme', {
+                headers: { 'Accept': 'application/json' },
+            });
+            const contentType = response.headers.get('content-type') ?? '';
+            const data = contentType.includes('application/json') ? await response.json() : null;
+
+            if (!data || !data.ok) {
+                nextpymeError = data?.message ?? `No se pudo consultar NextPyme (HTTP ${response.status}).`;
+                nextpymeResolutions = [];
+            } else {
+                nextpymeResolutions = data.resolutions ?? [];
+            }
+        } catch (error) {
+            nextpymeError = 'No se pudo ejecutar la consulta a NextPyme.';
+            nextpymeResolutions = [];
+        } finally {
+            nextpymeLoading = false;
+        }
+    };
+
+    // Trae los datos al formulario de "Nueva resolución" para que el usuario
+    // los revise y complete antes de guardar — nunca se escriben directo a la BD.
+    const useNextpymeResolution = (item) => {
+        if (!item.supported) return;
+
+        editingResolution = null;
+        resolutionForm.reset();
+        resolutionForm.type = item.type;
+        resolutionForm.prefix = item.prefix ?? '';
+        resolutionForm.resolution_number = item.resolution_number ?? '';
+        resolutionForm.resolution_date = item.resolution_date ?? '';
+        resolutionForm.technical_key = item.type === 'invoice' ? (item.technical_key ?? '') : '';
+        resolutionForm.from_number = item.from_number ?? '';
+        resolutionForm.to_number = item.to_number ?? '';
+        resolutionForm.next_document_number = item.current_number ? item.current_number + 1 : '';
+        resolutionForm.valid_from = item.valid_from ?? '';
+        resolutionForm.valid_until = item.valid_until ?? '';
+        resolutionForm.environment = fiscalForm.environment;
+        nextpymePanelOpen = false;
+        drawerOpen = true;
+    };
 
     const resolutionForm = useForm(() => ({
         code: '',
@@ -662,11 +714,63 @@
                     <p class="text-uppercase small fw-semibold text-success mb-1">Resoluciones DIAN</p>
                     <h3 class="h5 mb-0">{resolutions.length} resolución{resolutions.length !== 1 ? 'es' : ''} registrada{resolutions.length !== 1 ? 's' : ''}</h3>
                 </div>
-                <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="button" onclick={openCreate}>
-                    <Plus size={17} />
-                    Nueva resolución
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" type="button" onclick={fetchNextpymeResolutions} disabled={nextpymeLoading}>
+                        <Wifi size={17} />
+                        {nextpymeLoading ? 'Consultando...' : 'Importar desde NextPyme'}
+                    </button>
+                    <button class="btn btn-taguara d-inline-flex align-items-center gap-2" type="button" onclick={openCreate}>
+                        <Plus size={17} />
+                        Nueva resolución
+                    </button>
+                </div>
             </div>
+
+            {#if nextpymePanelOpen}
+                <div class="taguara-subpanel border rounded-3 p-3 mt-2 mb-3 bg-light-subtle">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <p class="fw-semibold mb-0" style="font-size:.9rem">Resoluciones registradas en NextPyme</p>
+                        <button class="btn btn-sm btn-light border taguara-icon-button-sm" type="button" onclick={() => nextpymePanelOpen = false} aria-label="Cerrar">
+                            <X size={14} />
+                        </button>
+                    </div>
+
+                    {#if nextpymeLoading}
+                        <p class="text-secondary mb-0" style="font-size:.875rem">Consultando NextPyme...</p>
+                    {:else if nextpymeError}
+                        <p class="text-danger mb-0" style="font-size:.875rem">{nextpymeError}</p>
+                    {:else if nextpymeResolutions.length === 0}
+                        <p class="text-secondary mb-0" style="font-size:.875rem">NextPyme no devolvió resoluciones para esta empresa.</p>
+                    {:else}
+                        <div class="vstack gap-2">
+                            {#each nextpymeResolutions as item}
+                                <div class="d-flex align-items-center justify-content-between gap-2 border rounded-2 p-2 bg-body">
+                                    <div style="font-size:.85rem">
+                                        <div class="fw-semibold">
+                                            {item.supported ? resolutionTypeLabel(item.type) : `Tipo NextPyme #${item.type_document_id} (no soportado aquí)`}
+                                        </div>
+                                        <div class="text-secondary">
+                                            {item.prefix ?? '—'} · {item.resolution_number ?? 'sin número'} · {item.from_number ?? '?'}–{item.to_number ?? '?'}
+                                            {#if item.valid_from || item.valid_until}
+                                                · vigente {item.valid_from ?? '?'} → {item.valid_until ?? '?'}
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    <button
+                                        class="btn btn-sm btn-outline-success flex-shrink-0"
+                                        type="button"
+                                        disabled={!item.supported}
+                                        title={item.supported ? 'Cargar estos datos en el formulario' : 'Este tipo de documento no se gestiona en Resoluciones DIAN'}
+                                        onclick={() => useNextpymeResolution(item)}
+                                    >
+                                        Usar estos datos
+                                    </button>
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
+                </div>
+            {/if}
 
             <div class="taguara-table-wrapper mt-2">
                 <table class="taguara-table">
@@ -820,6 +924,11 @@
                                     class="form-select"
                                     class:is-invalid={resolutionForm.errors.type}
                                     bind:value={resolutionForm.type}
+                                    onchange={() => {
+                                        if (resolutionForm.type !== 'invoice') {
+                                            resolutionForm.technical_key = '';
+                                        }
+                                    }}
                                 >
                                     {#each options.resolution_types as t}
                                         <option value={t.value}>{t.label}</option>
@@ -865,20 +974,24 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label class="form-label" for="res-key">Clave técnica <span class="text-danger">*</span></label>
-                            <input
-                                id="res-key"
-                                class="form-control font-monospace"
-                                class:is-invalid={resolutionForm.errors.technical_key}
-                                type="text"
-                                placeholder="fc8eac422eba16e22ffd..."
-                                bind:value={resolutionForm.technical_key}
-                            />
-                            {#if resolutionForm.errors.technical_key}
-                                <div class="invalid-feedback">{resolutionForm.errors.technical_key}</div>
-                            {/if}
-                        </div>
+                        {#if resolutionForm.type === 'invoice'}
+                            <div>
+                                <label class="form-label" for="res-key">Clave técnica <span class="text-danger">*</span></label>
+                                <input
+                                    id="res-key"
+                                    class="form-control font-monospace"
+                                    class:is-invalid={resolutionForm.errors.technical_key}
+                                    type="text"
+                                    placeholder="fc8eac422eba16e22ffd..."
+                                    bind:value={resolutionForm.technical_key}
+                                />
+                                {#if resolutionForm.errors.technical_key}
+                                    <div class="invalid-feedback">{resolutionForm.errors.technical_key}</div>
+                                {:else}
+                                    <div class="form-text">La entrega la DIAN al autorizar el rango de numeración de facturación.</div>
+                                {/if}
+                            </div>
+                        {/if}
 
                         <div class="row g-3">
                             <div class="col-6">

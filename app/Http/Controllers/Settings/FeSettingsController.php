@@ -94,6 +94,7 @@ class FeSettingsController extends Controller
             'options' => [
                 'routes' => [
                     'test_connection' => route('settings.fe.test-connection', [], false),
+                    'fetch_nextpyme_resolutions' => route('settings.fe.resolutions.nextpyme', [], false),
                 ],
                 'identification_types' => DianIdentificationType::where('is_active', true)
                     ->orderBy('name')->get(['code', 'name']),

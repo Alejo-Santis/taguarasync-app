@@ -94,3 +94,48 @@ test('users can adjust the next document number when editing a resolution', func
 
     expect($resolution->send()->first()->next_consecutive)->toBe(1699);
 });
+
+test('credit note resolutions do not require a technical key', function () {
+    $tenant = Tenant::factory()->create();
+    $user = feResolutionSettingsUser($tenant);
+
+    $this->actingAs($user)
+        ->post('/settings/fe/resolutions', [
+            'code' => 'NC-PROD',
+            'type' => 'credit_note',
+            'prefix' => 'NC',
+            'resolution_number' => '18760000001',
+            'resolution_date' => '2026-05-01',
+            'from_number' => 1,
+            'to_number' => 99999999,
+            'valid_from' => '2026-05-01',
+            'valid_until' => '2027-05-01',
+            'environment' => 'production',
+        ])
+        ->assertRedirect()
+        ->assertSessionDoesntHaveErrors();
+
+    $resolution = FeResolution::withoutGlobalScopes()->where('type', 'credit_note')->firstOrFail();
+
+    expect($resolution->technical_key)->toBeNull();
+});
+
+test('invoice resolutions still require a technical key', function () {
+    $tenant = Tenant::factory()->create();
+    $user = feResolutionSettingsUser($tenant);
+
+    $this->actingAs($user)
+        ->post('/settings/fe/resolutions', [
+            'code' => 'FV-NOKEY',
+            'type' => 'invoice',
+            'prefix' => 'FV',
+            'resolution_number' => '18760000001',
+            'resolution_date' => '2026-05-01',
+            'from_number' => 1,
+            'to_number' => 1000,
+            'valid_from' => '2026-05-01',
+            'valid_until' => '2027-05-01',
+            'environment' => 'production',
+        ])
+        ->assertSessionHasErrors('technical_key');
+});

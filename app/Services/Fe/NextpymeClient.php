@@ -93,6 +93,16 @@ class NextpymeClient
         ]);
     }
 
+    /**
+     * Lista las resoluciones de numeración registradas en NextPyme para la
+     * empresa autenticada por el token. No usa el prefijo /ubl2.1/.
+     * GET /reports/resolutions
+     */
+    public function getResolutions(): array
+    {
+        return $this->get('/reports/resolutions');
+    }
+
     /** @deprecated Usar checkRadianEvents() / sendRadianEvent() con el CUFE del proveedor. */
     public function validatePurchaseDocument(array $payload): array
     {
@@ -130,6 +140,24 @@ class NextpymeClient
                 return $exception instanceof RequestException && $exception->response->serverError();
             }, throw: false)
             ->post("{$this->baseUrl}{$path}", $payload);
+
+        $this->assertSuccessful($response, $path);
+
+        return $response->json() ?? [];
+    }
+
+    private function get(string $path): array
+    {
+        if (empty($this->globalToken)) {
+            throw new RuntimeException('No hay token FE configurado. Agrégalo en Configuración → Facturación electrónica o en FE_API_TOKEN del .env.');
+        }
+
+        $response = Http::withToken($this->globalToken)
+            ->acceptJson()
+            ->timeout(60)
+            ->connectTimeout(10)
+            ->retry(1, 2000, fn (Exception $exception): bool => $exception instanceof ConnectionException, throw: false)
+            ->get("{$this->baseUrl}{$path}");
 
         $this->assertSuccessful($response, $path);
 

@@ -2,17 +2,31 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Fe\FetchNextpymeResolutions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\StoreFeResolutionRequest;
 use App\Http\Requests\Settings\UpdateFeResolutionRequest;
 use App\Models\FeResolution;
 use App\Models\FeSend;
+use App\Support\Tenancy\CurrentTenant;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 class FeResolutionController extends Controller
 {
+    public function fetchFromNextpyme(CurrentTenant $currentTenant, FetchNextpymeResolutions $action): JsonResponse
+    {
+        $tenant = $currentTenant->get();
+
+        if (! $tenant) {
+            return response()->json(['ok' => false, 'message' => 'Sin empresa asociada.', 'resolutions' => []], 422);
+        }
+
+        return response()->json($action->execute($tenant));
+    }
+
     public function store(StoreFeResolutionRequest $request): RedirectResponse
     {
         DB::transaction(function () use ($request): void {
